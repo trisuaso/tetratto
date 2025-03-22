@@ -16,3 +16,4 @@ axum = { version = "0.8.1", features = ["macros"] }
 tokio = { version = "1.44.0", features = ["macros", "rt-multi-thread"] }
 rainbeam-shared = "1.0.1"
 serde_json = "1.0.140"
+axum-extra = { version = "0.10.0", features = ["cookie"] }

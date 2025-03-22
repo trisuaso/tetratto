@@ -1,28 +1,14 @@
 use super::model::{Error, Result, User};
 use crate::config::Config;
+use crate::write_template;
 
 use pathbufd::PathBufD as PathBuf;
 use rainbeam_shared::hash::hash_salted;
 use rusqlite::{Connection, Result as SqlResult, Row};
-use std::fs::{create_dir, exists, write};
+use std::fs::{create_dir, exists};
 use tera::{Context, Tera};
 
 pub struct DataManager(pub(crate) Config, pub Tera);
-
-macro_rules! write_template {
-    ($atto_dir:ident->$path:literal($as:expr)) => {
-        write($atto_dir.join($path), $as).unwrap();
-    };
-
-    ($atto_dir:ident->$path:literal($as:expr) -d $dir_path:literal) => {
-        let dir = $atto_dir.join($dir_path);
-        if !exists(&dir).unwrap() {
-            create_dir(dir).unwrap();
-        }
-
-        write($atto_dir.join($path), $as).unwrap();
-    };
-}
 
 impl DataManager {
     /// Obtain a connection to the staging database.

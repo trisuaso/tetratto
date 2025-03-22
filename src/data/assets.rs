@@ -6,6 +6,8 @@ pub const ATTO_JS: &str = include_str!("../public/js/atto.js");
 
 // html
 pub const ROOT: &str = include_str!("../public/html/root.html");
+pub const REDIRECT_TO_AUTH: &str =
+    "<head><meta http-equiv=\"refresh\" content=\"0; url=/_atto/login\" /></head>";
 
 pub const AUTH_BASE: &str = include_str!("../public/html/auth/base.html");
 pub const LOGIN: &str = include_str!("../public/html/auth/login.html");

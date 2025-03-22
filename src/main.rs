@@ -1,5 +1,6 @@
 mod config;
 mod data;
+mod macros;
 mod routes;
 
 use data::DataManager;

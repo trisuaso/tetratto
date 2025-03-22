@@ -12,6 +12,8 @@ pub enum Error {
     RegistrationDisabled,
     DatabaseError,
     IncorrectPassword,
+    AlreadyAuthenticated,
+    Unknown,
 }
 
 impl ToString for Error {
@@ -21,6 +23,7 @@ impl ToString for Error {
             Error::UserNotFound => "Unable to find user with given parameters".to_string(),
             Error::RegistrationDisabled => "Registration is disabled".to_string(),
             Error::IncorrectPassword => "The given password is invalid".to_string(),
+            Error::AlreadyAuthenticated => "Already authenticated".to_string(),
             _ => format!("An unknown error as occurred ({:?})", self),
         }
     }
