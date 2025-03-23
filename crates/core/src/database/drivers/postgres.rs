@@ -34,17 +34,9 @@ impl DataManager {
             },
             NoTls,
         );
+
         let pool = Pool::builder().max_size(15).build(manager).await.unwrap();
-
-        let this = Self(config.clone(), read_langs(), pool);
-        let c = this.clone();
-        let conn = c.connect().await?;
-
-        conn.execute(super::common::CREATE_TABLE_USERS, &[])
-            .await
-            .unwrap();
-
-        Ok(this)
+        Ok(Self(config.clone(), read_langs(), pool))
     }
 }
 

@@ -12,6 +12,14 @@ pub fn routes() -> Router {
         .route("/auth/register", post(auth::register_request))
         .route("/auth/login", post(auth::login_request))
         .route("/auth/logout", post(auth::logout_request))
+        .route(
+            "/auth/upload/avatar",
+            post(auth::images::upload_avatar_request),
+        )
+        .route(
+            "/auth/upload/banner",
+            post(auth::images::upload_banner_request),
+        )
         // profile
         .route(
             "/auth/profile/{id}/avatar",

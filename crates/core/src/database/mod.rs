@@ -1,7 +1,7 @@
 mod auth;
+mod common;
 mod drivers;
-
-use super::model::auth::{Token, User};
+mod pages;
 
 #[cfg(feature = "sqlite")]
 pub use drivers::sqlite::*;

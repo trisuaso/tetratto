@@ -30,10 +30,13 @@ async fn main() {
     let html_path = write_assets(&config).await;
 
     // ...
+    let database = DataManager::new(config.clone()).await.unwrap();
+    database.init().await.unwrap();
+
     let app = Router::new()
         .merge(routes::routes(&config))
         .layer(Extension(Arc::new(RwLock::new((
-            DataManager::new(config.clone()).await.unwrap(),
+            database,
             Tera::new(&format!("{html_path}/**/*")).unwrap(),
         )))))
         .layer(

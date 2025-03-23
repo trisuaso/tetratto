@@ -1,11 +1,10 @@
+use super::permissions::FinePermission;
 use serde::{Deserialize, Serialize};
 use tetratto_shared::{
     hash::{hash_salted, salt},
     snow::AlmostSnowflake,
     unix_epoch_timestamp,
 };
-
-use super::permissions::FinePermission;
 
 /// `(ip, token, creation timestamp)`
 pub type Token = (String, String, usize);

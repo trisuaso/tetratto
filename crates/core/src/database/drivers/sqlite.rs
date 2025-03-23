@@ -15,10 +15,9 @@ impl DataManager {
     /// Create a new [`DataManager`] (and init database).
     pub async fn new(config: Config) -> Result<Self> {
         let this = Self(config.clone(), read_langs());
-        let conn = this.connect().await?;
 
+        let conn = this.connect().await?;
         conn.pragma_update(None, "journal_mode", "WAL").unwrap();
-        conn.execute(super::common::CREATE_TABLE_USERS, ()).unwrap();
 
         Ok(this)
     }

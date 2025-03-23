@@ -1,5 +1,7 @@
 pub mod auth;
+pub mod journal;
 pub mod permissions;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -14,8 +16,10 @@ where
 
 #[derive(Debug)]
 pub enum Error {
+    MiscError(String),
     DatabaseConnection(String),
     UserNotFound,
+    GeneralNotFound(String),
     RegistrationDisabled,
     DatabaseError(String),
     IncorrectPassword,
@@ -29,9 +33,11 @@ pub enum Error {
 impl ToString for Error {
     fn to_string(&self) -> String {
         match self {
+            Self::MiscError(msg) => msg.to_owned(),
             Self::DatabaseConnection(msg) => msg.to_owned(),
             Self::DatabaseError(msg) => format!("Database error: {msg}"),
             Self::UserNotFound => "Unable to find user with given parameters".to_string(),
+            Self::GeneralNotFound(name) => format!("Unable to find requested {name}"),
             Self::RegistrationDisabled => "Registration is disabled".to_string(),
             Self::IncorrectPassword => "The given password is invalid".to_string(),
             Self::NotAllowed => "You are not allowed to do this".to_string(),

@@ -1,6 +1,9 @@
 use super::*;
-use crate::model::permissions::FinePermission;
-use crate::model::{Error, Result};
+use crate::model::{
+    Error, Result,
+    auth::{Token, User},
+    permissions::FinePermission,
+};
 use crate::{execute, get, query_row};
 
 use tetratto_shared::hash::hash_salted;
