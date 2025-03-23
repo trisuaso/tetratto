@@ -1,0 +1,45 @@
+{% macro nav(selected="", show_lhs=true) -%}
+<nav>
+    <div class="content_container">
+        <div class="flex nav_side">
+            <a href="/" class="button desktop title">
+                <b>{{ config.name }}</b>
+            </a>
+
+            {% if show_lhs %}
+            <a
+                href="/"
+                class="button {% if selected == 'home' %}active{% endif %}"
+                >Home</a
+            >
+            {% endif %}
+        </div>
+
+        <div class="flex nav_side">
+            {% if user %}
+            <div class="dropdown">
+                <button
+                    class="flex-row title"
+                    onclick="trigger('atto::hooks::dropdown', [event])"
+                    exclude="dropdown"
+                    style="gap: 0.25rem !important"
+                >
+                    {{ macros::avatar(username=user.username, size="24px") }}
+                </button>
+            </div>
+            {% else %}
+            <a href="/auth/login" class="button">Login</a>
+            <a href="/auth/register" class="button">Register</a>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+{%- endmacro %} {% macro avatar(username, size="24px") -%}
+<img
+    title="{{ username }}'s avatar"
+    src="/api/v1/auth/profile/{{ username }}/avatar"
+    alt="@{{ username }}"
+    class="avatar shadow"
+    style="--size: {{ size }}"
+/>
+{%- endmacro %}

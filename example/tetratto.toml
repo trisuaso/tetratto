@@ -3,7 +3,6 @@ port = 4118
 
 [security]
 registration_enabled = true
-admin_user = "admin"
 
 [dirs]
 templates = "html"

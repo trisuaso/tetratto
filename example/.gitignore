@@ -1,3 +1,9 @@
-atto.db
-html/_atto/
-public/_atto/
+atto.db*
+
+html/*
+!html/.gitkeep
+
+public/*
+!public/.gitkeep
+
+media/*

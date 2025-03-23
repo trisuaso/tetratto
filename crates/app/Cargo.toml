@@ -1,0 +1,26 @@
+[package]
+name = "tetratto"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+postgres = ["tetratto_core/postgres"]
+sqlite = ["tetratto_core/sqlite"]
+default = ["sqlite"]
+
+[dependencies]
+pathbufd = "0.1.4"
+serde = { version = "1.0.219", features = ["derive"] }
+tera = "1.20.0"
+toml = "0.8.20"
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+tower-http = { version = "0.6.2", features = ["trace", "fs"] }
+axum = { version = "0.8.1", features = ["macros"] }
+tokio = { version = "1.44.0", features = ["macros", "rt-multi-thread"] }
+rainbeam-shared = "1.0.1"
+serde_json = "1.0.140"
+axum-extra = { version = "0.10.0", features = ["cookie", "multipart"] }
+tetratto_core = { path = "../tetratto_core", default-features = false }
+image = "0.25.5"
+mime_guess = "2.0.5"

@@ -1,0 +1,9 @@
+{% extends "root.html" %} {% block body %}
+<main class="flex flex-col gap-2" style="max-width: 25rem">
+    <h2 class="w-full text-center">{% block title %}{% endblock %}</h2>
+    <div class="card w-full flex flex-col gap-4 justify-center align-center">
+        {% block content %}{% endblock %}
+    </div>
+    {% block footer %}{% endblock %}
+</main>
+{% endblock %}

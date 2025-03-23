@@ -1,0 +1,28 @@
+[package]
+name = "tetratto_core"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+postgres = ["dep:tokio-postgres", "dep:bb8-postgres"]
+sqlite = ["dep:rusqlite"]
+default = ["sqlite"]
+
+[dependencies]
+pathbufd = "0.1.4"
+serde = { version = "1.0.219", features = ["derive"] }
+tera = "1.20.0"
+toml = "0.8.20"
+tracing = "0.1.41"
+tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
+tower-http = { version = "0.6.2", features = ["trace", "fs"] }
+axum = { version = "0.8.1", features = ["macros"] }
+tokio = { version = "1.44.0", features = ["macros", "rt-multi-thread"] }
+rainbeam-shared = "1.0.1"
+serde_json = "1.0.140"
+axum-extra = { version = "0.10.0", features = ["cookie"] }
+
+rusqlite = { version = "0.34.0", optional = true }
+
+tokio-postgres = { version = "0.7.13", optional = true }
+bb8-postgres = { version = "0.9.0", optional = true }

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+
+        <link rel="stylesheet" href="/css/style.css" />
+
+        <script src="/js/loader.js"></script>
+        <script defer async src="/js/atto.js"></script>
+
+        <script>
+            globalThis.ns_verbose = false;
+            globalThis.ns_config = {
+                root: "/js/",
+                verbose: globalThis.ns_verbose,
+            };
+
+            globalThis._app_base = {
+                name: "tetratto",
+                ns_store: {},
+                classes: {},
+            };
+
+            globalThis.no_policy = false;
+        </script>
+
+        <meta name="theme-color" content="{{ config.color }}" />
+        <meta name="description" content="{{ config.description }}" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="{{ config.name }}" />
+
+        <meta name="turbo-prefetch" content="false" />
+        <meta name="turbo-refresh-method" content="morph" />
+        <meta name="turbo-refresh-scroll" content="preserve" />
+
+        <script
+            src="https://unpkg.com/@hotwired/turbo@8.0.5/dist/turbo.es2017-esm.js"
+            type="module"
+            async
+            defer
+        ></script>
+
+        {% block head %}{% endblock %}
+    </head>
+
+    <body>
+        <div id="toast_zone"></div>
+
+        {% block body %}{% endblock %}
+
+        <script data-turbo-permanent="true" id="init-script">
+            document.documentElement.addEventListener("turbo:load", () => {
+                const atto = ns("atto");
+
+                atto.disconnect_observers();
+                atto.clean_date_codes();
+                atto.link_filter();
+
+                atto["hooks::scroll"](document.body, document.documentElement);
+                atto["hooks::dropdown.init"](window);
+                atto["hooks::character_counter.init"]();
+                atto["hooks::long_text.init"]();
+                atto["hooks::alt"]();
+                // atto["hooks::ips"]();
+                atto["hooks::check_reactions"]();
+                atto["hooks::tabs"]();
+                atto["hooks::partial_embeds"]();
+            });
+        </script>
+    </body>
+</html>

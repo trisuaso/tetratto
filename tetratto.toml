@@ -1,0 +1,16 @@
+name = "Tetratto"
+description = "🐐 tetratto!"
+color = "#c9b1bc"
+port = 4118
+
+[security]
+registration_enabled = true
+admin_user = "admin"
+real_ip_header = "CF-Connecting-IP"
+
+[dirs]
+templates = "html"
+assets = "public"
+
+[database]
+name = "atto.db"

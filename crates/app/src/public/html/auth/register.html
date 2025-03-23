@@ -1,0 +1,62 @@
+{% extends "auth/base.html" %} {% block head %}
+<title>🐐 Register</title>
+{% endblock %} {% block title %}Register{% endblock %} {% block content %}
+<form class="w-full flex flex-col gap-4" onsubmit="register(event)">
+    <div class="flex flex-col gap-1">
+        <label for="username"><b>Username</b></label>
+        <input
+            type="text"
+            placeholder="username"
+            required
+            name="username"
+            id="username"
+        />
+    </div>
+
+    <div class="flex flex-col gap-1">
+        <label for="username"><b>Password</b></label>
+        <input
+            type="password"
+            placeholder="password"
+            required
+            name="password"
+            id="password"
+        />
+    </div>
+
+    <button>Submit</button>
+</form>
+
+<script>
+    function register(e) {
+        e.preventDefault();
+        fetch("/api/v1/auth/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                username: e.target.username.value,
+                password: e.target.password.value,
+            }),
+        })
+            .then((res) => res.json())
+            .then((res) => {
+                trigger("atto::toast", [
+                    res.ok ? "sucesss" : "error",
+                    res.message,
+                ]);
+
+                if (res.ok) {
+                    setTimeout(() => {
+                        window.location.href = "/";
+                    }, 150);
+                }
+            });
+    }
+</script>
+{% endblock %} {% block footer %}
+<span class="small w-full text-center"
+    >Or, <a href="/auth/login">login</a></span
+>
+{% endblock %}

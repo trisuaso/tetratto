@@ -4,15 +4,11 @@ This is the year of the personal website.
 
 Tetratto (`4 * 10^-18`) is a _super_ simple **dynamic** site server which takes in a conglomeration of HTML files (which are actually Jinja templates) and static files like CSS and JS, then serves them!
 
-You _might_ by wondering: "why dynamic and not just generate a static site then?" Well the answer is simple! I needed something to manage my server remotely through my browser, and most things were just overly complicated for this simple feat.
-
 ## Features
 
 - Templated HTML files (`html/` directory)
 - Markdown posts (`posts/` directory, served with `html/post.html` template)
 - Super simple SQLite database for authentication (and other stuff)
-- Web terminal for managing your server
-    - Must be enabled in `tetratto.toml` in project root
 
 ## Usage
 
