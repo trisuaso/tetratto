@@ -5,6 +5,8 @@ use tetratto_shared::{
     unix_epoch_timestamp,
 };
 
+use super::permissions::FinePermission;
+
 /// `(ip, token, creation timestamp)`
 pub type Token = (String, String, usize);
 
@@ -17,6 +19,7 @@ pub struct User {
     pub salt: String,
     pub settings: UserSettings,
     pub tokens: Vec<Token>,
+    pub permissions: FinePermission,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -45,6 +48,7 @@ impl User {
             salt,
             settings: UserSettings::default(),
             tokens: Vec::new(),
+            permissions: FinePermission::DEFAULT,
         }
     }
 

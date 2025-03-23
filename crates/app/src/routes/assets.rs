@@ -1,27 +1,16 @@
 use axum::response::IntoResponse;
 
-/// `/public/favicon.svg`
-pub async fn favicon_request() -> impl IntoResponse {
-    ([("Content-Type", "image/svg+xml")], crate::assets::FAVICON)
+macro_rules! serve_asset {
+    ($fn_name:ident: $name:ident($type:literal)) => {
+        pub async fn $fn_name() -> impl IntoResponse {
+            ([("Content-Type", $type)], crate::assets::$name)
+        }
+    };
 }
 
-/// `/css/style.css`
-pub async fn style_css_request() -> impl IntoResponse {
-    ([("Content-Type", "text/css")], crate::assets::STYLE_CSS)
-}
+serve_asset!(favicon_request: FAVICON("image/svg+xml"));
+serve_asset!(style_css_request: STYLE_CSS("text/css"));
 
-/// `/js/atto.js`
-pub async fn atto_js_request() -> impl IntoResponse {
-    (
-        [("Content-Type", "text/javascript")],
-        crate::assets::ATTO_JS,
-    )
-}
-
-/// `/js/atto.js`
-pub async fn loader_js_request() -> impl IntoResponse {
-    (
-        [("Content-Type", "text/javascript")],
-        crate::assets::LOADER_JS,
-    )
-}
+serve_asset!(loader_js_request: LOADER_JS("text/javascript"));
+serve_asset!(atto_js_request: ATTO_JS("text/javascript"));
+serve_asset!(me_js_request: ME_JS("text/javascript"));

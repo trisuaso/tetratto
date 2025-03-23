@@ -11,6 +11,7 @@ use axum::{
     response::IntoResponse,
 };
 use axum_extra::extract::CookieJar;
+use tetratto_shared::hash::hash;
 
 /// `/api/v1/auth/register`
 pub async fn register_request(
@@ -20,7 +21,7 @@ pub async fn register_request(
     Json(props): Json<AuthProps>,
 ) -> impl IntoResponse {
     let data = &(data.read().await).0;
-    let user = get_user_from_token!((jar, data) <optional>);
+    let user = get_user_from_token!(jar, data);
 
     if user.is_some() {
         return (
@@ -75,7 +76,7 @@ pub async fn login_request(
     Json(props): Json<AuthProps>,
 ) -> impl IntoResponse {
     let data = &(data.read().await).0;
-    let user = get_user_from_token!((jar, data) <optional>);
+    let user = get_user_from_token!(jar, data);
 
     if user.is_some() {
         return (None, Json(Error::AlreadyAuthenticated.into()));
@@ -121,6 +122,53 @@ pub async fn login_request(
         Json(ApiReturn {
             ok: true,
             message: unhashed_token_id,
+            payload: (),
+        }),
+    )
+}
+
+/// `/api/v1/auth/logout`
+pub async fn logout_request(
+    jar: CookieJar,
+    Extension(data): Extension<State>,
+) -> impl IntoResponse {
+    let data = &(data.read().await).0;
+    let user = match get_user_from_token!(jar, data) {
+        Some(ua) => ua,
+        None => return (None, Json(Error::NotAllowed.into())),
+    };
+
+    // update tokens
+    let token = jar
+        .get("__Secure-atto-token")
+        .unwrap()
+        .to_string()
+        .replace("__Secure-atto-token=", "");
+
+    let mut new_tokens = user.tokens.clone();
+    new_tokens.remove(
+        new_tokens
+            .iter()
+            .position(|t| t.1 == hash(token.to_string()))
+            .unwrap(),
+    );
+
+    if let Err(e) = data.update_user_tokens(user.id, new_tokens).await {
+        return (None, Json(e.into()));
+    }
+
+    // ...
+    (
+        Some([(
+            "Set-Cookie",
+            format!(
+                "__Secure-atto-token={}; SameSite=Lax; Secure; Path=/; HostOnly=true; HttpOnly=true; Max-Age=0",
+                "refresh",
+            ),
+        )]),
+        Json(ApiReturn {
+            ok: true,
+            message: "Goodbye!".to_string(),
             payload: (),
         }),
     )

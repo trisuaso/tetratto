@@ -5,5 +5,6 @@ CREATE TABLE IF NOT EXISTS users (
     password TEXT NOT NULL,
     salt TEXT NOT NULL,
     settings TEXT NOT NULL,
-    tokens TEXT NOT NULL
+    tokens TEXT NOT NULL,
+    permissions INTEGER NOT NULL
 )

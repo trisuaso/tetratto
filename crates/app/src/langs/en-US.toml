@@ -2,5 +2,15 @@ name = "com.tetratto.langs:en-US"
 version = "1.0.0"
 
 [data]
-"general:action.login" = "Login"
-"general:action.register" = "Register"
+"general:link.home" = "Home"
+
+"dialog:action.okay" = "Ok"
+"dialog:action.continue" = "Continue"
+"dialog:action.cancel" = "Cancel"
+"dialog:action.yes" = "Yes"
+"dialog:action.no" = "No"
+
+"auth:action.login" = "Login"
+"auth:action.register" = "Register"
+"auth:action.logout" = "Logout"
+"auth:link.my_profile" = "My profile"

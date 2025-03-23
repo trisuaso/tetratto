@@ -22,6 +22,7 @@
             globalThis.ns_config = {
                 root: "/js/",
                 verbose: globalThis.ns_verbose,
+                version: "cache-breaker-{{ random_cache_breaker }}",
             };
 
             globalThis._app_base = {
@@ -76,5 +77,141 @@
                 atto["hooks::partial_embeds"]();
             });
         </script>
+
+        <!-- dialogs -->
+        <dialog id="link_filter">
+            <div class="inner">
+                <p>Pressing continue will bring you to the following URL:</p>
+                <pre><code id="link_filter_url"></code></pre>
+                <p>Are sure you want to go there?</p>
+
+                <hr />
+                <div class="flex gap-2">
+                    <a
+                        class="button primary bold"
+                        id="link_filter_continue"
+                        rel="noopener noreferrer"
+                        target="_blank"
+                        onclick="document.getElementById('link_filter').close()"
+                    >
+                        {{ text "dialog:action.continue" }}
+                    </a>
+                    <button
+                        class="bold"
+                        type="button"
+                        onclick="document.getElementById('link_filter').close()"
+                    >
+                        {{ text "dialog:action.cancel" }}
+                    </button>
+                </div>
+            </div>
+        </dialog>
+
+        <dialog id="web_api_prompt">
+            <div class="inner flex flex-col gap-2">
+                <form
+                    class="flex gap-2 flex-col"
+                    onsubmit="event.preventDefault()"
+                >
+                    <label for="prompt" id="web_api_prompt:msg"></label>
+                    <input id="prompt" name="prompt" />
+
+                    <div class="flex justify-between">
+                        <div></div>
+
+                        <div class="flex gap-2">
+                            <button
+                                class="primary bold circle"
+                                onclick="globalThis.web_api_prompt_submit(document.getElementById('prompt').value); document.getElementById('prompt').value = ''"
+                                type="button"
+                            >
+                                {{ icon "check" }} {{ text "dialog:action.okay"
+                                }}
+                            </button>
+
+                            <button
+                                class="bold red camo"
+                                onclick="globalThis.web_api_prompt_submit('')"
+                                type="button"
+                            >
+                                {{ icon "x" }} {{ text "dialog:action.cancel" }}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </dialog>
+
+        <dialog id="web_api_prompt_long">
+            <div class="inner flex flex-col gap-2">
+                <form
+                    class="flex gap-2 flex-col"
+                    onsubmit="event.preventDefault()"
+                >
+                    <label
+                        for="prompt_long"
+                        id="web_api_prompt_long:msg"
+                    ></label>
+                    <textarea id="prompt_long" name="prompt_long"></textarea>
+
+                    <div class="flex justify-between">
+                        <div></div>
+
+                        <div class="flex gap-2">
+                            <button
+                                class="primary bold circle"
+                                onclick="globalThis.web_api_prompt_long_submit(document.getElementById('prompt_long').value); document.getElementById('prompt_long').value = ''"
+                                type="button"
+                            >
+                                {{ icon "check" }} {{ text "dialog:action.okay"
+                                }}
+                            </button>
+
+                            <button
+                                class="bold red camo"
+                                onclick="globalThis.web_api_prompt_long_submit('')"
+                                type="button"
+                            >
+                                {{ icon "x" }} {{ text "dialog:action.cancel" }}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </dialog>
+
+        <dialog id="web_api_confirm">
+            <div class="inner flex flex-col gap-2">
+                <form
+                    class="flex gap-2 flex-col"
+                    onsubmit="event.preventDefault()"
+                >
+                    <label id="web_api_confirm:msg"></label>
+
+                    <div class="flex justify-between">
+                        <div></div>
+
+                        <div class="flex gap-2">
+                            <button
+                                class="primary bold circle"
+                                onclick="globalThis.web_api_confirm_submit(true)"
+                                type="button"
+                            >
+                                {{ icon "check" }} {{ text "dialog:action.yes"
+                                }}
+                            </button>
+
+                            <button
+                                class="bold red camo"
+                                onclick="globalThis.web_api_confirm_submit(false)"
+                                type="button"
+                            >
+                                {{ icon "x" }} {{ text "dialog:action.no" }}
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </dialog>
     </body>
 </html>

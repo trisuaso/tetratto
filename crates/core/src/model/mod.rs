@@ -1,4 +1,5 @@
 pub mod auth;
+pub mod permissions;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -18,6 +19,7 @@ pub enum Error {
     RegistrationDisabled,
     DatabaseError(String),
     IncorrectPassword,
+    NotAllowed,
     AlreadyAuthenticated,
     DataTooLong(String),
     DataTooShort(String),
@@ -27,14 +29,15 @@ pub enum Error {
 impl ToString for Error {
     fn to_string(&self) -> String {
         match self {
-            Error::DatabaseConnection(msg) => msg.to_owned(),
-            Error::DatabaseError(msg) => format!("Database error: {msg}"),
-            Error::UserNotFound => "Unable to find user with given parameters".to_string(),
-            Error::RegistrationDisabled => "Registration is disabled".to_string(),
-            Error::IncorrectPassword => "The given password is invalid".to_string(),
-            Error::AlreadyAuthenticated => "Already authenticated".to_string(),
-            Error::DataTooLong(name) => format!("Given {name} is too long!"),
-            Error::DataTooShort(name) => format!("Given {name} is too short!"),
+            Self::DatabaseConnection(msg) => msg.to_owned(),
+            Self::DatabaseError(msg) => format!("Database error: {msg}"),
+            Self::UserNotFound => "Unable to find user with given parameters".to_string(),
+            Self::RegistrationDisabled => "Registration is disabled".to_string(),
+            Self::IncorrectPassword => "The given password is invalid".to_string(),
+            Self::NotAllowed => "You are not allowed to do this".to_string(),
+            Self::AlreadyAuthenticated => "Already authenticated".to_string(),
+            Self::DataTooLong(name) => format!("Given {name} is too long!"),
+            Self::DataTooShort(name) => format!("Given {name} is too short!"),
             _ => format!("An unknown error as occurred: ({:?})", self),
         }
     }

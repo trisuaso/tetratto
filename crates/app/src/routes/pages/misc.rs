@@ -8,7 +8,7 @@ use axum_extra::extract::CookieJar;
 /// `/`
 pub async fn index_request(jar: CookieJar, Extension(data): Extension<State>) -> impl IntoResponse {
     let data = data.read().await;
-    let user = get_user_from_token!((jar, data.0) <optional>);
+    let user = get_user_from_token!(jar, data.0);
 
     let lang = get_lang!(jar, data.0);
     let mut context = initial_context(&data.0.0, lang, &user);

@@ -318,6 +318,27 @@ table ol {
     background: var(--color-surface);
 }
 
+.card-nest {
+    box-shadow: var(--shadow-x-offset) var(--shadow-y-offset) var(--shadow-size)
+        var(--color-shadow);
+    border-radius: var(--radius);
+}
+
+.card-nest .card {
+    box-shadow: 0;
+}
+
+.card-nest > .card:first-child {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    background: var(--color-super-raised);
+}
+
+.card-nest > .card:last-child {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+
 /* buttons */
 button,
 .button {
@@ -614,6 +635,11 @@ dialog .inner hr.flipped:last-of-type {
 
 dialog[open] {
     display: block;
+}
+
+dialog::backdrop {
+    background: hsla(0, 0%, 0%, 50%);
+    backdrop-filter: blur(5px);
 }
 
 /* dropdown */

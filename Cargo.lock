@@ -2569,6 +2569,7 @@ name = "tetratto-core"
 version = "0.1.0"
 dependencies = [
  "bb8-postgres",
+ "bitflags 2.9.0",
  "pathbufd",
  "rusqlite",
  "serde",

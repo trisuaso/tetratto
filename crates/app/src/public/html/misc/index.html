@@ -2,22 +2,12 @@
 {{ macros::nav(selected="home") }}
 
 <main class="flex flex-col gap-2">
-    <h1>Hello, world!</h1>
-
-    <div class="pillmenu">
-        <a class="active" href="#">A</a>
-        <a href="#">B</a>
-        <a href="#">C</a>
-    </div>
-
-    <div class="card w-full flex flex-col gap-2">
-        <div class="flex gap-2 flex-wrap">
-            <button>Hello, world!</button>
-            <button class="secondary">Hello, world!</button>
-            <button class="camo">Hello, world!</button>
+    <div class="card-nest">
+        <div class="card">
+            <b>✨ Welcome to <i>{{ config.name }}</i>!</b>
         </div>
 
-        <input type="text" placeholder="abcd" />
+        <div class="card">We're still working on your feed...</div>
     </div>
 </main>
 {% endblock %}

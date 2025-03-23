@@ -1,4 +1,5 @@
 use super::*;
+use crate::model::permissions::FinePermission;
 use crate::model::{Error, Result};
 use crate::{execute, get, query_row};
 
@@ -18,12 +19,13 @@ impl DataManager {
     ) -> User {
         User {
             id: get!(x->0(u64)) as usize,
-            created: get!(x->1(u64)) as usize as usize,
+            created: get!(x->1(u64)) as usize,
             username: get!(x->2(String)),
             password: get!(x->3(String)),
             salt: get!(x->4(String)),
             settings: serde_json::from_str(&get!(x->5(String)).to_string()).unwrap(),
             tokens: serde_json::from_str(&get!(x->6(String)).to_string()).unwrap(),
+            permissions: FinePermission::from_bits(get!(x->7(u32))).unwrap(),
         }
     }
 
@@ -124,15 +126,16 @@ impl DataManager {
 
         let res = execute!(
             &conn,
-            "INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6, $7)",
+            "INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
             &[
-                &data.id.to_string(),
-                &data.created.to_string(),
-                &data.username,
-                &data.password,
-                &data.salt,
-                &serde_json::to_string(&data.settings).unwrap(),
-                &serde_json::to_string(&data.tokens).unwrap(),
+                &data.id.to_string().as_str(),
+                &data.created.to_string().as_str(),
+                &data.username.as_str(),
+                &data.password.as_str(),
+                &data.salt.as_str(),
+                &serde_json::to_string(&data.settings).unwrap().as_str(),
+                &serde_json::to_string(&data.tokens).unwrap().as_str(),
+                &(FinePermission::DEFAULT.bits()).to_string().as_str()
             ]
         );
 

@@ -34,6 +34,9 @@ media_theme_pref();
 (() => {
     const self = reg_ns("atto");
 
+    // init
+    use("me", () => {});
+
     // env
     self.DEBOUNCE = [];
     self.OBSERVERS = [];

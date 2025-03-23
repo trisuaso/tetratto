@@ -8,6 +8,7 @@ use std::{
 use tera::Context;
 use tetratto_core::{config::Config, model::auth::User};
 use tetratto_l10n::LangFile;
+use tetratto_shared::hash::salt;
 use tokio::sync::RwLock;
 
 use crate::{create_dir_if_not_exists, write_if_track, write_template};
@@ -21,8 +22,9 @@ pub const FAVICON: &str = include_str!("./public/images/favicon.svg");
 pub const STYLE_CSS: &str = include_str!("./public/css/style.css");
 
 // js
-pub const ATTO_JS: &str = include_str!("./public/js/atto.js");
 pub const LOADER_JS: &str = include_str!("./public/js/loader.js");
+pub const ATTO_JS: &str = include_str!("./public/js/atto.js");
+pub const ME_JS: &str = include_str!("./public/js/me.js");
 
 // html
 pub const ROOT: &str = include_str!("./public/html/root.html");
@@ -165,11 +167,15 @@ pub(crate) async fn init_dirs(config: &Config) {
     write_template!(langs_path->"en-US.toml"(LANG_EN_US));
 }
 
+/// A random ASCII value inserted into the URL of static assets to "break" the cache. Essentially just for cache busting.
+pub(crate) static CACHE_BREAKER: LazyLock<String> = LazyLock::new(|| salt());
+
 /// Create the initial template context.
 pub(crate) fn initial_context(config: &Config, lang: &LangFile, user: &Option<User>) -> Context {
     let mut ctx = Context::new();
     ctx.insert("config", &config);
     ctx.insert("user", &user);
-    ctx.insert("lang", &lang);
+    ctx.insert("lang", &lang.data);
+    ctx.insert("random_cache_breaker", &CACHE_BREAKER.clone());
     ctx
 }

@@ -55,7 +55,7 @@ macro_rules! create_dir_if_not_exists {
 
 #[macro_export]
 macro_rules! get_user_from_token {
-    (($jar:ident, $db:expr) <optional>) => {{
+    ($jar:ident, $db:expr) => {{
         if let Some(token) = $jar.get("__Secure-atto-token") {
             match $db
                 .get_user_by_token(&tetratto_shared::hash::hash(
@@ -65,17 +65,6 @@ macro_rules! get_user_from_token {
             {
                 Ok(ua) => Some(ua),
                 Err(_) => None,
-            }
-        } else {
-            None
-        }
-    }};
-
-    ($jar:ident, $db:ident) => {{
-        if let Some(token) = $jar.get("__Secure-Atto-Token") {
-            match $db.get_user_by_token(token) {
-                Ok(ua) => ua,
-                Err(_) => return axum::response::Html(crate::data::assets::REDIRECT_TO_AUTH),
             }
         } else {
             None

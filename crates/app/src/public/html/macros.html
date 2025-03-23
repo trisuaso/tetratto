@@ -12,7 +12,7 @@
                 class="button {% if selected == 'home' %}active{% endif %}"
             >
                 {{ icon "house" }}
-                <span class="desktop">Home</span>
+                <span class="desktop">{{ text "general:link.home" }}</span>
             </a>
             {% endif %}
         </div>
@@ -30,6 +30,20 @@
                     {{ macros::avatar(username=user.username, size="24px") }}
                     {{ icon "chevron-down" c(dropdown-arrow) }}
                 </button>
+
+                <div class="inner">
+                    <b class="title">{{ user.username }}</b>
+                    <a href="/@{{ user.username }}">
+                        {{ icon "book-heart" }}
+                        <span>{{ text "auth:link.my_profile" }}</span>
+                    </a>
+
+                    <div class="title"></div>
+                    <button class="red" onclick="trigger('me::logout')">
+                        {{ icon "log-out" }}
+                        <span>{{ text "auth:action.logout" }}</span>
+                    </button>
+                </div>
             </div>
             {% else %}
             <div class="dropdown">
@@ -44,11 +58,11 @@
                 <div class="inner">
                     <a href="/auth/login" class="button">
                         {{ icon "log-in" }}
-                        <span>Login</span>
+                        <span>{{ text "auth:action.login" }}</span>
                     </a>
                     <a href="/auth/register" class="button">
                         {{ icon "user-plus" }}
-                        <span>Register</span>
+                        <span>{{ text "auth:action.register" }}</span>
                     </a>
                 </div>
             </div>

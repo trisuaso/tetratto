@@ -7,9 +7,11 @@ use serde::Deserialize;
 
 pub fn routes() -> Router {
     Router::new()
+        // auth
         // global
         .route("/auth/register", post(auth::register_request))
         .route("/auth/login", post(auth::login_request))
+        .route("/auth/logout", post(auth::logout_request))
         // profile
         .route(
             "/auth/profile/{id}/avatar",

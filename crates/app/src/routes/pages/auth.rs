@@ -8,7 +8,7 @@ use axum_extra::extract::CookieJar;
 /// `/auth/login`
 pub async fn login_request(jar: CookieJar, Extension(data): Extension<State>) -> impl IntoResponse {
     let data = data.read().await;
-    let user = get_user_from_token!((jar, data.0) <optional>);
+    let user = get_user_from_token!(jar, data.0);
 
     if user.is_some() {
         return Err(Redirect::to("/"));
@@ -28,7 +28,7 @@ pub async fn register_request(
     Extension(data): Extension<State>,
 ) -> impl IntoResponse {
     let data = data.read().await;
-    let user = get_user_from_token!((jar, data.0) <optional>);
+    let user = get_user_from_token!(jar, data.0);
 
     if user.is_some() {
         return Err(Redirect::to("/"));
