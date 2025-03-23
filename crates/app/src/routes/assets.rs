@@ -1,5 +1,10 @@
 use axum::response::IntoResponse;
 
+/// `/public/favicon.svg`
+pub async fn favicon_request() -> impl IntoResponse {
+    ([("Content-Type", "image/svg+xml")], crate::assets::FAVICON)
+}
+
 /// `/css/style.css`
 pub async fn style_css_request() -> impl IntoResponse {
     ([("Content-Type", "text/css")], crate::assets::STYLE_CSS)

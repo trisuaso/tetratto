@@ -1,6 +1,6 @@
 [workspace]
-resolver = "3"
-members = ["crates/app", "crates/tetratto_core"]
+resolver = "2"
+members = ["crates/app", "crates/shared", "crates/core", "crates/l10n"]
 package.authors = ["trisuaso"]
 package.repository = "https://github.com/trisuaso/tetratto"
 package.license = "AGPL-3.0-or-later"

@@ -3,11 +3,10 @@ mod avif;
 mod macros;
 mod routes;
 
-use assets::write_assets;
+use assets::{init_dirs, write_assets};
 pub use tetratto_core::*;
 
 use axum::{Extension, Router};
-use pathbufd::PathBufD;
 use tera::Tera;
 use tower_http::trace::{self, TraceLayer};
 use tracing::{Level, info};
@@ -26,24 +25,9 @@ async fn main() {
 
     let config = config::Config::get_config();
 
-    // ...
-    create_dir_if_not_exists!(&config.dirs.media);
-    let images_path =
-        PathBufD::current().extend(&[config.dirs.media.clone(), "images".to_string()]);
-    create_dir_if_not_exists!(&images_path);
-    create_dir_if_not_exists!(
-        &PathBufD::current().extend(&[config.dirs.media.clone(), "avatars".to_string()])
-    );
-    create_dir_if_not_exists!(
-        &PathBufD::current().extend(&[config.dirs.media.clone(), "banners".to_string()])
-    );
-
-    write_template!(images_path->"default-avatar.svg"(assets::DEFAULT_AVATAR));
-    write_template!(images_path->"default-banner.svg"(assets::DEFAULT_BANNER));
-
-    // create templates
-    let html_path = PathBufD::current().join(&config.dirs.templates);
-    write_assets(&html_path);
+    // init
+    init_dirs(&config).await;
+    let html_path = write_assets(&config).await;
 
     // ...
     let app = Router::new()

@@ -1,0 +1,6 @@
+name = "com.tetratto.langs:en-US"
+version = "1.0.0"
+
+[data]
+"general:action.login" = "Login"
+"general:action.register" = "Register"

@@ -10,14 +10,17 @@
             <a
                 href="/"
                 class="button {% if selected == 'home' %}active{% endif %}"
-                >Home</a
             >
+                {{ icon "house" }}
+                <span class="desktop">Home</span>
+            </a>
             {% endif %}
         </div>
 
         <div class="flex nav_side">
             {% if user %}
             <div class="dropdown">
+                <!-- prettier-ignore -->
                 <button
                     class="flex-row title"
                     onclick="trigger('atto::hooks::dropdown', [event])"
@@ -25,11 +28,30 @@
                     style="gap: 0.25rem !important"
                 >
                     {{ macros::avatar(username=user.username, size="24px") }}
+                    {{ icon "chevron-down" c(dropdown-arrow) }}
                 </button>
             </div>
             {% else %}
-            <a href="/auth/login" class="button">Login</a>
-            <a href="/auth/register" class="button">Register</a>
+            <div class="dropdown">
+                <button
+                    class="title"
+                    onclick="trigger('atto::hooks::dropdown', [event])"
+                    exclude="dropdown"
+                >
+                    {{ icon "chevron-down" c(dropdown-arrow) }}
+                </button>
+
+                <div class="inner">
+                    <a href="/auth/login" class="button">
+                        {{ icon "log-in" }}
+                        <span>Login</span>
+                    </a>
+                    <a href="/auth/register" class="button">
+                        {{ icon "user-plus" }}
+                        <span>Register</span>
+                    </a>
+                </div>
+            </div>
             {% endif %}
         </div>
     </div>

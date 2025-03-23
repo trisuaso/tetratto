@@ -51,6 +51,9 @@ pub struct DirsConfig {
     /// Media (user avatars/banners) files directory.
     #[serde(default = "default_dir_media")]
     pub media: String,
+    /// The icons files directory.
+    #[serde(default = "default_dir_icons")]
+    pub icons: String,
 }
 
 fn default_dir_templates() -> String {
@@ -65,12 +68,17 @@ fn default_dir_media() -> String {
     "media".to_string()
 }
 
+fn default_dir_icons() -> String {
+    "icons".to_string()
+}
+
 impl Default for DirsConfig {
     fn default() -> Self {
         Self {
             templates: default_dir_templates(),
             assets: default_dir_assets(),
             media: default_dir_media(),
+            icons: default_dir_icons(),
         }
     }
 }
@@ -122,8 +130,13 @@ pub struct Config {
     /// The locations where different files should be matched.
     #[serde(default = "default_dirs")]
     pub dirs: DirsConfig,
+    /// Database configuration.
     #[serde(default = "default_database")]
     pub database: DatabaseConfig,
+    /// A list of files (just their name, no full path) which are NOT updated to match the
+    /// version built with the server binary.
+    #[serde(default = "default_no_track")]
+    pub no_track: Vec<String>,
 }
 
 fn default_name() -> String {
@@ -153,6 +166,10 @@ fn default_database() -> DatabaseConfig {
     DatabaseConfig::default()
 }
 
+fn default_no_track() -> Vec<String> {
+    Vec::new()
+}
+
 impl Default for Config {
     fn default() -> Self {
         Self {
@@ -163,6 +180,7 @@ impl Default for Config {
             database: default_database(),
             security: default_security(),
             dirs: default_dirs(),
+            no_track: default_no_track(),
         }
     }
 }

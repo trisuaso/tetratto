@@ -1,8 +1,10 @@
 use crate::config::Config;
 use rusqlite::{Connection, Result};
+use std::collections::HashMap;
+use tetratto_l10n::{LangFile, read_langs};
 
 #[derive(Clone)]
-pub struct DataManager(pub Config);
+pub struct DataManager(pub Config, pub HashMap<String, LangFile>);
 
 impl DataManager {
     /// Obtain a connection to the staging database.
@@ -12,7 +14,7 @@ impl DataManager {
 
     /// Create a new [`DataManager`] (and init database).
     pub async fn new(config: Config) -> Result<Self> {
-        let this = Self(config.clone());
+        let this = Self(config.clone(), read_langs());
         let conn = this.connect().await?;
 
         conn.pragma_update(None, "journal_mode", "WAL").unwrap();

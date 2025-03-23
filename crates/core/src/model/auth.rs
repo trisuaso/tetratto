@@ -1,9 +1,9 @@
-use rainbeam_shared::{
+use serde::{Deserialize, Serialize};
+use tetratto_shared::{
     hash::{hash_salted, salt},
     snow::AlmostSnowflake,
     unix_epoch_timestamp,
 };
-use serde::{Deserialize, Serialize};
 
 /// `(ip, token, creation timestamp)`
 pub type Token = (String, String, usize);
@@ -53,12 +53,12 @@ impl User {
     /// # Returns
     /// `(unhashed id, token)`
     pub fn create_token(ip: &str) -> (String, Token) {
-        let unhashed = rainbeam_shared::hash::uuid();
+        let unhashed = tetratto_shared::hash::uuid();
         (
             unhashed.clone(),
             (
                 ip.to_string(),
-                rainbeam_shared::hash::hash(unhashed),
+                tetratto_shared::hash::hash(unhashed),
                 unix_epoch_timestamp() as usize,
             ),
         )

@@ -3,18 +3,23 @@ use bb8_postgres::{
     PostgresConnectionManager,
     bb8::{Pool, PooledConnection},
 };
+use tetratto_l10n::{LangFile, read_langs};
 use tokio_postgres::{Config as PgConfig, NoTls, Row, types::ToSql};
 
 pub type Result<T> = std::result::Result<T, tokio_postgres::Error>;
 pub type Connection<'a> = PooledConnection<'a, PostgresConnectionManager<NoTls>>;
 
 #[derive(Clone)]
-pub struct DataManager(pub Config, pub Pool<PostgresConnectionManager<NoTls>>);
+pub struct DataManager(
+    pub Config,
+    pub HashMap<String, LangFile>,
+    pub Pool<PostgresConnectionManager<NoTls>>,
+);
 
 impl DataManager {
     /// Obtain a connection to the staging database.
     pub(crate) async fn connect(&self) -> Result<Connection> {
-        Ok(self.1.get().await.unwrap())
+        Ok(self.2.get().await.unwrap())
     }
 
     /// Create a new [`DataManager`] (and init database).
@@ -31,7 +36,7 @@ impl DataManager {
         );
         let pool = Pool::builder().max_size(15).build(manager).await.unwrap();
 
-        let this = Self(config.clone(), pool);
+        let this = Self(config.clone(), read_langs(), pool);
         let c = this.clone();
         let conn = c.connect().await?;
 

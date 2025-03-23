@@ -5,6 +5,13 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta http-equiv="X-UA-Compatible" content="ie=edge" />
 
+        <meta
+            http-equiv="content-security-policy"
+            content="default-src 'self' blob:; img-src * data:; media-src *; font-src *; style-src 'unsafe-inline' 'self' blob: *; script-src 'self' 'unsafe-inline' blob: *; object-src 'self' blob: *; upgrade-insecure-requests; connect-src * localhost; frame-src 'self' blob: data: *"
+        />
+
+        <link rel="icon" href="/public/favicon.svg" />
+
         <link rel="stylesheet" href="/css/style.css" />
 
         <script src="/js/loader.js"></script>

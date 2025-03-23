@@ -1,4 +1,4 @@
-use crate::{State, assets::initial_context, get_user_from_token};
+use crate::{State, assets::initial_context, get_lang, get_user_from_token};
 use axum::{
     Extension,
     response::{Html, IntoResponse},
@@ -10,6 +10,8 @@ pub async fn index_request(jar: CookieJar, Extension(data): Extension<State>) ->
     let data = data.read().await;
     let user = get_user_from_token!((jar, data.0) <optional>);
 
-    let mut context = initial_context(&data.0.0, &user);
+    let lang = get_lang!(jar, data.0);
+    let mut context = initial_context(&data.0.0, lang, &user);
+
     Html(data.1.render("misc/index.html", &mut context).unwrap())
 }

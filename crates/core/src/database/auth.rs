@@ -2,7 +2,7 @@ use super::*;
 use crate::model::{Error, Result};
 use crate::{execute, get, query_row};
 
-use rainbeam_shared::hash::hash_salted;
+use tetratto_shared::hash::hash_salted;
 
 #[cfg(feature = "sqlite")]
 use rusqlite::Row;

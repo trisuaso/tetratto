@@ -132,9 +132,17 @@ footer {
 }
 
 /* typo */
-.icon {
-    color: inherit;
+svg.icon {
     stroke: currentColor;
+    width: 18px;
+}
+
+svg.icon.filled {
+    fill: currentColor;
+}
+
+button svg {
+    pointer-events: none;
 }
 
 hr {
@@ -666,9 +674,7 @@ dialog[open] {
 .dropdown .inner button {
     width: 100%;
     padding: 0.25rem var(--horizontal-padding);
-    /* transition:
-        background 0.1s,
-        transform 0.15s; */
+    transition: none !important;
     text-decoration: none;
     display: flex;
     align-items: center;

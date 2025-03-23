@@ -15,9 +15,10 @@ pub fn routes(config: &Config) -> Router {
         .route("/js/atto.js", get(assets::atto_js_request))
         .route("/js/loader.js", get(assets::loader_js_request))
         .nest_service(
-            "/static",
+            "/public",
             get_service(tower_http::services::ServeDir::new(&config.dirs.assets)),
         )
+        .route("/public/favicon.svg", get(assets::favicon_request))
         // api
         .nest("/api/v1", api::v1::routes())
         // pages

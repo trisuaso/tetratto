@@ -1,12 +1,21 @@
 use pathbufd::PathBufD;
+use regex::Regex;
+use std::{
+    collections::HashMap,
+    fs::{exists, read_to_string, write},
+    sync::LazyLock,
+};
 use tera::Context;
 use tetratto_core::{config::Config, model::auth::User};
+use tetratto_l10n::LangFile;
+use tokio::sync::RwLock;
 
-use crate::write_template;
+use crate::{create_dir_if_not_exists, write_if_track, write_template};
 
 // images
 pub const DEFAULT_AVATAR: &str = include_str!("./public/images/default-avatar.svg");
 pub const DEFAULT_BANNER: &str = include_str!("./public/images/default-banner.svg");
+pub const FAVICON: &str = include_str!("./public/images/favicon.svg");
 
 // css
 pub const STYLE_CSS: &str = include_str!("./public/css/style.css");
@@ -25,24 +34,142 @@ pub const AUTH_BASE: &str = include_str!("./public/html/auth/base.html");
 pub const AUTH_LOGIN: &str = include_str!("./public/html/auth/login.html");
 pub const AUTH_REGISTER: &str = include_str!("./public/html/auth/register.html");
 
+// langs
+pub const LANG_EN_US: &str = include_str!("./langs/en-US.toml");
+
 // ...
 
+/// A container for all loaded icons.
+pub(crate) static ICONS: LazyLock<RwLock<HashMap<String, String>>> =
+    LazyLock::new(|| RwLock::new(HashMap::new()));
+
+/// Pull an icon given its name and insert it into [`ICONS`].
+pub(crate) async fn pull_icon(icon: &str, icons_dir: &str) {
+    let writer = &mut ICONS.write().await;
+
+    let icon_url = format!(
+        "https://raw.githubusercontent.com/lucide-icons/lucide/refs/heads/main/icons/{icon}.svg"
+    );
+
+    let file_path = PathBufD::current().extend(&[icons_dir, icon]);
+
+    if exists(&file_path).unwrap() {
+        writer.insert(icon.to_string(), read_to_string(&file_path).unwrap());
+        return;
+    }
+
+    println!("download icon: {icon}");
+    let svg = reqwest::get(icon_url).await.unwrap().text().await.unwrap();
+
+    write(&file_path, &svg).unwrap();
+    writer.insert(icon.to_string(), svg);
+}
+
+/// Read a string and replace all custom blocks with the corresponding correct HTML.
+///
+/// # Replaces
+/// * icons
+/// * icons (with class specifier)
+/// * l10n text
+pub(crate) async fn replace_in_html(input: &str, config: &Config) -> String {
+    let mut input = input.to_string();
+    input = input.replace("<!-- prettier-ignore -->", "");
+
+    // l10n text
+    let text = Regex::new("(\\{\\{)\\s*(text)\\s*\"(.*?)\"\\s*(\\}\\})").unwrap();
+
+    for cap in text.captures_iter(&input.clone()) {
+        let replace_with = format!("{{{{ lang[\"{}\"] }}}}", cap.get(3).unwrap().as_str());
+        input = input.replace(cap.get(0).unwrap().as_str(), &replace_with);
+    }
+
+    // icon (with class)
+    let icon_with_class =
+        Regex::new("(\\{\\{)\\s*(icon)\\s*(.*?)\\s*c\\((.*?)\\)\\s*(\\}\\})").unwrap();
+
+    for cap in icon_with_class.captures_iter(&input.clone()) {
+        let icon = &cap.get(3).unwrap().as_str().replace("\"", "");
+
+        pull_icon(icon, &config.dirs.icons).await;
+
+        let reader = ICONS.read().await;
+        let icon_text = reader.get(icon).unwrap().replace(
+            "<svg",
+            &format!("<svg class=\"icon {}\"", cap.get(4).unwrap().as_str()),
+        );
+
+        input = input.replace(cap.get(0).unwrap().as_str(), &icon_text);
+    }
+
+    // icon (without class)
+    let icon_without_class = Regex::new("(\\{\\{)\\s*(icon)\\s*(.*?)\\s*(\\}\\})").unwrap();
+
+    for cap in icon_without_class.captures_iter(&input.clone()) {
+        let icon = &cap.get(3).unwrap().as_str().replace("\"", "");
+
+        pull_icon(icon, &config.dirs.icons).await;
+
+        let reader = ICONS.read().await;
+        let icon_text = reader
+            .get(icon)
+            .unwrap()
+            .replace("<svg", "<svg class=\"icon\"");
+
+        input = input.replace(cap.get(0).unwrap().as_str(), &icon_text);
+    }
+
+    // return
+    input
+}
+
 /// Set up public directories.
-pub(crate) fn write_assets(html_path: &PathBufD) {
-    write_template!(html_path->"root.html"(crate::assets::ROOT));
-    write_template!(html_path->"macros.html"(crate::assets::MACROS));
+pub(crate) async fn write_assets(config: &Config) -> PathBufD {
+    let html_path = PathBufD::current().join(&config.dirs.templates);
 
-    write_template!(html_path->"misc/index.html"(crate::assets::MISC_INDEX) -d "misc");
+    write_template!(html_path->"root.html"(crate::assets::ROOT) --config=config);
+    write_template!(html_path->"macros.html"(crate::assets::MACROS) --config=config);
 
-    write_template!(html_path->"auth/base.html"(crate::assets::AUTH_BASE) -d "auth");
-    write_template!(html_path->"auth/login.html"(crate::assets::AUTH_LOGIN));
-    write_template!(html_path->"auth/register.html"(crate::assets::AUTH_REGISTER));
+    write_template!(html_path->"misc/index.html"(crate::assets::MISC_INDEX) -d "misc" --config=config);
+
+    write_template!(html_path->"auth/base.html"(crate::assets::AUTH_BASE) -d "auth" --config=config);
+    write_template!(html_path->"auth/login.html"(crate::assets::AUTH_LOGIN) --config=config);
+    write_template!(html_path->"auth/register.html"(crate::assets::AUTH_REGISTER) --config=config);
+
+    html_path
+}
+
+/// Set up extra directories.
+pub(crate) async fn init_dirs(config: &Config) {
+    // images
+    create_dir_if_not_exists!(&config.dirs.media);
+    let images_path = PathBufD::current().extend(&[config.dirs.media.as_str(), "images"]);
+    create_dir_if_not_exists!(&images_path);
+    create_dir_if_not_exists!(
+        &PathBufD::current().extend(&[config.dirs.media.as_str(), "avatars"])
+    );
+    create_dir_if_not_exists!(
+        &PathBufD::current().extend(&[config.dirs.media.as_str(), "banners"])
+    );
+
+    write_if_track!(images_path->"default-avatar.svg"(DEFAULT_AVATAR) --config=config);
+    write_if_track!(images_path->"default-banner.svg"(DEFAULT_BANNER) --config=config);
+    write_if_track!(images_path->"favicon.svg"(FAVICON) --config=config);
+
+    // icons
+    create_dir_if_not_exists!(&PathBufD::current().join(config.dirs.icons.as_str()));
+
+    // langs
+    let langs_path = PathBufD::current().join("langs");
+    create_dir_if_not_exists!(&langs_path);
+
+    write_template!(langs_path->"en-US.toml"(LANG_EN_US));
 }
 
 /// Create the initial template context.
-pub(crate) fn initial_context(config: &Config, user: &Option<User>) -> Context {
+pub(crate) fn initial_context(config: &Config, lang: &LangFile, user: &Option<User>) -> Context {
     let mut ctx = Context::new();
     ctx.insert("config", &config);
     ctx.insert("user", &user);
+    ctx.insert("lang", &lang);
     ctx
 }
