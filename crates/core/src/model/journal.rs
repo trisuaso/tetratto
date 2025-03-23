@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use tetratto_shared::{snow::AlmostSnowflake, unix_epoch_timestamp};
 
 #[derive(Serialize, Deserialize)]
 pub struct JournalPage {
@@ -15,6 +16,24 @@ pub struct JournalPage {
     /// The owner of the journal page (and moderators) are the ***only*** people
     /// capable of removing entries.
     pub write_access: JournalPageWriteAccess,
+}
+
+impl JournalPage {
+    /// Create a new [`JournalPage`].
+    pub fn new(title: String, prompt: String, owner: usize) -> Self {
+        Self {
+            id: AlmostSnowflake::new(1234567890)
+                .to_string()
+                .parse::<usize>()
+                .unwrap(),
+            created: unix_epoch_timestamp() as usize,
+            title,
+            prompt,
+            owner,
+            read_access: JournalPageReadAccess::default(),
+            write_access: JournalPageWriteAccess::default(),
+        }
+    }
 }
 
 /// Who can read a [`JournalPage`].

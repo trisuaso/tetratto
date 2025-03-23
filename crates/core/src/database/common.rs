@@ -19,3 +19,157 @@ impl DataManager {
         Ok(())
     }
 }
+
+#[macro_export]
+macro_rules! auto_method {
+    ($name:ident()@$select_fn:ident -> $query:literal --name=$name_:literal --returns=$returns_:tt) => {
+        pub async fn $name(&self, id: usize) -> Result<$returns_> {
+            let conn = match self.connect().await {
+                Ok(c) => c,
+                Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+            };
+
+            let res = query_row!(&conn, $query, &[&id], |x| { Ok(Self::$select_fn(x)) });
+
+            if res.is_err() {
+                return Err(Error::GeneralNotFound($name_.to_string()));
+            }
+
+            Ok(res.unwrap())
+        }
+    };
+
+    ($name:ident($selector_t:ty)@$select_fn:ident -> $query:literal --name=$name_:literal --returns=$returns_:tt) => {
+        pub async fn $name(&self, selector: $selector_t) -> Result<$returns_> {
+            let conn = match self.connect().await {
+                Ok(c) => c,
+                Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+            };
+
+            let res = query_row!(&conn, $query, &[&selector], |x| { Ok(Self::$select_fn(x)) });
+
+            if res.is_err() {
+                return Err(Error::GeneralNotFound($name_.to_string()));
+            }
+
+            Ok(res.unwrap())
+        }
+    };
+
+    ($name:ident()@$select_fn:ident:$permission:ident -> $query:literal) => {
+        pub async fn $name(&self, id: usize, user: User) -> Result<()> {
+            let page = self.$select_fn(id).await?;
+
+            if user.id != page.owner {
+                if !user.permissions.check(FinePermission::$permission) {
+                    return Err(Error::NotAllowed);
+                }
+            }
+
+            let conn = match self.connect().await {
+                Ok(c) => c,
+                Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+            };
+
+            let res = execute!(&conn, $query, &[&id.to_string()]);
+
+            if let Err(e) = res {
+                return Err(Error::DatabaseError(e.to_string()));
+            }
+
+            Ok(())
+        }
+    };
+
+    ($name:ident($x:ty)@$select_fn:ident:$permission:ident -> $query:literal) => {
+        pub async fn $name(&self, id: usize, user: User, x: $x) -> Result<()> {
+            let y = self.$select_fn(id).await?;
+
+            if user.id != y.owner {
+                if !user.permissions.check(FinePermission::$permission) {
+                    return Err(Error::NotAllowed);
+                }
+            }
+
+            let conn = match self.connect().await {
+                Ok(c) => c,
+                Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+            };
+
+            let res = execute!(&conn, $query, &[&x, &id.to_string()]);
+
+            if let Err(e) = res {
+                return Err(Error::DatabaseError(e.to_string()));
+            }
+
+            Ok(())
+        }
+    };
+
+    ($name:ident($x:ty)@$select_fn:ident:$permission:ident -> $query:literal --serde) => {
+        pub async fn $name(&self, id: usize, user: User, x: $x) -> Result<()> {
+            let y = self.$select_fn(id).await?;
+
+            if user.id != y.owner {
+                if !user.permissions.check(FinePermission::$permission) {
+                    return Err(Error::NotAllowed);
+                }
+            }
+
+            let conn = match self.connect().await {
+                Ok(c) => c,
+                Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+            };
+
+            let res = execute!(
+                &conn,
+                $query,
+                &[&serde_json::to_string(&x).unwrap(), &id.to_string()]
+            );
+
+            if let Err(e) = res {
+                return Err(Error::DatabaseError(e.to_string()));
+            }
+
+            Ok(())
+        }
+    };
+
+    ($name:ident($x:ty) -> $query:literal) => {
+        pub async fn $name(&self, id: usize, x: $x) -> Result<()> {
+            let conn = match self.connect().await {
+                Ok(c) => c,
+                Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+            };
+
+            let res = execute!(&conn, $query, &[&x, &id.to_string()]);
+
+            if let Err(e) = res {
+                return Err(Error::DatabaseError(e.to_string()));
+            }
+
+            Ok(())
+        }
+    };
+
+    ($name:ident($x:ty) -> $query:literal --serde) => {
+        pub async fn $name(&self, id: usize, x: $x) -> Result<()> {
+            let conn = match self.connect().await {
+                Ok(c) => c,
+                Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+            };
+
+            let res = execute!(
+                &conn,
+                $query,
+                &[&serde_json::to_string(&x).unwrap(), &id.to_string()]
+            );
+
+            if let Err(e) = res {
+                return Err(Error::DatabaseError(e.to_string()));
+            }
+
+            Ok(())
+        }
+    };
+}

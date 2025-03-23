@@ -1,7 +1,7 @@
 use super::*;
 use crate::model::auth::User;
 use crate::model::{Error, Result, journal::JournalPage, permissions::FinePermission};
-use crate::{execute, get, query_row};
+use crate::{auto_method, execute, get, query_row};
 
 #[cfg(feature = "sqlite")]
 use rusqlite::Row;
@@ -26,26 +26,7 @@ impl DataManager {
         }
     }
 
-    /// Get a journal page given just its `id`.
-    ///
-    /// # Arguments
-    /// * `id` - the ID of the page
-    pub async fn get_page_by_id(&self, id: &str) -> Result<JournalPage> {
-        let conn = match self.connect().await {
-            Ok(c) => c,
-            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
-        };
-
-        let res = query_row!(&conn, "SELECT * FROM pages WHERE id = $1", &[&id], |x| {
-            Ok(Self::get_page_from_row(x))
-        });
-
-        if res.is_err() {
-            return Err(Error::GeneralNotFound("journal page".to_string()));
-        }
-
-        Ok(res.unwrap())
-    }
+    auto_method!(get_page_by_id()@get_page_from_row -> "SELECT * FROM pages WHERE id = $1" --name="journal page" --returns=JournalPage);
 
     /// Create a new journal page in the database.
     ///
@@ -96,31 +77,9 @@ impl DataManager {
         Ok(())
     }
 
-    /// Create a new user in the database.
-    ///
-    /// # Arguments
-    /// * `id` - the ID of the page
-    /// * `user` - the user deleting the page
-    pub async fn delete_page(&self, id: &str, user: User) -> Result<()> {
-        let page = self.get_page_by_id(id).await?;
-
-        if user.id != page.owner {
-            if !user.permissions.check(FinePermission::MANAGE_JOURNAL_PAGES) {
-                return Err(Error::NotAllowed);
-            }
-        }
-
-        let conn = match self.connect().await {
-            Ok(c) => c,
-            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
-        };
-
-        let res = execute!(&conn, "DELETE FROM pages WHERE id = $1", &[&id]);
-
-        if let Err(e) = res {
-            return Err(Error::DatabaseError(e.to_string()));
-        }
-
-        Ok(())
-    }
+    auto_method!(delete_page()@get_page_by_id:MANAGE_JOURNAL_PAGES -> "DELETE FROM pages WHERE id = $1");
+    auto_method!(update_page_title(String)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET title = $1 WHERE id = $2");
+    auto_method!(update_page_prompt(String)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET prompt = $1 WHERE id = $2");
+    auto_method!(update_page_read_access(String)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET read_access = $1 WHERE id = $2" --serde);
+    auto_method!(update_page_write_access(String)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET write_access = $1 WHERE id = $2" --serde);
 }

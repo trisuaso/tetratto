@@ -4,8 +4,7 @@ use crate::model::{
     auth::{Token, User},
     permissions::FinePermission,
 };
-use crate::{execute, get, query_row};
-
+use crate::{auto_method, execute, get, query_row};
 use tetratto_shared::hash::hash_salted;
 
 #[cfg(feature = "sqlite")]
@@ -32,50 +31,8 @@ impl DataManager {
         }
     }
 
-    /// Get a user given just their `id`.
-    ///
-    /// # Arguments
-    /// * `id` - the ID of the user
-    pub async fn get_user_by_id(&self, id: &str) -> Result<User> {
-        let conn = match self.connect().await {
-            Ok(c) => c,
-            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
-        };
-
-        let res = query_row!(&conn, "SELECT * FROM users WHERE id = $1", &[&id], |x| {
-            Ok(Self::get_user_from_row(x))
-        });
-
-        if res.is_err() {
-            return Err(Error::UserNotFound);
-        }
-
-        Ok(res.unwrap())
-    }
-
-    /// Get a user given just their `username`.
-    ///
-    /// # Arguments
-    /// * `username` - the username of the user
-    pub async fn get_user_by_username(&self, username: &str) -> Result<User> {
-        let conn = match self.connect().await {
-            Ok(c) => c,
-            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
-        };
-
-        let res = query_row!(
-            &conn,
-            "SELECT * FROM users WHERE username = $1",
-            &[&username],
-            |x| Ok(Self::get_user_from_row(x))
-        );
-
-        if res.is_err() {
-            return Err(Error::UserNotFound);
-        }
-
-        Ok(res.unwrap())
-    }
+    auto_method!(get_user_by_id(&str)@get_user_from_row -> "SELECT * FROM users WHERE id = $1" --name="user" --returns=User);
+    auto_method!(get_user_by_username(&str)@get_user_from_row -> "SELECT * FROM users WHERE username = $1" --name="user" --returns=User);
 
     /// Get a user given just their auth token.
     ///
@@ -176,27 +133,5 @@ impl DataManager {
         Ok(())
     }
 
-    /// Update the tokens of the the specified account (by `id`).
-    ///
-    /// # Arguments
-    /// * `id` - the ID of the user
-    /// * `tokens` - the **new** tokens vector for the user
-    pub async fn update_user_tokens(&self, id: usize, tokens: Vec<Token>) -> Result<()> {
-        let conn = match self.connect().await {
-            Ok(c) => c,
-            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
-        };
-
-        let res = execute!(
-            &conn,
-            "UPDATE users SET tokens = $1 WHERE id = $2",
-            &[&serde_json::to_string(&tokens).unwrap(), &id.to_string()]
-        );
-
-        if let Err(e) = res {
-            return Err(Error::DatabaseError(e.to_string()));
-        }
-
-        Ok(())
-    }
+    auto_method!(update_user_tokens(Vec<Token>) -> "UPDATE users SET tokens = $1 WHERE id = $2" --serde);
 }
