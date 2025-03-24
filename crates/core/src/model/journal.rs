@@ -69,3 +69,30 @@ impl Default for JournalPageWriteAccess {
         Self::Authenticated
     }
 }
+
+#[derive(Serialize, Deserialize)]
+pub struct JournalEntry {
+    pub id: usize,
+    pub created: usize,
+    pub content: String,
+    /// The ID of the owner of this entry.
+    pub owner: usize,
+    /// The ID of the [`JournalPage`] this entry belongs to.
+    pub journal: usize,
+}
+
+impl JournalEntry {
+    /// Create a new [`JournalEntry`].
+    pub fn new(content: String, journal: usize, owner: usize) -> Self {
+        Self {
+            id: AlmostSnowflake::new(1234567890)
+                .to_string()
+                .parse::<usize>()
+                .unwrap(),
+            created: unix_epoch_timestamp() as usize,
+            content,
+            owner,
+            journal,
+        }
+    }
+}

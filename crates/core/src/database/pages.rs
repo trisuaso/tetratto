@@ -1,6 +1,7 @@
 use super::*;
 use crate::cache::Cache;
 use crate::model::auth::User;
+use crate::model::journal::{JournalPageReadAccess, JournalPageWriteAccess};
 use crate::model::{Error, Result, journal::JournalPage, permissions::FinePermission};
 use crate::{auto_method, execute, get, query_row};
 
@@ -34,15 +35,11 @@ impl DataManager {
     /// # Arguments
     /// * `data` - a mock [`JournalPage`] object to insert
     pub async fn create_page(&self, data: JournalPage) -> Result<()> {
-        if self.0.security.registration_enabled == false {
-            return Err(Error::RegistrationDisabled);
-        }
-
         // check values
         if data.title.len() < 2 {
             return Err(Error::DataTooShort("title".to_string()));
         } else if data.title.len() > 32 {
-            return Err(Error::DataTooLong("username".to_string()));
+            return Err(Error::DataTooLong("title".to_string()));
         }
 
         if data.prompt.len() < 2 {
@@ -81,6 +78,6 @@ impl DataManager {
     auto_method!(delete_page()@get_page_by_id:MANAGE_JOURNAL_PAGES -> "DELETE FROM pages WHERE id = $1" --cache-key-tmpl="atto.page:{}");
     auto_method!(update_page_title(String)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET title = $1 WHERE id = $2" --cache-key-tmpl="atto.page:{}");
     auto_method!(update_page_prompt(String)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET prompt = $1 WHERE id = $2" --cache-key-tmpl="atto.page:{}");
-    auto_method!(update_page_read_access(String)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET read_access = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.page:{}");
-    auto_method!(update_page_write_access(String)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET write_access = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.page:{}");
+    auto_method!(update_page_read_access(JournalPageReadAccess)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET read_access = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.page:{}");
+    auto_method!(update_page_write_access(JournalPageWriteAccess)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET write_access = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.page:{}");
 }
