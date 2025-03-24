@@ -1,4 +1,5 @@
 use super::*;
+use crate::cache::Cache;
 use crate::model::{
     Error, Result,
     auth::{Token, User},
@@ -31,8 +32,8 @@ impl DataManager {
         }
     }
 
-    auto_method!(get_user_by_id(&str)@get_user_from_row -> "SELECT * FROM users WHERE id = $1" --name="user" --returns=User);
-    auto_method!(get_user_by_username(&str)@get_user_from_row -> "SELECT * FROM users WHERE username = $1" --name="user" --returns=User);
+    auto_method!(get_user_by_id(&str)@get_user_from_row -> "SELECT * FROM users WHERE id = $1" --name="user" --returns=User --cache-key-tmpl="atto.user:{}");
+    auto_method!(get_user_by_username(&str)@get_user_from_row -> "SELECT * FROM users WHERE username = $1" --name="user" --returns=User --cache-key-tmpl="atto.user:{}");
 
     /// Get a user given just their auth token.
     ///
@@ -130,8 +131,11 @@ impl DataManager {
             return Err(Error::DatabaseError(e.to_string()));
         }
 
+        self.2.remove(format!("atto.user:{}", id)).await;
+        self.2.remove(format!("atto.user:{}", user.username)).await;
+
         Ok(())
     }
 
-    auto_method!(update_user_tokens(Vec<Token>) -> "UPDATE users SET tokens = $1 WHERE id = $2" --serde);
+    auto_method!(update_user_tokens(Vec<Token>) -> "UPDATE users SET tokens = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.user:{}");
 }

@@ -1,4 +1,5 @@
 use super::*;
+use crate::cache::Cache;
 use crate::model::auth::User;
 use crate::model::{Error, Result, journal::JournalPage, permissions::FinePermission};
 use crate::{auto_method, execute, get, query_row};
@@ -26,7 +27,7 @@ impl DataManager {
         }
     }
 
-    auto_method!(get_page_by_id()@get_page_from_row -> "SELECT * FROM pages WHERE id = $1" --name="journal page" --returns=JournalPage);
+    auto_method!(get_page_by_id()@get_page_from_row -> "SELECT * FROM pages WHERE id = $1" --name="journal page" --returns=JournalPage --cache-key-tmpl="atto.page:{}");
 
     /// Create a new journal page in the database.
     ///
@@ -77,9 +78,9 @@ impl DataManager {
         Ok(())
     }
 
-    auto_method!(delete_page()@get_page_by_id:MANAGE_JOURNAL_PAGES -> "DELETE FROM pages WHERE id = $1");
-    auto_method!(update_page_title(String)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET title = $1 WHERE id = $2");
-    auto_method!(update_page_prompt(String)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET prompt = $1 WHERE id = $2");
-    auto_method!(update_page_read_access(String)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET read_access = $1 WHERE id = $2" --serde);
-    auto_method!(update_page_write_access(String)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET write_access = $1 WHERE id = $2" --serde);
+    auto_method!(delete_page()@get_page_by_id:MANAGE_JOURNAL_PAGES -> "DELETE FROM pages WHERE id = $1" --cache-key-tmpl="atto.page:{}");
+    auto_method!(update_page_title(String)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET title = $1 WHERE id = $2" --cache-key-tmpl="atto.page:{}");
+    auto_method!(update_page_prompt(String)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET prompt = $1 WHERE id = $2" --cache-key-tmpl="atto.page:{}");
+    auto_method!(update_page_read_access(String)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET read_access = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.page:{}");
+    auto_method!(update_page_write_access(String)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET write_access = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.page:{}");
 }

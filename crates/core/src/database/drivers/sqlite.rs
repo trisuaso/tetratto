@@ -1,10 +1,22 @@
+#[cfg(not(feature = "redis"))]
+use crate::cache::no_cache::NoCache;
+#[cfg(feature = "redis")]
+use crate::cache::redis::RedisCache;
+
+use crate::cache::Cache;
+
 use crate::config::Config;
 use rusqlite::{Connection, Result};
 use std::collections::HashMap;
 use tetratto_l10n::{LangFile, read_langs};
 
 #[derive(Clone)]
-pub struct DataManager(pub Config, pub HashMap<String, LangFile>);
+pub struct DataManager(
+    pub Config,
+    pub HashMap<String, LangFile>,
+    #[cfg(feature = "redis")] pub RedisCache,
+    #[cfg(not(feature = "redis"))] pub NoCache,
+);
 
 impl DataManager {
     /// Obtain a connection to the staging database.
@@ -14,7 +26,14 @@ impl DataManager {
 
     /// Create a new [`DataManager`] (and init database).
     pub async fn new(config: Config) -> Result<Self> {
-        let this = Self(config.clone(), read_langs());
+        let this = Self(
+            config.clone(),
+            read_langs(),
+            #[cfg(feature = "redis")]
+            RedisCache::new().await,
+            #[cfg(not(feature = "redis"))]
+            NoCache::new().await,
+        );
 
         let conn = this.connect().await?;
         conn.pragma_update(None, "journal_mode", "WAL").unwrap();

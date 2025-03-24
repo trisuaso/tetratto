@@ -19,7 +19,7 @@ axum = { version = "0.8.1", features = ["macros"] }
 tokio = { version = "1.44.1", features = ["macros", "rt-multi-thread"] }
 axum-extra = { version = "0.10.0", features = ["cookie", "multipart"] }
 tetratto-shared = { path = "../shared" }
-tetratto-core = { path = "../core", default-features = false }
+tetratto-core = { path = "../core", features = ["redis"], default-features = false }
 tetratto-l10n = { path = "../l10n" }
 
 image = "0.25.5"

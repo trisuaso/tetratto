@@ -1,3 +1,10 @@
+#[cfg(not(feature = "redis"))]
+use crate::cache::no_cache::NoCache;
+#[cfg(feature = "redis")]
+use crate::cache::redis::RedisCache;
+
+use crate::cache::Cache;
+
 use crate::config::Config;
 use bb8_postgres::{
     PostgresConnectionManager,
@@ -13,13 +20,15 @@ pub type Connection<'a> = PooledConnection<'a, PostgresConnectionManager<NoTls>>
 pub struct DataManager(
     pub Config,
     pub HashMap<String, LangFile>,
+    #[cfg(feature = "redis")] pub RedisCache,
+    #[cfg(not(feature = "redis"))] pub NoCache,
     pub Pool<PostgresConnectionManager<NoTls>>,
 );
 
 impl DataManager {
     /// Obtain a connection to the staging database.
     pub(crate) async fn connect(&self) -> Result<Connection> {
-        Ok(self.2.get().await.unwrap())
+        Ok(self.3.get().await.unwrap())
     }
 
     /// Create a new [`DataManager`] (and init database).
@@ -36,7 +45,15 @@ impl DataManager {
         );
 
         let pool = Pool::builder().max_size(15).build(manager).await.unwrap();
-        Ok(Self(config.clone(), read_langs(), pool))
+        Ok(Self(
+            config.clone(),
+            read_langs(),
+            #[cfg(feature = "redis")]
+            RedisCache::new().await,
+            #[cfg(not(feature = "redis"))]
+            NoCache::new().await,
+            pool,
+        ))
     }
 }
 
