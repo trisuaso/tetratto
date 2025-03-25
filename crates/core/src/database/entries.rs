@@ -1,5 +1,6 @@
 use super::*;
 use crate::cache::Cache;
+use crate::model::journal::JournalEntryContext;
 use crate::model::{
     Error, Result, auth::User, journal::JournalEntry, journal::JournalPageWriteAccess,
     permissions::FinePermission,
@@ -24,6 +25,7 @@ impl DataManager {
             content: get!(x->2(String)),
             owner: get!(x->3(u64)) as usize,
             journal: get!(x->4(u64)) as usize,
+            context: serde_json::from_str(&get!(x->5(String))).unwrap(),
         }
     }
 
@@ -79,6 +81,7 @@ impl DataManager {
                 &data.content.as_str(),
                 &data.owner.to_string().as_str(),
                 &data.journal.to_string().as_str(),
+                &serde_json::to_string(&data.context).unwrap().as_str(),
             ]
         );
 
@@ -91,4 +94,5 @@ impl DataManager {
 
     auto_method!(delete_entry()@get_entry_by_id:MANAGE_JOURNAL_ENTRIES -> "DELETE FROM entries WHERE id = $1" --cache-key-tmpl="atto.entry:{}");
     auto_method!(update_entry_content(String)@get_entry_by_id:MANAGE_JOURNAL_ENTRIES -> "UPDATE entries SET content = $1 WHERE id = $2" --cache-key-tmpl="atto.entry:{}");
+    auto_method!(update_entry_context(JournalEntryContext)@get_entry_by_id:MANAGE_JOURNAL_ENTRIES -> "UPDATE entries SET context = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.entry:{}");
 }

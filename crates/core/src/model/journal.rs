@@ -101,6 +101,19 @@ impl JournalPageMembership {
 }
 
 #[derive(Serialize, Deserialize)]
+pub struct JournalEntryContext {
+    pub comments_enabled: bool,
+}
+
+impl Default for JournalEntryContext {
+    fn default() -> Self {
+        Self {
+            comments_enabled: true,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
 pub struct JournalEntry {
     pub id: usize,
     pub created: usize,
@@ -109,6 +122,8 @@ pub struct JournalEntry {
     pub owner: usize,
     /// The ID of the [`JournalPage`] this entry belongs to.
     pub journal: usize,
+    /// Extra information about the journal entry.
+    pub context: JournalEntryContext,
 }
 
 impl JournalEntry {
@@ -123,6 +138,7 @@ impl JournalEntry {
             content,
             owner,
             journal,
+            context: JournalEntryContext::default(),
         }
     }
 }

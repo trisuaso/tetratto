@@ -3,5 +3,6 @@ CREATE TABLE IF NOT EXISTS entries (
     created INTEGER NOT NULL,
     content TEXT NOT NULL,
     owner INTEGER NOT NULL,
-    journal INTEGER NOT NULL
+    journal INTEGER NOT NULL,
+    context TEXT NOT NULL
 )

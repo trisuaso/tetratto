@@ -6,7 +6,9 @@ use axum::{
     routing::{delete, get, post},
 };
 use serde::Deserialize;
-use tetratto_core::model::journal::{JournalPageReadAccess, JournalPageWriteAccess};
+use tetratto_core::model::journal::{
+    JournalEntryContext, JournalPageReadAccess, JournalPageWriteAccess,
+};
 
 pub fn routes() -> Router {
     Router::new()
@@ -35,6 +37,10 @@ pub fn routes() -> Router {
         .route(
             "/entries/{id}/content",
             post(journal::entries::update_content_request),
+        )
+        .route(
+            "/entries/{id}/context",
+            post(journal::entries::update_context_request),
         )
         // auth
         // global
@@ -101,4 +107,9 @@ pub struct CreateJournalEntry {
 #[derive(Deserialize)]
 pub struct UpdateJournalEntryContent {
     pub content: String,
+}
+
+#[derive(Deserialize)]
+pub struct UpdateJournalEntryContext {
+    pub context: JournalEntryContext,
 }
