@@ -6,5 +6,7 @@ CREATE TABLE IF NOT EXISTS users (
     salt TEXT NOT NULL,
     settings TEXT NOT NULL,
     tokens TEXT NOT NULL,
-    permissions INTEGER NOT NULL
+    permissions INTEGER NOT NULL,
+    -- counts
+    notification_count INTEGER NOT NULL
 )

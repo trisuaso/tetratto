@@ -72,3 +72,28 @@ impl User {
         self.password == hash_salted(against, self.salt.clone())
     }
 }
+
+#[derive(Debug, Serialize)]
+pub struct Notification {
+    pub id: usize,
+    pub created: usize,
+    pub title: String,
+    pub content: String,
+    pub owner: usize,
+}
+
+impl Notification {
+    /// Returns a new [`Notification`].
+    pub fn new(title: String, content: String, owner: usize) -> Self {
+        Self {
+            id: AlmostSnowflake::new(1234567890)
+                .to_string()
+                .parse::<usize>()
+                .unwrap(),
+            created: unix_epoch_timestamp() as usize,
+            title,
+            content,
+            owner,
+        }
+    }
+}

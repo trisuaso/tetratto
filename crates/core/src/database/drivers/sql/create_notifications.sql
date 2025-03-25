@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS notifications (
+    id INTEGER NOT NULL PRIMARY KEY,
+    created INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    owner INTEGER NOT NULL
+)

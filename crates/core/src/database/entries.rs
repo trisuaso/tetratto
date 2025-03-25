@@ -20,11 +20,11 @@ impl DataManager {
         #[cfg(feature = "postgres")] x: &Row,
     ) -> JournalEntry {
         JournalEntry {
-            id: get!(x->0(u64)) as usize,
-            created: get!(x->1(u64)) as usize,
+            id: get!(x->0(i64)) as usize,
+            created: get!(x->1(i64)) as usize,
             content: get!(x->2(String)),
-            owner: get!(x->3(u64)) as usize,
-            journal: get!(x->4(u64)) as usize,
+            owner: get!(x->3(i64)) as usize,
+            journal: get!(x->4(i64)) as usize,
             context: serde_json::from_str(&get!(x->5(String))).unwrap(),
             // likes
             likes: get!(x->6(i64)) as isize,

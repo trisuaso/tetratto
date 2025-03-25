@@ -19,10 +19,10 @@ impl DataManager {
         #[cfg(feature = "postgres")] x: &Row,
     ) -> JournalPageMembership {
         JournalPageMembership {
-            id: get!(x->0(u64)) as usize,
-            created: get!(x->1(u64)) as usize,
-            owner: get!(x->2(u64)) as usize,
-            journal: get!(x->3(u64)) as usize,
+            id: get!(x->0(i64)) as usize,
+            created: get!(x->1(i64)) as usize,
+            owner: get!(x->2(i64)) as usize,
+            journal: get!(x->3(i64)) as usize,
             role: JournalPermission::from_bits(get!(x->4(u32))).unwrap(),
         }
     }
@@ -43,7 +43,7 @@ impl DataManager {
         let res = query_row!(
             &conn,
             "SELECT * FROM memberships WHERE owner = $1 AND journal = $2",
-            &[&owner, &journal],
+            &[&(owner as i64), &(journal as i64)],
             |x| { Ok(Self::get_membership_from_row(x)) }
         );
 

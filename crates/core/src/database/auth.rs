@@ -21,8 +21,8 @@ impl DataManager {
         #[cfg(feature = "postgres")] x: &Row,
     ) -> User {
         User {
-            id: get!(x->0(u64)) as usize,
-            created: get!(x->1(u64)) as usize,
+            id: get!(x->0(i64)) as usize,
+            created: get!(x->1(i64)) as usize,
             username: get!(x->2(String)),
             password: get!(x->3(String)),
             salt: get!(x->4(String)),
@@ -87,7 +87,7 @@ impl DataManager {
 
         let res = execute!(
             &conn,
-            "INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+            "INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
             &[
                 &data.id.to_string().as_str(),
                 &data.created.to_string().as_str(),
@@ -96,7 +96,8 @@ impl DataManager {
                 &data.salt.as_str(),
                 &serde_json::to_string(&data.settings).unwrap().as_str(),
                 &serde_json::to_string(&data.tokens).unwrap().as_str(),
-                &(FinePermission::DEFAULT.bits()).to_string().as_str()
+                &(FinePermission::DEFAULT.bits()).to_string().as_str(),
+                &0.to_string().as_str()
             ]
         );
 
@@ -138,4 +139,7 @@ impl DataManager {
     }
 
     auto_method!(update_user_tokens(Vec<Token>) -> "UPDATE users SET tokens = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.user:{}");
+
+    auto_method!(incr_user_notifications() -> "UPDATE users SET notification_count = notification_count + 1 WHERE id = $1" --cache-key-tmpl="atto.user:{}" --reactions-key-tmpl="atto.user.notification_count:{}" --incr);
+    auto_method!(decr_user_notifications() -> "UPDATE users SET notification_count = notification_count - 1 WHERE id = $1" --cache-key-tmpl="atto.user:{}" --reactions-key-tmpl="atto.user.notification_count:{}" --decr);
 }

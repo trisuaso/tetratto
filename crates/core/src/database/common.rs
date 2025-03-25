@@ -13,11 +13,12 @@ impl DataManager {
             Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
         };
 
-        execute!(&conn, common::CREATE_TABLE_USERS, []).unwrap();
-        execute!(&conn, common::CREATE_TABLE_PAGES, []).unwrap();
-        execute!(&conn, common::CREATE_TABLE_ENTRIES, []).unwrap();
-        execute!(&conn, common::CREATE_TABLE_MEMBERSHIPS, []).unwrap();
-        execute!(&conn, common::CREATE_TABLE_REACTIONS, []).unwrap();
+        execute!(&conn, common::CREATE_TABLE_USERS).unwrap();
+        execute!(&conn, common::CREATE_TABLE_PAGES).unwrap();
+        execute!(&conn, common::CREATE_TABLE_ENTRIES).unwrap();
+        execute!(&conn, common::CREATE_TABLE_MEMBERSHIPS).unwrap();
+        execute!(&conn, common::CREATE_TABLE_REACTIONS).unwrap();
+        execute!(&conn, common::CREATE_TABLE_NOTIFICATIONS).unwrap();
 
         Ok(())
     }
@@ -32,7 +33,9 @@ macro_rules! auto_method {
                 Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
             };
 
-            let res = query_row!(&conn, $query, &[&id], |x| { Ok(Self::$select_fn(x)) });
+            let res = query_row!(&conn, $query, &[&(id as i64)], |x| {
+                Ok(Self::$select_fn(x))
+            });
 
             if res.is_err() {
                 return Err(Error::GeneralNotFound($name_.to_string()));
@@ -49,7 +52,9 @@ macro_rules! auto_method {
                 Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
             };
 
-            let res = query_row!(&conn, $query, &[&id], |x| { Ok(Self::$select_fn(x)) });
+            let res = query_row!(&conn, $query, &[&(id as i64)], |x| {
+                Ok(Self::$select_fn(x))
+            });
 
             if res.is_err() {
                 return Err(Error::GeneralNotFound($name_.to_string()));

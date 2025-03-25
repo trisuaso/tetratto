@@ -42,7 +42,6 @@ impl DataManager {
     }
 }
 
-#[cfg(feature = "sqlite")]
 #[macro_export]
 macro_rules! get {
     ($row:ident->$idx:literal($t:tt)) => {
@@ -59,8 +58,31 @@ macro_rules! query_row {
 }
 
 #[macro_export]
+macro_rules! query_rows {
+    ($conn:expr, $sql:expr, $params:expr, $f:expr) => {{
+        let mut query = $conn.prepare($sql).unwrap();
+
+        if let Ok(mut rows) = query.query($params) {
+            let mut out = Vec::new();
+
+            while let Some(row) = rows.next().unwrap() {
+                out.push($f(&row));
+            }
+
+            Ok(out)
+        } else {
+            Err(Error::Unknown)
+        }
+    }};
+}
+
+#[macro_export]
 macro_rules! execute {
     ($conn:expr, $sql:expr, $params:expr) => {
         $conn.prepare($sql).unwrap().execute($params)
+    };
+
+    ($conn:expr, $sql:expr) => {
+        $conn.prepare($sql).unwrap().execute(())
     };
 }

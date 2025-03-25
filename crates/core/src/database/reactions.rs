@@ -1,7 +1,11 @@
 use super::*;
 use crate::cache::Cache;
-use crate::model::reactions::AssetType;
-use crate::model::{Error, Result, auth::User, permissions::FinePermission, reactions::Reaction};
+use crate::model::{
+    Error, Result,
+    auth::User,
+    permissions::FinePermission,
+    reactions::{AssetType, Reaction},
+};
 use crate::{auto_method, execute, get, query_row};
 
 #[cfg(feature = "sqlite")]
@@ -17,12 +21,12 @@ impl DataManager {
         #[cfg(feature = "postgres")] x: &Row,
     ) -> Reaction {
         Reaction {
-            id: get!(x->0(u64)) as usize,
-            created: get!(x->1(u64)) as usize,
-            owner: get!(x->2(u64)) as usize,
-            asset: get!(x->3(u64)) as usize,
+            id: get!(x->0(i64)) as usize,
+            created: get!(x->1(i64)) as usize,
+            owner: get!(x->2(i64)) as usize,
+            asset: get!(x->3(i64)) as usize,
             asset_type: serde_json::from_str(&get!(x->4(String))).unwrap(),
-            is_like: if get!(x->5(u8)) == 1 { true } else { false },
+            is_like: if get!(x->5(i8)) == 1 { true } else { false },
         }
     }
 
@@ -42,7 +46,7 @@ impl DataManager {
         let res = query_row!(
             &conn,
             "SELECT * FROM reactions WHERE owner = $1 AND asset = $2",
-            &[&owner, &asset],
+            &[&(owner as i64), &(asset as i64)],
             |x| { Ok(Self::get_reaction_from_row(x)) }
         );
 

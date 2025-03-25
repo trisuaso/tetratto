@@ -10,6 +10,7 @@ use bb8_postgres::{
     PostgresConnectionManager,
     bb8::{Pool, PooledConnection},
 };
+use std::collections::HashMap;
 use tetratto_l10n::{LangFile, read_langs};
 use tokio_postgres::{Config as PgConfig, NoTls, Row, types::ToSql};
 
@@ -91,6 +92,38 @@ macro_rules! query_row {
     };
 }
 
+pub async fn query_rows_helper<T, F>(
+    conn: &Connection<'_>,
+    sql: &str,
+    params: &[&(dyn ToSql + Sync)],
+    mut f: F,
+) -> Result<Vec<T>>
+where
+    F: FnMut(&Row) -> T,
+{
+    let query = conn.prepare(sql).await.unwrap();
+    let res = conn.query(&query, params).await;
+
+    if let Ok(rows) = res {
+        let mut out = Vec::new();
+
+        for row in rows {
+            out.push(f(&row));
+        }
+
+        return Ok(out);
+    } else {
+        Err(res.unwrap_err())
+    }
+}
+
+#[macro_export]
+macro_rules! query_rows {
+    ($conn:expr, $sql:expr, $params:expr, $f:expr) => {
+        crate::database::query_rows_helper($conn, $sql, $params, $f).await
+    };
+}
+
 pub async fn execute_helper(
     conn: &Connection<'_>,
     sql: &str,
@@ -105,5 +138,9 @@ pub async fn execute_helper(
 macro_rules! execute {
     ($conn:expr, $sql:expr, $params:expr) => {
         crate::database::execute_helper($conn, $sql, $params).await
+    };
+
+    ($conn:expr, $sql:expr) => {
+        crate::database::execute_helper($conn, $sql, &[]).await
     };
 }

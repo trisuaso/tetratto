@@ -3,6 +3,7 @@ mod common;
 mod drivers;
 mod entries;
 mod memberships;
+mod notifications;
 mod pages;
 mod reactions;
 
