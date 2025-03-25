@@ -19,6 +19,7 @@ bitflags! {
         const MANAGE_NOTIFICATIONS = 1 << 8;
         const VIEW_REPORTS = 1 << 9;
         const VIEW_AUDIT_LOG = 1 << 10;
+        const MANAGE_MEMBERSHIPS = 1 << 11;
 
         const _ = !0;
     }
@@ -100,7 +101,7 @@ impl FinePermission {
         (self & permission) == permission
     }
 
-    /// Check if thhe given [`FinePermission`] is qualifies as "Helper" status.
+    /// Check if the given [`FinePermission`] qualifies as "Helper" status.
     pub fn check_helper(self) -> bool {
         self.check(FinePermission::MANAGE_JOURNAL_ENTRIES)
             && self.check(FinePermission::MANAGE_JOURNAL_PAGES)
@@ -110,7 +111,7 @@ impl FinePermission {
             && self.check(FinePermission::VIEW_AUDIT_LOG)
     }
 
-    /// Check if thhe given [`FinePermission`] is qualifies as "Manager" status.
+    /// Check if the given [`FinePermission`] qualifies as "Manager" status.
     pub fn check_manager(self) -> bool {
         self.check_helper() && self.check(FinePermission::ADMINISTRATOR)
     }

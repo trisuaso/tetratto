@@ -1,5 +1,6 @@
 pub mod auth;
 pub mod journal;
+pub mod journal_permissions;
 pub mod permissions;
 
 use serde::{Deserialize, Serialize};

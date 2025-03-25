@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS entries (
+    id INTEGER NOT NULL PRIMARY KEY,
+    created INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    owner INTEGER NOT NULL,
+    journal INTEGER NOT NULL
+)

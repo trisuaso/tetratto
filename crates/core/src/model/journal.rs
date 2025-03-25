@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
 use tetratto_shared::{snow::AlmostSnowflake, unix_epoch_timestamp};
 
+use super::journal_permissions::JournalPermission;
+
 #[derive(Serialize, Deserialize)]
 pub struct JournalPage {
     pub id: usize,
@@ -37,7 +39,7 @@ impl JournalPage {
 }
 
 /// Who can read a [`JournalPage`].
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, PartialEq, Eq)]
 pub enum JournalPageReadAccess {
     /// Everybody can view the journal page from the owner's profile.
     Everybody,
@@ -54,12 +56,16 @@ impl Default for JournalPageReadAccess {
 }
 
 /// Who can write to a [`JournalPage`].
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, PartialEq, Eq)]
 pub enum JournalPageWriteAccess {
     /// Everybody (authenticated + anonymous users).
     Everybody,
     /// Authenticated users only.
     Authenticated,
+    /// Only people who joined the journal page can write to it.
+    ///
+    /// Memberships can be managed by the owner of the journal page.
+    Joined,
     /// Only the owner of the journal page.
     Owner,
 }
@@ -67,6 +73,30 @@ pub enum JournalPageWriteAccess {
 impl Default for JournalPageWriteAccess {
     fn default() -> Self {
         Self::Authenticated
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct JournalPageMembership {
+    pub id: usize,
+    pub created: usize,
+    pub owner: usize,
+    pub journal: usize,
+    pub role: JournalPermission,
+}
+
+impl JournalPageMembership {
+    pub fn new(owner: usize, journal: usize, role: JournalPermission) -> Self {
+        Self {
+            id: AlmostSnowflake::new(1234567890)
+                .to_string()
+                .parse::<usize>()
+                .unwrap(),
+            created: unix_epoch_timestamp() as usize,
+            owner,
+            journal,
+            role,
+        }
     }
 }
 

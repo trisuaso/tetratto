@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS pages (
     created INTEGER NOT NULL,
     title TEXT NOT NULL,
     prompt TEXT NOT NULL,
-    owner TEXT NOT NULL,
+    owner INTEGER NOT NULL,
     read_access TEXT NOT NULL,
     write_access TEXT NOT NULL
 )

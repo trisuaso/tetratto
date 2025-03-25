@@ -1,8 +1,14 @@
 use super::*;
 use crate::cache::Cache;
-use crate::model::auth::User;
-use crate::model::journal::{JournalPageReadAccess, JournalPageWriteAccess};
-use crate::model::{Error, Result, journal::JournalPage, permissions::FinePermission};
+use crate::model::journal::JournalPageMembership;
+use crate::model::journal_permissions::JournalPermission;
+use crate::model::{
+    Error, Result,
+    auth::User,
+    journal::JournalPage,
+    journal::{JournalPageReadAccess, JournalPageWriteAccess},
+    permissions::FinePermission,
+};
 use crate::{auto_method, execute, get, query_row};
 
 #[cfg(feature = "sqlite")]
@@ -72,6 +78,16 @@ impl DataManager {
             return Err(Error::DatabaseError(e.to_string()));
         }
 
+        // add journal page owner as admin
+        self.create_membership(JournalPageMembership::new(
+            data.owner,
+            data.id,
+            JournalPermission::ADMINISTRATOR,
+        ))
+        .await
+        .unwrap();
+
+        // return
         Ok(())
     }
 

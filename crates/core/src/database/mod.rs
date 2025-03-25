@@ -2,6 +2,7 @@ mod auth;
 mod common;
 mod drivers;
 mod entries;
+mod memberships;
 mod pages;
 
 #[cfg(feature = "sqlite")]
