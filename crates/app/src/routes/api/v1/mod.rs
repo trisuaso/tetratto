@@ -124,4 +124,5 @@ pub struct UpdateJournalEntryContext {
 pub struct CreateReaction {
     pub asset: usize,
     pub asset_type: AssetType,
+    pub is_like: bool,
 }

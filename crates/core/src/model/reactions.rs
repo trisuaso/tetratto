@@ -15,11 +15,12 @@ pub struct Reaction {
     pub owner: usize,
     pub asset: usize,
     pub asset_type: AssetType,
+    pub is_like: bool,
 }
 
 impl Reaction {
     /// Create a new [`Reaction`].
-    pub fn new(owner: usize, asset: usize, asset_type: AssetType) -> Self {
+    pub fn new(owner: usize, asset: usize, asset_type: AssetType, is_like: bool) -> Self {
         Self {
             id: AlmostSnowflake::new(1234567890)
                 .to_string()
@@ -29,6 +30,7 @@ impl Reaction {
             owner,
             asset,
             asset_type,
+            is_like,
         }
     }
 }

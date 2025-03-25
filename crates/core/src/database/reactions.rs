@@ -22,6 +22,7 @@ impl DataManager {
             owner: get!(x->2(u64)) as usize,
             asset: get!(x->3(u64)) as usize,
             asset_type: serde_json::from_str(&get!(x->4(String))).unwrap(),
+            is_like: if get!(x->5(u8)) == 1 { true } else { false },
         }
     }
 
@@ -64,13 +65,14 @@ impl DataManager {
 
         let res = execute!(
             &conn,
-            "INSERT INTO reactions VALUES ($1, $2, $3, $4, $5",
+            "INSERT INTO reactions VALUES ($1, $2, $3, $4, $5, $6)",
             &[
                 &data.id.to_string().as_str(),
                 &data.created.to_string().as_str(),
                 &data.owner.to_string().as_str(),
                 &data.asset.to_string().as_str(),
                 &serde_json::to_string(&data.asset_type).unwrap().as_str(),
+                &(if data.is_like { 1 } else { 0 }).to_string().as_str()
             ]
         );
 

@@ -37,7 +37,12 @@ pub async fn create_request(
     };
 
     match data
-        .create_reaction(Reaction::new(user.id, req.asset, req.asset_type))
+        .create_reaction(Reaction::new(
+            user.id,
+            req.asset,
+            req.asset_type,
+            req.is_like,
+        ))
         .await
     {
         Ok(_) => Json(ApiReturn {

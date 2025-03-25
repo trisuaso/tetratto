@@ -3,5 +3,6 @@ CREATE TABLE IF NOT EXISTS reactions (
     created INTEGER NOT NULL,
     owner INTEGER NOT NULL,
     asset INTEGER NOT NULL,
-    asset_type TEXT NOT NULL
+    asset_type TEXT NOT NULL,
+    is_like INTEGER NOT NULL
 )
