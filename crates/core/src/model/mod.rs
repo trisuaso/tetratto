@@ -2,6 +2,7 @@ pub mod auth;
 pub mod journal;
 pub mod journal_permissions;
 pub mod permissions;
+pub mod reactions;
 
 use serde::{Deserialize, Serialize};
 

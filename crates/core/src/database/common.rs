@@ -17,6 +17,7 @@ impl DataManager {
         execute!(&conn, common::CREATE_TABLE_PAGES, []).unwrap();
         execute!(&conn, common::CREATE_TABLE_ENTRIES, []).unwrap();
         execute!(&conn, common::CREATE_TABLE_MEMBERSHIPS, []).unwrap();
+        execute!(&conn, common::CREATE_TABLE_REACTIONS, []).unwrap();
 
         Ok(())
     }
@@ -110,9 +111,9 @@ macro_rules! auto_method {
 
     ($name:ident()@$select_fn:ident:$permission:ident -> $query:literal) => {
         pub async fn $name(&self, id: usize, user: User) -> Result<()> {
-            let page = self.$select_fn(id).await?;
+            let y = self.$select_fn(id).await?;
 
-            if user.id != page.owner {
+            if user.id != y.owner {
                 if !user.permissions.check(FinePermission::$permission) {
                     return Err(Error::NotAllowed);
                 }
@@ -135,9 +136,9 @@ macro_rules! auto_method {
 
     ($name:ident()@$select_fn:ident:$permission:ident -> $query:literal --cache-key-tmpl=$cache_key_tmpl:literal) => {
         pub async fn $name(&self, id: usize, user: User) -> Result<()> {
-            let page = self.$select_fn(id).await?;
+            let y = self.$select_fn(id).await?;
 
-            if user.id != page.owner {
+            if user.id != y.owner {
                 if !user.permissions.check(FinePermission::$permission) {
                     return Err(Error::NotAllowed);
                 }
@@ -347,6 +348,46 @@ macro_rules! auto_method {
             }
 
             self.2.remove(format!($cache_key_tmpl, id)).await;
+
+            Ok(())
+        }
+    };
+
+    ($name:ident() -> $query:literal --cache-key-tmpl=$cache_key_tmpl:literal --reactions-key-tmpl=$reactions_key_tmpl:literal --incr) => {
+        pub async fn $name(&self, id: usize) -> Result<()> {
+            let conn = match self.connect().await {
+                Ok(c) => c,
+                Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+            };
+
+            let res = execute!(&conn, $query, &[&id.to_string()]);
+
+            if let Err(e) = res {
+                return Err(Error::DatabaseError(e.to_string()));
+            }
+
+            self.2.remove(format!($cache_key_tmpl, id)).await;
+            self.2.remove(format!($reactions_key_tmpl, id)).await;
+
+            Ok(())
+        }
+    };
+
+    ($name:ident() -> $query:literal --cache-key-tmpl=$cache_key_tmpl:literal --reactions-key-tmpl=$reactions_key_tmpl:literal --decr) => {
+        pub async fn $name(&self, id: usize) -> Result<()> {
+            let conn = match self.connect().await {
+                Ok(c) => c,
+                Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+            };
+
+            let res = execute!(&conn, $query, &[&id.to_string()]);
+
+            if let Err(e) = res {
+                return Err(Error::DatabaseError(e.to_string()));
+            }
+
+            self.2.remove(format!($cache_key_tmpl, id)).await;
+            self.2.remove(format!($reactions_key_tmpl, id)).await;
 
             Ok(())
         }

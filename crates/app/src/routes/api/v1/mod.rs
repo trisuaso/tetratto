@@ -1,17 +1,23 @@
 pub mod auth;
 pub mod journal;
+pub mod reactions;
 
 use axum::{
     Router,
     routing::{delete, get, post},
 };
 use serde::Deserialize;
-use tetratto_core::model::journal::{
-    JournalEntryContext, JournalPageReadAccess, JournalPageWriteAccess,
+use tetratto_core::model::{
+    journal::{JournalEntryContext, JournalPageReadAccess, JournalPageWriteAccess},
+    reactions::AssetType,
 };
 
 pub fn routes() -> Router {
     Router::new()
+        // reactions
+        .route("/reactions", post(reactions::create_request))
+        .route("/reactions/{id}", get(reactions::get_request))
+        .route("/reactions/{id}", delete(reactions::delete_request))
         // journal pages
         .route("/pages", post(journal::pages::create_request))
         .route("/pages/{id}", delete(journal::pages::delete_request))
@@ -112,4 +118,10 @@ pub struct UpdateJournalEntryContent {
 #[derive(Deserialize)]
 pub struct UpdateJournalEntryContext {
     pub context: JournalEntryContext,
+}
+
+#[derive(Deserialize)]
+pub struct CreateReaction {
+    pub asset: usize,
+    pub asset_type: AssetType,
 }

@@ -26,6 +26,9 @@ impl DataManager {
             owner: get!(x->3(u64)) as usize,
             journal: get!(x->4(u64)) as usize,
             context: serde_json::from_str(&get!(x->5(String))).unwrap(),
+            // likes
+            likes: get!(x->6(i64)) as isize,
+            dislikes: get!(x->7(i64)) as isize,
         }
     }
 
@@ -95,4 +98,9 @@ impl DataManager {
     auto_method!(delete_entry()@get_entry_by_id:MANAGE_JOURNAL_ENTRIES -> "DELETE FROM entries WHERE id = $1" --cache-key-tmpl="atto.entry:{}");
     auto_method!(update_entry_content(String)@get_entry_by_id:MANAGE_JOURNAL_ENTRIES -> "UPDATE entries SET content = $1 WHERE id = $2" --cache-key-tmpl="atto.entry:{}");
     auto_method!(update_entry_context(JournalEntryContext)@get_entry_by_id:MANAGE_JOURNAL_ENTRIES -> "UPDATE entries SET context = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.entry:{}");
+
+    auto_method!(incr_entry_likes() -> "UPDATE entries SET likes = likes + 1 WHERE id = $1" --cache-key-tmpl="atto.entry:{}" --reactions-key-tmpl="atto.entry.likes:{}" --incr);
+    auto_method!(incr_entry_dislikes() -> "UPDATE entries SET likes = dislikes + 1 WHERE id = $1" --cache-key-tmpl="atto.entry:{}" --reactions-key-tmpl="atto.entry.dislikes:{}" --incr);
+    auto_method!(decr_entry_likes() -> "UPDATE entries SET likes = likes - 1 WHERE id = $1" --cache-key-tmpl="atto.entry:{}" --reactions-key-tmpl="atto.entry.likes:{}" --decr);
+    auto_method!(decr_entry_dislikes() -> "UPDATE entries SET likes = dislikes - 1 WHERE id = $1" --cache-key-tmpl="atto.entry:{}" --reactions-key-tmpl="atto.entry.dislikes:{}" --decr);
 }

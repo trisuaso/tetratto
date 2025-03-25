@@ -16,7 +16,7 @@
             .then((res) => res.json())
             .then((res) => {
                 trigger("atto::toast", [
-                    res.ok ? "sucesss" : "error",
+                    res.ok ? "success" : "error",
                     res.message,
                 ]);
 

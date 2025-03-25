@@ -4,6 +4,7 @@ mod drivers;
 mod entries;
 mod memberships;
 mod pages;
+mod reactions;
 
 #[cfg(feature = "sqlite")]
 pub use drivers::sqlite::*;

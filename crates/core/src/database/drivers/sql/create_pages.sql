@@ -5,5 +5,8 @@ CREATE TABLE IF NOT EXISTS pages (
     prompt TEXT NOT NULL,
     owner INTEGER NOT NULL,
     read_access TEXT NOT NULL,
-    write_access TEXT NOT NULL
+    write_access TEXT NOT NULL,
+    -- likes
+    likes INTEGER NOT NULL,
+    dislikes INTEGER NOT NULL
 )

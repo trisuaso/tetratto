@@ -31,6 +31,9 @@ impl DataManager {
             owner: get!(x->4(u64)) as usize,
             read_access: serde_json::from_str(&get!(x->5(String)).to_string()).unwrap(),
             write_access: serde_json::from_str(&get!(x->6(String)).to_string()).unwrap(),
+            // likes
+            likes: get!(x->6(i64)) as isize,
+            dislikes: get!(x->7(i64)) as isize,
         }
     }
 
@@ -96,4 +99,9 @@ impl DataManager {
     auto_method!(update_page_prompt(String)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET prompt = $1 WHERE id = $2" --cache-key-tmpl="atto.page:{}");
     auto_method!(update_page_read_access(JournalPageReadAccess)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET read_access = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.page:{}");
     auto_method!(update_page_write_access(JournalPageWriteAccess)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET write_access = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.page:{}");
+
+    auto_method!(incr_page_likes() -> "UPDATE pages SET likes = likes + 1 WHERE id = $1" --cache-key-tmpl="atto.pages:{}" --reactions-key-tmpl="atto.entry.likes:{}" --incr);
+    auto_method!(incr_page_dislikes() -> "UPDATE pages SET likes = dislikes + 1 WHERE id = $1" --cache-key-tmpl="atto.pages:{}" --reactions-key-tmpl="atto.entry.dislikes:{}" --incr);
+    auto_method!(decr_page_likes() -> "UPDATE pages SET likes = likes - 1 WHERE id = $1" --cache-key-tmpl="atto.pages:{}" --reactions-key-tmpl="atto.entry.likes:{}" --decr);
+    auto_method!(decr_page_dislikes() -> "UPDATE pages SET likes = dislikes - 1 WHERE id = $1" --cache-key-tmpl="atto.pages:{}" --reactions-key-tmpl="atto.entry.dislikes:{}" --decr);
 }

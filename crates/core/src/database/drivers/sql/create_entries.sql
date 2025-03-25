@@ -4,5 +4,8 @@ CREATE TABLE IF NOT EXISTS entries (
     content TEXT NOT NULL,
     owner INTEGER NOT NULL,
     journal INTEGER NOT NULL,
-    context TEXT NOT NULL
+    context TEXT NOT NULL,
+    -- likes
+    likes INTEGER NOT NULL,
+    dislikes INTEGER NOT NULL
 )

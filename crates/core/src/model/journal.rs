@@ -18,6 +18,8 @@ pub struct JournalPage {
     /// The owner of the journal page (and moderators) are the ***only*** people
     /// capable of removing entries.
     pub write_access: JournalPageWriteAccess,
+    pub likes: isize,
+    pub dislikes: isize,
 }
 
 impl JournalPage {
@@ -34,6 +36,8 @@ impl JournalPage {
             owner,
             read_access: JournalPageReadAccess::default(),
             write_access: JournalPageWriteAccess::default(),
+            likes: 0,
+            dislikes: 0,
         }
     }
 }
@@ -124,6 +128,8 @@ pub struct JournalEntry {
     pub journal: usize,
     /// Extra information about the journal entry.
     pub context: JournalEntryContext,
+    pub likes: isize,
+    pub dislikes: isize,
 }
 
 impl JournalEntry {
@@ -139,6 +145,8 @@ impl JournalEntry {
             owner,
             journal,
             context: JournalEntryContext::default(),
+            likes: 0,
+            dislikes: 0,
         }
     }
 }
