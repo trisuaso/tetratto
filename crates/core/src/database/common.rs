@@ -15,6 +15,8 @@ impl DataManager {
 
         execute!(&conn, common::CREATE_TABLE_USERS, []).unwrap();
         execute!(&conn, common::CREATE_TABLE_PAGES, []).unwrap();
+        execute!(&conn, common::CREATE_TABLE_ENTRIES, []).unwrap();
+        execute!(&conn, common::CREATE_TABLE_MEMBERSHIPS, []).unwrap();
 
         Ok(())
     }
