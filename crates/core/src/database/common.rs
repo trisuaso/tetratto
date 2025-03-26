@@ -19,6 +19,9 @@ impl DataManager {
         execute!(&conn, common::CREATE_TABLE_MEMBERSHIPS).unwrap();
         execute!(&conn, common::CREATE_TABLE_REACTIONS).unwrap();
         execute!(&conn, common::CREATE_TABLE_NOTIFICATIONS).unwrap();
+        execute!(&conn, common::CREATE_TABLE_USERFOLLOWS).unwrap();
+        execute!(&conn, common::CREATE_TABLE_USERBLOCKS).unwrap();
+        execute!(&conn, common::CREATE_TABLE_IPBANS).unwrap();
 
         Ok(())
     }
@@ -358,7 +361,7 @@ macro_rules! auto_method {
         }
     };
 
-    ($name:ident() -> $query:literal --cache-key-tmpl=$cache_key_tmpl:literal --reactions-key-tmpl=$reactions_key_tmpl:literal --incr) => {
+    ($name:ident() -> $query:literal --cache-key-tmpl=$cache_key_tmpl:literal --incr) => {
         pub async fn $name(&self, id: usize) -> Result<()> {
             let conn = match self.connect().await {
                 Ok(c) => c,
@@ -372,13 +375,12 @@ macro_rules! auto_method {
             }
 
             self.2.remove(format!($cache_key_tmpl, id)).await;
-            self.2.remove(format!($reactions_key_tmpl, id)).await;
 
             Ok(())
         }
     };
 
-    ($name:ident() -> $query:literal --cache-key-tmpl=$cache_key_tmpl:literal --reactions-key-tmpl=$reactions_key_tmpl:literal --decr) => {
+    ($name:ident() -> $query:literal --cache-key-tmpl=$cache_key_tmpl:literal --decr) => {
         pub async fn $name(&self, id: usize) -> Result<()> {
             let conn = match self.connect().await {
                 Ok(c) => c,
@@ -392,7 +394,6 @@ macro_rules! auto_method {
             }
 
             self.2.remove(format!($cache_key_tmpl, id)).await;
-            self.2.remove(format!($reactions_key_tmpl, id)).await;
 
             Ok(())
         }

@@ -1,19 +1,19 @@
 use axum::{Extension, Json, extract::Path, response::IntoResponse};
 use axum_extra::extract::CookieJar;
-use tetratto_core::model::{ApiReturn, Error, journal::JournalPage};
+use tetratto_core::model::{ApiReturn, Error, journal::Journal};
 
 use crate::{
     State, get_user_from_token,
     routes::api::v1::{
-        CreateJournalPage, UpdateJournalPagePrompt, UpdateJournalPageReadAccess,
-        UpdateJournalPageTitle, UpdateJournalPageWriteAccess,
+        CreateJournal, UpdateJournalPrompt, UpdateJournalReadAccess, UpdateJournalTitle,
+        UpdateJournalWriteAccess,
     },
 };
 
 pub async fn create_request(
     jar: CookieJar,
     Extension(data): Extension<State>,
-    Json(req): Json<CreateJournalPage>,
+    Json(req): Json<CreateJournal>,
 ) -> impl IntoResponse {
     let data = &(data.read().await).0;
     let user = match get_user_from_token!(jar, data) {
@@ -22,7 +22,7 @@ pub async fn create_request(
     };
 
     match data
-        .create_page(JournalPage::new(req.title, req.prompt, user.id))
+        .create_page(Journal::new(req.title, req.prompt, user.id))
         .await
     {
         Ok(_) => Json(ApiReturn {
@@ -59,7 +59,7 @@ pub async fn update_title_request(
     jar: CookieJar,
     Extension(data): Extension<State>,
     Path(id): Path<usize>,
-    Json(req): Json<UpdateJournalPageTitle>,
+    Json(req): Json<UpdateJournalTitle>,
 ) -> impl IntoResponse {
     let data = &(data.read().await).0;
     let user = match get_user_from_token!(jar, data) {
@@ -81,7 +81,7 @@ pub async fn update_prompt_request(
     jar: CookieJar,
     Extension(data): Extension<State>,
     Path(id): Path<usize>,
-    Json(req): Json<UpdateJournalPagePrompt>,
+    Json(req): Json<UpdateJournalPrompt>,
 ) -> impl IntoResponse {
     let data = &(data.read().await).0;
     let user = match get_user_from_token!(jar, data) {
@@ -103,7 +103,7 @@ pub async fn update_read_access_request(
     jar: CookieJar,
     Extension(data): Extension<State>,
     Path(id): Path<usize>,
-    Json(req): Json<UpdateJournalPageReadAccess>,
+    Json(req): Json<UpdateJournalReadAccess>,
 ) -> impl IntoResponse {
     let data = &(data.read().await).0;
     let user = match get_user_from_token!(jar, data) {
@@ -125,7 +125,7 @@ pub async fn update_write_access_request(
     jar: CookieJar,
     Extension(data): Extension<State>,
     Path(id): Path<usize>,
-    Json(req): Json<UpdateJournalPageWriteAccess>,
+    Json(req): Json<UpdateJournalWriteAccess>,
 ) -> impl IntoResponse {
     let data = &(data.read().await).0;
     let user = match get_user_from_token!(jar, data) {

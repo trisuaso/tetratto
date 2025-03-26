@@ -42,6 +42,11 @@ pub async fn register_request(
         .unwrap_or("")
         .to_string();
 
+    // check for ip ban
+    if let Ok(_) = data.get_ipban_by_ip(&real_ip).await {
+        return (None, Json(Error::NotAllowed.into()));
+    }
+
     // ...
     let mut user = User::new(props.username, props.password);
     let (initial_token, t) = User::create_token(&real_ip);
@@ -89,6 +94,11 @@ pub async fn login_request(
         .to_str()
         .unwrap_or("")
         .to_string();
+
+    // check for ip ban
+    if let Ok(_) = data.get_ipban_by_ip(&real_ip).await {
+        return (None, Json(Error::NotAllowed.into()));
+    }
 
     // verify password
     let user = match data.get_user_by_username(&props.username).await {

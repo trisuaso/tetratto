@@ -10,7 +10,7 @@ use rusqlite::Row;
 use tokio_postgres::Row;
 
 impl DataManager {
-    /// Get a [`Reaction`] from an SQL row.
+    /// Get a [`Notification`] from an SQL row.
     pub(crate) fn get_notification_from_row(
         #[cfg(feature = "sqlite")] x: &Row<'_>,
         #[cfg(feature = "postgres")] x: &Row,
@@ -41,7 +41,7 @@ impl DataManager {
         );
 
         if res.is_err() {
-            return Err(Error::GeneralNotFound("reactions".to_string()));
+            return Err(Error::GeneralNotFound("notification".to_string()));
         }
 
         Ok(res.unwrap())

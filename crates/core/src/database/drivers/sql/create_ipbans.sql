@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS ipbans (
+    ip TEXT NOT NULL,
+    created INTEGER NOT NULL PRIMARY KEY,
+    reason TEXT NOT NULL,
+    moderator TEXT NOT NULL
+)

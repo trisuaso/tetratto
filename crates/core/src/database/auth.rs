@@ -29,10 +29,14 @@ impl DataManager {
             settings: serde_json::from_str(&get!(x->5(String)).to_string()).unwrap(),
             tokens: serde_json::from_str(&get!(x->6(String)).to_string()).unwrap(),
             permissions: FinePermission::from_bits(get!(x->7(u32))).unwrap(),
+            // counts
+            notification_count: get!(x->8(i64)) as usize,
+            follower_count: get!(x->9(i64)) as usize,
+            following_count: get!(x->10(i64)) as usize,
         }
     }
 
-    auto_method!(get_user_by_id(&str)@get_user_from_row -> "SELECT * FROM users WHERE id = $1" --name="user" --returns=User --cache-key-tmpl="atto.user:{}");
+    auto_method!(get_user_by_id(usize)@get_user_from_row -> "SELECT * FROM users WHERE id = $1" --name="user" --returns=User --cache-key-tmpl="atto.user:{}");
     auto_method!(get_user_by_username(&str)@get_user_from_row -> "SELECT * FROM users WHERE username = $1" --name="user" --returns=User --cache-key-tmpl="atto.user:{}");
 
     /// Get a user given just their auth token.
@@ -87,7 +91,7 @@ impl DataManager {
 
         let res = execute!(
             &conn,
-            "INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
+            "INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
             &[
                 &data.id.to_string().as_str(),
                 &data.created.to_string().as_str(),
@@ -97,6 +101,8 @@ impl DataManager {
                 &serde_json::to_string(&data.settings).unwrap().as_str(),
                 &serde_json::to_string(&data.tokens).unwrap().as_str(),
                 &(FinePermission::DEFAULT.bits()).to_string().as_str(),
+                &0.to_string().as_str(),
+                &0.to_string().as_str(),
                 &0.to_string().as_str()
             ]
         );
@@ -114,7 +120,7 @@ impl DataManager {
     /// * `id` - the ID of the user
     /// * `password` - the current password of the user
     /// * `force` - if we should delete even if the given password is incorrect
-    pub async fn delete_user(&self, id: &str, password: &str, force: bool) -> Result<()> {
+    pub async fn delete_user(&self, id: usize, password: &str, force: bool) -> Result<()> {
         let user = self.get_user_by_id(id).await?;
 
         if (hash_salted(password.to_string(), user.salt) != user.password) && !force {
@@ -140,6 +146,12 @@ impl DataManager {
 
     auto_method!(update_user_tokens(Vec<Token>) -> "UPDATE users SET tokens = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.user:{}");
 
-    auto_method!(incr_user_notifications() -> "UPDATE users SET notification_count = notification_count + 1 WHERE id = $1" --cache-key-tmpl="atto.user:{}" --reactions-key-tmpl="atto.user.notification_count:{}" --incr);
-    auto_method!(decr_user_notifications() -> "UPDATE users SET notification_count = notification_count - 1 WHERE id = $1" --cache-key-tmpl="atto.user:{}" --reactions-key-tmpl="atto.user.notification_count:{}" --decr);
+    auto_method!(incr_user_notifications() -> "UPDATE users SET notification_count = notification_count + 1 WHERE id = $1" --cache-key-tmpl="atto.user:{}" --incr);
+    auto_method!(decr_user_notifications() -> "UPDATE users SET notification_count = notification_count - 1 WHERE id = $1" --cache-key-tmpl="atto.user:{}" --decr);
+
+    auto_method!(incr_user_follower_count() -> "UPDATE users SET follower_count = follower_count + 1 WHERE id = $1" --cache-key-tmpl="atto.user:{}" --incr);
+    auto_method!(decr_user_follower_count() -> "UPDATE users SET follower_count = follower_count - 1 WHERE id = $1" --cache-key-tmpl="atto.user:{}" --decr);
+
+    auto_method!(incr_user_following_count() -> "UPDATE users SET following_count = following_count + 1 WHERE id = $1" --cache-key-tmpl="atto.user:{}" --incr);
+    auto_method!(decr_user_following_count() -> "UPDATE users SET following_count = following_count - 1 WHERE id = $1" --cache-key-tmpl="atto.user:{}" --decr);
 }

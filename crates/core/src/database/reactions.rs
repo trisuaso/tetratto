@@ -51,13 +51,13 @@ impl DataManager {
         );
 
         if res.is_err() {
-            return Err(Error::GeneralNotFound("reactions".to_string()));
+            return Err(Error::GeneralNotFound("reaction".to_string()));
         }
 
         Ok(res.unwrap())
     }
 
-    /// Create a new journal page membership in the database.
+    /// Create a new journal membership in the database.
     ///
     /// # Arguments
     /// * `data` - a mock [`Reaction`] object to insert
@@ -86,13 +86,13 @@ impl DataManager {
 
         // incr corresponding
         match data.asset_type {
-            AssetType::JournalPage => {
+            AssetType::Journal => {
                 if let Err(e) = self.incr_page_likes(data.id).await {
                     return Err(e);
                 }
             }
             AssetType::JournalEntry => {
-                if let Err(e) = self.incr_entry_likes(data.id).await {
+                if let Err(e) = self.incr_post_likes(data.id).await {
                     return Err(e);
                 }
             }
@@ -130,13 +130,13 @@ impl DataManager {
 
         // decr corresponding
         match reaction.asset_type {
-            AssetType::JournalPage => {
+            AssetType::Journal => {
                 if let Err(e) = self.decr_page_likes(reaction.asset).await {
                     return Err(e);
                 }
             }
             AssetType::JournalEntry => {
-                if let Err(e) = self.decr_entry_likes(reaction.asset).await {
+                if let Err(e) = self.decr_post_likes(reaction.asset).await {
                     return Err(e);
                 }
             }

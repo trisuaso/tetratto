@@ -1,12 +1,12 @@
 use super::*;
 use crate::cache::Cache;
-use crate::model::journal::JournalPageMembership;
+use crate::model::journal::JournalMembership;
 use crate::model::journal_permissions::JournalPermission;
 use crate::model::{
     Error, Result,
     auth::User,
-    journal::JournalPage,
-    journal::{JournalPageReadAccess, JournalPageWriteAccess},
+    journal::Journal,
+    journal::{JournalReadAccess, JournalWriteAccess},
     permissions::FinePermission,
 };
 use crate::{auto_method, execute, get, query_row};
@@ -18,12 +18,12 @@ use rusqlite::Row;
 use tokio_postgres::Row;
 
 impl DataManager {
-    /// Get a [`JournalPage`] from an SQL row.
+    /// Get a [`Journal`] from an SQL row.
     pub(crate) fn get_page_from_row(
         #[cfg(feature = "sqlite")] x: &Row<'_>,
         #[cfg(feature = "postgres")] x: &Row,
-    ) -> JournalPage {
-        JournalPage {
+    ) -> Journal {
+        Journal {
             id: get!(x->0(i64)) as usize,
             created: get!(x->1(i64)) as usize,
             title: get!(x->2(String)),
@@ -37,13 +37,13 @@ impl DataManager {
         }
     }
 
-    auto_method!(get_page_by_id()@get_page_from_row -> "SELECT * FROM pages WHERE id = $1" --name="journal page" --returns=JournalPage --cache-key-tmpl="atto.page:{}");
+    auto_method!(get_page_by_id()@get_page_from_row -> "SELECT * FROM pages WHERE id = $1" --name="journal page" --returns=Journal --cache-key-tmpl="atto.page:{}");
 
     /// Create a new journal page in the database.
     ///
     /// # Arguments
-    /// * `data` - a mock [`JournalPage`] object to insert
-    pub async fn create_page(&self, data: JournalPage) -> Result<()> {
+    /// * `data` - a mock [`Journal`] object to insert
+    pub async fn create_page(&self, data: Journal) -> Result<()> {
         // check values
         if data.title.len() < 2 {
             return Err(Error::DataTooShort("title".to_string()));
@@ -82,7 +82,7 @@ impl DataManager {
         }
 
         // add journal page owner as admin
-        self.create_membership(JournalPageMembership::new(
+        self.create_membership(JournalMembership::new(
             data.owner,
             data.id,
             JournalPermission::ADMINISTRATOR,
@@ -97,11 +97,11 @@ impl DataManager {
     auto_method!(delete_page()@get_page_by_id:MANAGE_JOURNAL_PAGES -> "DELETE FROM pages WHERE id = $1" --cache-key-tmpl="atto.page:{}");
     auto_method!(update_page_title(String)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET title = $1 WHERE id = $2" --cache-key-tmpl="atto.page:{}");
     auto_method!(update_page_prompt(String)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET prompt = $1 WHERE id = $2" --cache-key-tmpl="atto.page:{}");
-    auto_method!(update_page_read_access(JournalPageReadAccess)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET read_access = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.page:{}");
-    auto_method!(update_page_write_access(JournalPageWriteAccess)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET write_access = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.page:{}");
+    auto_method!(update_page_read_access(JournalReadAccess)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET read_access = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.page:{}");
+    auto_method!(update_page_write_access(JournalWriteAccess)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET write_access = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.page:{}");
 
-    auto_method!(incr_page_likes() -> "UPDATE pages SET likes = likes + 1 WHERE id = $1" --cache-key-tmpl="atto.pages:{}" --reactions-key-tmpl="atto.entry.likes:{}" --incr);
-    auto_method!(incr_page_dislikes() -> "UPDATE pages SET likes = dislikes + 1 WHERE id = $1" --cache-key-tmpl="atto.pages:{}" --reactions-key-tmpl="atto.entry.dislikes:{}" --incr);
-    auto_method!(decr_page_likes() -> "UPDATE pages SET likes = likes - 1 WHERE id = $1" --cache-key-tmpl="atto.pages:{}" --reactions-key-tmpl="atto.entry.likes:{}" --decr);
-    auto_method!(decr_page_dislikes() -> "UPDATE pages SET likes = dislikes - 1 WHERE id = $1" --cache-key-tmpl="atto.pages:{}" --reactions-key-tmpl="atto.entry.dislikes:{}" --decr);
+    auto_method!(incr_page_likes() -> "UPDATE pages SET likes = likes + 1 WHERE id = $1" --cache-key-tmpl="atto.pages:{}"  --incr);
+    auto_method!(incr_page_dislikes() -> "UPDATE pages SET likes = dislikes + 1 WHERE id = $1" --cache-key-tmpl="atto.pages:{}" --incr);
+    auto_method!(decr_page_likes() -> "UPDATE pages SET likes = likes - 1 WHERE id = $1" --cache-key-tmpl="atto.pages:{}" --decr);
+    auto_method!(decr_page_dislikes() -> "UPDATE pages SET likes = dislikes - 1 WHERE id = $1" --cache-key-tmpl="atto.pages:{}" --decr);
 }

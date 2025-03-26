@@ -1,8 +1,8 @@
 use super::*;
 use crate::cache::Cache;
 use crate::model::{
-    Error, Result, auth::User, journal::JournalPageMembership,
-    journal_permissions::JournalPermission, permissions::FinePermission,
+    Error, Result, auth::User, journal::JournalMembership, journal_permissions::JournalPermission,
+    permissions::FinePermission,
 };
 use crate::{auto_method, execute, get, query_row};
 
@@ -17,8 +17,8 @@ impl DataManager {
     pub(crate) fn get_membership_from_row(
         #[cfg(feature = "sqlite")] x: &Row<'_>,
         #[cfg(feature = "postgres")] x: &Row,
-    ) -> JournalPageMembership {
-        JournalPageMembership {
+    ) -> JournalMembership {
+        JournalMembership {
             id: get!(x->0(i64)) as usize,
             created: get!(x->1(i64)) as usize,
             owner: get!(x->2(i64)) as usize,
@@ -27,14 +27,14 @@ impl DataManager {
         }
     }
 
-    auto_method!(get_membership_by_id()@get_membership_from_row -> "SELECT * FROM memberships WHERE id = $1" --name="journal membership" --returns=JournalPageMembership --cache-key-tmpl="atto.membership:{}");
+    auto_method!(get_membership_by_id()@get_membership_from_row -> "SELECT * FROM memberships WHERE id = $1" --name="journal membership" --returns=JournalMembership --cache-key-tmpl="atto.membership:{}");
 
-    /// Get a journal page membership by `owner` and `journal`.
+    /// Get a journal membership by `owner` and `journal`.
     pub async fn get_membership_by_owner_journal(
         &self,
         owner: usize,
         journal: usize,
-    ) -> Result<JournalPageMembership> {
+    ) -> Result<JournalMembership> {
         let conn = match self.connect().await {
             Ok(c) => c,
             Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
@@ -54,11 +54,11 @@ impl DataManager {
         Ok(res.unwrap())
     }
 
-    /// Create a new journal page membership in the database.
+    /// Create a new journal membership in the database.
     ///
     /// # Arguments
-    /// * `data` - a mock [`JournalPageMembership`] object to insert
-    pub async fn create_membership(&self, data: JournalPageMembership) -> Result<()> {
+    /// * `data` - a mock [`JournalMembership`] object to insert
+    pub async fn create_membership(&self, data: JournalMembership) -> Result<()> {
         let conn = match self.connect().await {
             Ok(c) => c,
             Err(e) => return Err(Error::DatabaseConnection(e.to_string())),

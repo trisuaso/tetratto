@@ -4,7 +4,7 @@ use tetratto_shared::{snow::AlmostSnowflake, unix_epoch_timestamp};
 use super::journal_permissions::JournalPermission;
 
 #[derive(Serialize, Deserialize)]
-pub struct JournalPage {
+pub struct Journal {
     pub id: usize,
     pub created: usize,
     pub title: String,
@@ -12,18 +12,18 @@ pub struct JournalPage {
     /// The ID of the owner of the journal page.
     pub owner: usize,
     /// Who can read the journal page.
-    pub read_access: JournalPageReadAccess,
+    pub read_access: JournalReadAccess,
     /// Who can write to the journal page (create journal entries belonging to it).
     ///
     /// The owner of the journal page (and moderators) are the ***only*** people
     /// capable of removing entries.
-    pub write_access: JournalPageWriteAccess,
+    pub write_access: JournalWriteAccess,
     pub likes: isize,
     pub dislikes: isize,
 }
 
-impl JournalPage {
-    /// Create a new [`JournalPage`].
+impl Journal {
+    /// Create a new [`Journal`].
     pub fn new(title: String, prompt: String, owner: usize) -> Self {
         Self {
             id: AlmostSnowflake::new(1234567890)
@@ -34,17 +34,17 @@ impl JournalPage {
             title,
             prompt,
             owner,
-            read_access: JournalPageReadAccess::default(),
-            write_access: JournalPageWriteAccess::default(),
+            read_access: JournalReadAccess::default(),
+            write_access: JournalWriteAccess::default(),
             likes: 0,
             dislikes: 0,
         }
     }
 }
 
-/// Who can read a [`JournalPage`].
+/// Who can read a [`Journal`].
 #[derive(Serialize, Deserialize, PartialEq, Eq)]
-pub enum JournalPageReadAccess {
+pub enum JournalReadAccess {
     /// Everybody can view the journal page from the owner's profile.
     Everybody,
     /// Only people with the link to the journal page.
@@ -53,15 +53,15 @@ pub enum JournalPageReadAccess {
     Private,
 }
 
-impl Default for JournalPageReadAccess {
+impl Default for JournalReadAccess {
     fn default() -> Self {
         Self::Everybody
     }
 }
 
-/// Who can write to a [`JournalPage`].
+/// Who can write to a [`Journal`].
 #[derive(Serialize, Deserialize, PartialEq, Eq)]
-pub enum JournalPageWriteAccess {
+pub enum JournalWriteAccess {
     /// Everybody (authenticated + anonymous users).
     Everybody,
     /// Authenticated users only.
@@ -74,14 +74,14 @@ pub enum JournalPageWriteAccess {
     Owner,
 }
 
-impl Default for JournalPageWriteAccess {
+impl Default for JournalWriteAccess {
     fn default() -> Self {
         Self::Authenticated
     }
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct JournalPageMembership {
+pub struct JournalMembership {
     pub id: usize,
     pub created: usize,
     pub owner: usize,
@@ -89,7 +89,7 @@ pub struct JournalPageMembership {
     pub role: JournalPermission,
 }
 
-impl JournalPageMembership {
+impl JournalMembership {
     pub fn new(owner: usize, journal: usize, role: JournalPermission) -> Self {
         Self {
             id: AlmostSnowflake::new(1234567890)
@@ -105,11 +105,11 @@ impl JournalPageMembership {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct JournalEntryContext {
+pub struct JournalPostContext {
     pub comments_enabled: bool,
 }
 
-impl Default for JournalEntryContext {
+impl Default for JournalPostContext {
     fn default() -> Self {
         Self {
             comments_enabled: true,
@@ -118,21 +118,21 @@ impl Default for JournalEntryContext {
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct JournalEntry {
+pub struct JournalPost {
     pub id: usize,
     pub created: usize,
     pub content: String,
     /// The ID of the owner of this entry.
     pub owner: usize,
-    /// The ID of the [`JournalPage`] this entry belongs to.
+    /// The ID of the [`Journal`] this entry belongs to.
     pub journal: usize,
     /// Extra information about the journal entry.
-    pub context: JournalEntryContext,
+    pub context: JournalPostContext,
     pub likes: isize,
     pub dislikes: isize,
 }
 
-impl JournalEntry {
+impl JournalPost {
     /// Create a new [`JournalEntry`].
     pub fn new(content: String, journal: usize, owner: usize) -> Self {
         Self {
@@ -144,7 +144,7 @@ impl JournalEntry {
             content,
             owner,
             journal,
-            context: JournalEntryContext::default(),
+            context: JournalPostContext::default(),
             likes: 0,
             dislikes: 0,
         }

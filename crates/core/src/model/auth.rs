@@ -19,6 +19,9 @@ pub struct User {
     pub settings: UserSettings,
     pub tokens: Vec<Token>,
     pub permissions: FinePermission,
+    pub notification_count: usize,
+    pub follower_count: usize,
+    pub following_count: usize,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -48,6 +51,9 @@ impl User {
             settings: UserSettings::default(),
             tokens: Vec::new(),
             permissions: FinePermission::DEFAULT,
+            notification_count: 0,
+            follower_count: 0,
+            following_count: 0,
         }
     }
 
@@ -94,6 +100,72 @@ impl Notification {
             title,
             content,
             owner,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct UserFollow {
+    pub id: usize,
+    pub created: usize,
+    pub initiator: usize,
+    pub receiver: usize,
+}
+
+impl UserFollow {
+    /// Create a new [`UserFollow`].
+    pub fn new(initiator: usize, receiver: usize) -> Self {
+        Self {
+            id: AlmostSnowflake::new(1234567890)
+                .to_string()
+                .parse::<usize>()
+                .unwrap(),
+            created: unix_epoch_timestamp() as usize,
+            initiator,
+            receiver,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct UserBlock {
+    pub id: usize,
+    pub created: usize,
+    pub initiator: usize,
+    pub receiver: usize,
+}
+
+impl UserBlock {
+    /// Create a new [`UserBlock`].
+    pub fn new(initiator: usize, receiver: usize) -> Self {
+        Self {
+            id: AlmostSnowflake::new(1234567890)
+                .to_string()
+                .parse::<usize>()
+                .unwrap(),
+            created: unix_epoch_timestamp() as usize,
+            initiator,
+            receiver,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct IpBan {
+    pub ip: String,
+    pub created: usize,
+    pub reason: String,
+    pub moderator: usize,
+}
+
+impl IpBan {
+    /// Create a new [`IpBan`].
+    pub fn new(ip: String, moderator: usize, reason: String) -> Self {
+        Self {
+            ip,
+            created: unix_epoch_timestamp() as usize,
+            reason,
+            moderator,
         }
     }
 }

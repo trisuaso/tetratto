@@ -1,6 +1,6 @@
 use axum::{Extension, Json, extract::Path, response::IntoResponse};
 use axum_extra::extract::CookieJar;
-use tetratto_core::model::{ApiReturn, Error, journal::JournalEntry};
+use tetratto_core::model::{ApiReturn, Error, journal::JournalPost};
 
 use crate::{
     State, get_user_from_token,
@@ -19,7 +19,7 @@ pub async fn create_request(
     };
 
     match data
-        .create_entry(JournalEntry::new(req.content, req.journal, user.id))
+        .create_entry(JournalPost::new(req.content, req.journal, user.id))
         .await
     {
         Ok(_) => Json(ApiReturn {
@@ -64,7 +64,7 @@ pub async fn update_content_request(
         None => return Json(Error::NotAllowed.into()),
     };
 
-    match data.update_entry_content(id, user, req.content).await {
+    match data.update_post_content(id, user, req.content).await {
         Ok(_) => Json(ApiReturn {
             ok: true,
             message: "Entry updated".to_string(),
@@ -86,7 +86,7 @@ pub async fn update_context_request(
         None => return Json(Error::NotAllowed.into()),
     };
 
-    match data.update_entry_context(id, user, req.context).await {
+    match data.update_post_context(id, user, req.context).await {
         Ok(_) => Json(ApiReturn {
             ok: true,
             message: "Entry updated".to_string(),

@@ -21,6 +21,7 @@ bitflags! {
         const VIEW_AUDIT_LOG = 1 << 10;
         const MANAGE_MEMBERSHIPS = 1 << 11;
         const MANAGE_REACTIONS = 1 << 12;
+        const MANAGE_FOLLOWS = 1 << 13;
 
         const _ = !0;
     }

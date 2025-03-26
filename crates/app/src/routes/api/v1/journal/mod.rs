@@ -1,2 +1,2 @@
-pub mod entries;
-pub mod pages;
+pub mod journals;
+pub mod posts;

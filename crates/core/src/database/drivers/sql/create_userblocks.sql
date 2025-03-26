@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS userblocks (
+    id INTEGER NOT NULL PRIMARY KEY,
+    created INTEGER NOT NULL,
+    initiator INTEGER NOT NULL,
+    receiver INTEGER NOT NULL
+)
