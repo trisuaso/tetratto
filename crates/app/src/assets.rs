@@ -36,6 +36,9 @@ pub const AUTH_BASE: &str = include_str!("./public/html/auth/base.html");
 pub const AUTH_LOGIN: &str = include_str!("./public/html/auth/login.html");
 pub const AUTH_REGISTER: &str = include_str!("./public/html/auth/register.html");
 
+pub const PROFILE_BASE: &str = include_str!("./public/html/profile/base.html");
+pub const PROFILE_POSTS: &str = include_str!("./public/html/profile/posts.html");
+
 // langs
 pub const LANG_EN_US: &str = include_str!("./langs/en-US.toml");
 
@@ -136,6 +139,9 @@ pub(crate) async fn write_assets(config: &Config) -> PathBufD {
     write_template!(html_path->"auth/base.html"(crate::assets::AUTH_BASE) -d "auth" --config=config);
     write_template!(html_path->"auth/login.html"(crate::assets::AUTH_LOGIN) --config=config);
     write_template!(html_path->"auth/register.html"(crate::assets::AUTH_REGISTER) --config=config);
+
+    write_template!(html_path->"profile/base.html"(crate::assets::PROFILE_BASE) -d "profile" --config=config);
+    write_template!(html_path->"profile/posts.html"(crate::assets::PROFILE_POSTS) --config=config);
 
     html_path
 }

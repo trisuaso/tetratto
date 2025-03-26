@@ -1,4 +1,5 @@
 pub mod images;
+pub mod profile;
 pub mod social;
 
 use super::AuthProps;

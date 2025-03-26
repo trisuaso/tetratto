@@ -9,7 +9,7 @@ use tetratto_shared::{
 /// `(ip, token, creation timestamp)`
 pub type Token = (String, String, usize);
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct User {
     pub id: usize,
     pub created: usize,
@@ -25,11 +25,22 @@ pub struct User {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct UserSettings;
+pub struct UserSettings {
+    #[serde(default)]
+    pub display_name: String,
+    #[serde(default)]
+    pub biography: String,
+    #[serde(default)]
+    pub private_profile: bool,
+}
 
 impl Default for UserSettings {
     fn default() -> Self {
-        Self {}
+        Self {
+            display_name: String::new(),
+            biography: String::new(),
+            private_profile: false,
+        }
     }
 }
 
@@ -79,7 +90,7 @@ impl User {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Notification {
     pub id: usize,
     pub created: usize,

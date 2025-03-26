@@ -78,6 +78,10 @@ pub fn routes() -> Router {
             "/auth/profile/{id}/block",
             post(auth::social::block_request),
         )
+        .route(
+            "/auth/profile/{id}/settings",
+            post(auth::profile::update_profile_settings_request),
+        )
 }
 
 #[derive(Deserialize)]

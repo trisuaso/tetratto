@@ -50,6 +50,10 @@ macro_rules! auto_method {
 
     ($name:ident()@$select_fn:ident -> $query:literal --name=$name_:literal --returns=$returns_:tt --cache-key-tmpl=$cache_key_tmpl:literal) => {
         pub async fn $name(&self, id: usize) -> Result<$returns_> {
+            if let Some(cached) = self.2.get(format!($cache_key_tmpl, id)).await {
+                return Ok(serde_json::from_str(&cached).unwrap());
+            }
+
             let conn = match self.connect().await {
                 Ok(c) => c,
                 Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
@@ -94,6 +98,10 @@ macro_rules! auto_method {
 
     ($name:ident($selector_t:ty)@$select_fn:ident -> $query:literal --name=$name_:literal --returns=$returns_:tt --cache-key-tmpl=$cache_key_tmpl:literal) => {
         pub async fn $name(&self, selector: $selector_t) -> Result<$returns_> {
+            if let Some(cached) = self.2.get(format!($cache_key_tmpl, selector)).await {
+                return Ok(serde_json::from_str(&cached).unwrap());
+            }
+
             let conn = match self.connect().await {
                 Ok(c) => c,
                 Err(e) => return Err(Error::DatabaseConnection(e.to_string())),

@@ -2,7 +2,7 @@ use super::*;
 use crate::cache::Cache;
 use crate::model::{
     Error, Result,
-    auth::{Token, User},
+    auth::{Token, User, UserSettings},
     permissions::FinePermission,
 };
 use crate::{auto_method, execute, get, query_row};
@@ -145,6 +145,7 @@ impl DataManager {
     }
 
     auto_method!(update_user_tokens(Vec<Token>) -> "UPDATE users SET tokens = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.user:{}");
+    auto_method!(update_user_settings(UserSettings) -> "UPDATE users SET settings = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.user:{}");
 
     auto_method!(incr_user_notifications() -> "UPDATE users SET notification_count = notification_count + 1 WHERE id = $1" --cache-key-tmpl="atto.user:{}" --incr);
     auto_method!(decr_user_notifications() -> "UPDATE users SET notification_count = notification_count - 1 WHERE id = $1" --cache-key-tmpl="atto.user:{}" --decr);

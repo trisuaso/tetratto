@@ -88,6 +88,10 @@ footer {
     padding: 0.75rem 1rem;
 }
 
+article {
+    margin-top: 1rem;
+}
+
 @media screen and (max-width: 900px) {
     main,
     article,
@@ -95,6 +99,10 @@ footer {
     header,
     footer {
         width: 100%;
+    }
+
+    article {
+        margin-top: 0;
     }
 }
 
@@ -135,6 +143,8 @@ footer {
 svg.icon {
     stroke: currentColor;
     width: 18px;
+    width: 1em;
+    height: 1em;
 }
 
 svg.icon.filled {
@@ -360,6 +370,14 @@ button,
     font-weight: 600;
 }
 
+button.small,
+.button.small {
+    min-height: max-content;
+    padding: 0.25rem;
+    height: 24px;
+    font-size: 16px;
+}
+
 button:hover,
 .button:hover {
     background: var(--color-primary-lowered);
@@ -488,6 +506,15 @@ select:focus {
     font-family: inherit;
     font-size: 12px;
     padding: 0;
+}
+
+/* chip */
+.chip {
+    background: var(--color-primary);
+    color: var(--color-text-primary);
+    font-weight: 600;
+    border-radius: var(--circle);
+    padding: 0.05rem 0.75rem;
 }
 
 /* nav */
@@ -1041,6 +1068,7 @@ details.accordion .inner {
 
     .sm\:w-full {
         width: 100% !important;
+        min-width: 100% !important;
     }
 
     .sm\:mt-2 {

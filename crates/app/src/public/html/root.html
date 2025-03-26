@@ -56,7 +56,9 @@
     <body>
         <div id="toast_zone"></div>
 
-        {% block body %}{% endblock %}
+        <div id="page" style="display: contents">
+            {% block body %}{% endblock %}
+        </div>
 
         <script data-turbo-permanent="true" id="init-script">
             document.documentElement.addEventListener("turbo:load", () => {

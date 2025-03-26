@@ -1,0 +1,80 @@
+{% import "macros.html" as macros %} {% extends "root.html" %} {% block head %}
+<title>{{ profile.username }} - {{ config.name }}</title>
+{% endblock %} {% block body %} {{ macros::nav() }}
+<article>
+    <div class="content_container">
+        <div class="w-full flex gap-4 flex-collapse">
+            <div
+                class="lhs flex flex-col gap-2 sm:w-full"
+                style="min-width: 20rem"
+            >
+                <div class="card-nest w-full">
+                    <div class="card flex gap-2" id="user_avatar_and_name">
+                        {{ macros::avatar(username=profile.username,size="72px")
+                        }}
+                        <div class="flex flex-col">
+                            <h3 id="username">
+                                {% if profile.settings.display_name %} {{
+                                profile.settings.display_name }} {% else %} {{
+                                profile.username }} {% endif %}
+                            </h3>
+
+                            <span class="fade">{{ profile.username }}</span>
+                        </div>
+                    </div>
+
+                    <div class="card flex" id="social">
+                        <div
+                            class="w-full flex justify-center items-center gap-2"
+                        >
+                            <h4>{{ profile.follower_count }}</h4>
+                            <span>{{ text "auth:label.followers" }}</span>
+                        </div>
+                        <div
+                            class="w-full flex justify-center items-center gap-2"
+                        >
+                            <h4>{{ profile.following_count }}</h4>
+                            <span>{{ text "auth:label.following" }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-nest flex flex-col">
+                    <div id="bio" class="card">
+                        {{ profile.settings.biography }}
+                    </div>
+
+                    <div class="card flex flex-col gap-2">
+                        <div class="w-full flex justify-between items-center">
+                            <span class="notification chip">ID</span>
+                            <button
+                                title="Copy"
+                                onclick="trigger('atto::copy_text', [{{ profile.id }}])"
+                                class="camo small"
+                            >
+                                {{ icon "copy" }}
+                            </button>
+                        </div>
+
+                        <div class="w-full flex justify-between items-center">
+                            <span class="notification chip">Joined</span>
+                            <span class="date">{{ profile.created }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-nest">
+                    <div class="card flex gap-2 items-center">
+                        {{ icon "users-round" }}
+                        <span>{{ text "auth:label.joined_journals" }}</span>
+                    </div>
+
+                    <div class="card flex flex-wrap gap-2"></div>
+                </div>
+            </div>
+
+            <div class="rhs sm:w-full">{% block content %}{% endblock %}</div>
+        </div>
+    </div>
+</article>
+{% endblock %}
