@@ -61,7 +61,7 @@ impl DataManager {
 #[cfg(feature = "postgres")]
 #[macro_export]
 macro_rules! get {
-    ($row:ident->$idx:literal($t:tt)) => {
+    ($row:ident->$idx:literal($t:ty)) => {
         $row.get::<usize, Option<$t>>($idx).unwrap()
     };
 }

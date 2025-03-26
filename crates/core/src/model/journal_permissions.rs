@@ -11,6 +11,8 @@ bitflags! {
         const DEFAULT = 1 << 0;
         const ADMINISTRATOR = 1 << 1;
         const MEMBER = 1 << 2;
+        const MANAGE_POSTS = 1 << 3;
+        const MANAGE_ROLES = 1 << 4;
 
         const _ = !0;
     }
@@ -93,8 +95,13 @@ impl JournalPermission {
     }
 
     /// Check if the given [`JournalPermission`] qualifies as "Member" status.
-    pub fn check_helper(self) -> bool {
+    pub fn check_member(self) -> bool {
         self.check(JournalPermission::MEMBER)
+    }
+
+    /// Check if the given [`JournalPermission`] qualifies as "Moderator" status.
+    pub fn check_moderator(self) -> bool {
+        self.check(JournalPermission::MANAGE_POSTS)
     }
 }
 

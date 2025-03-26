@@ -1,4 +1,5 @@
 pub mod images;
+pub mod social;
 
 use super::AuthProps;
 use crate::{

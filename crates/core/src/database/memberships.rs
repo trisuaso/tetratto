@@ -83,5 +83,67 @@ impl DataManager {
         Ok(())
     }
 
-    auto_method!(delete_membership()@get_membership_by_id:MANAGE_MEMBERSHIPS -> "DELETE FROM memberships WHERE id = $1" --cache-key-tmpl="atto.membership:{}");
+    /// Delete a membership given its `id`
+    pub async fn delete_membership(&self, id: usize, user: User) -> Result<()> {
+        let y = self.get_membership_by_id(id).await?;
+
+        if user.id != y.owner {
+            // pull other user's membership status
+            if let Ok(z) = self.get_membership_by_id(user.id).await {
+                // somebody with MANAGE_ROLES _and_ a higher role number can remove us
+                if (!z.role.check(JournalPermission::MANAGE_ROLES) | (z.role < y.role))
+                    && !z.role.check(JournalPermission::ADMINISTRATOR)
+                {
+                    return Err(Error::NotAllowed);
+                }
+            } else if !user.permissions.check(FinePermission::MANAGE_MEMBERSHIPS) {
+                return Err(Error::NotAllowed);
+            }
+        }
+
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = execute!(
+            &conn,
+            "DELETE FROM memberships WHERE id = $1",
+            &[&id.to_string()]
+        );
+
+        if let Err(e) = res {
+            return Err(Error::DatabaseError(e.to_string()));
+        }
+
+        self.2.remove(format!("atto.membership:{}", id)).await;
+
+        Ok(())
+    }
+
+    /// Update a membership's role given its `id`
+    pub async fn update_membership_role(
+        &self,
+        id: usize,
+        new_role: JournalPermission,
+    ) -> Result<()> {
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = execute!(
+            &conn,
+            "UPDATE memberships SET role = $1 WHERE id = $2",
+            &[&(new_role.bits()).to_string(), &id.to_string()]
+        );
+
+        if let Err(e) = res {
+            return Err(Error::DatabaseError(e.to_string()));
+        }
+
+        self.2.remove(format!("atto.membership:{}", id)).await;
+
+        Ok(())
+    }
 }

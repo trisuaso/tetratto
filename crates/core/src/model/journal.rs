@@ -62,10 +62,8 @@ impl Default for JournalReadAccess {
 /// Who can write to a [`Journal`].
 #[derive(Serialize, Deserialize, PartialEq, Eq)]
 pub enum JournalWriteAccess {
-    /// Everybody (authenticated + anonymous users).
+    /// Everybody (authenticated users only still).
     Everybody,
-    /// Authenticated users only.
-    Authenticated,
     /// Only people who joined the journal page can write to it.
     ///
     /// Memberships can be managed by the owner of the journal page.
@@ -76,7 +74,7 @@ pub enum JournalWriteAccess {
 
 impl Default for JournalWriteAccess {
     fn default() -> Self {
-        Self::Authenticated
+        Self::Joined
     }
 }
 
@@ -128,13 +126,16 @@ pub struct JournalPost {
     pub journal: usize,
     /// Extra information about the journal entry.
     pub context: JournalPostContext,
+    /// The ID of the post this post is a comment on.
+    pub replying_to: Option<usize>,
     pub likes: isize,
     pub dislikes: isize,
+    pub comment_count: usize,
 }
 
 impl JournalPost {
     /// Create a new [`JournalEntry`].
-    pub fn new(content: String, journal: usize, owner: usize) -> Self {
+    pub fn new(content: String, journal: usize, replying_to: Option<usize>, owner: usize) -> Self {
         Self {
             id: AlmostSnowflake::new(1234567890)
                 .to_string()
@@ -145,8 +146,10 @@ impl JournalPost {
             owner,
             journal,
             context: JournalPostContext::default(),
+            replying_to,
             likes: 0,
             dislikes: 0,
+            comment_count: 0,
         }
     }
 }

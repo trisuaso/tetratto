@@ -44,7 +44,7 @@ impl DataManager {
 
 #[macro_export]
 macro_rules! get {
-    ($row:ident->$idx:literal($t:tt)) => {
+    ($row:ident->$idx:literal($t:ty)) => {
         $row.get::<usize, $t>($idx).unwrap()
     };
 }

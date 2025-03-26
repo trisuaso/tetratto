@@ -132,7 +132,7 @@ impl DataManager {
             Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
         };
 
-        let res = execute!(&conn, "DELETE FROM users WHERE id = $1", &[&id]);
+        let res = execute!(&conn, "DELETE FROM users WHERE id = $1", &[&(id as i64)]);
 
         if let Err(e) = res {
             return Err(Error::DatabaseError(e.to_string()));

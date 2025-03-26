@@ -70,6 +70,14 @@ pub fn routes() -> Router {
             "/auth/profile/{id}/banner",
             get(auth::images::banner_request),
         )
+        .route(
+            "/auth/profile/{id}/follow",
+            post(auth::social::follow_request),
+        )
+        .route(
+            "/auth/profile/{id}/block",
+            post(auth::social::block_request),
+        )
 }
 
 #[derive(Deserialize)]
@@ -108,6 +116,8 @@ pub struct UpdateJournalWriteAccess {
 pub struct CreateJournalEntry {
     pub content: String,
     pub journal: usize,
+    #[serde(default)]
+    pub replying_to: Option<usize>,
 }
 
 #[derive(Deserialize)]

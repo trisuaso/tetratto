@@ -19,7 +19,12 @@ pub async fn create_request(
     };
 
     match data
-        .create_entry(JournalPost::new(req.content, req.journal, user.id))
+        .create_post(JournalPost::new(
+            req.content,
+            req.journal,
+            req.replying_to,
+            user.id,
+        ))
         .await
     {
         Ok(_) => Json(ApiReturn {
@@ -42,7 +47,7 @@ pub async fn delete_request(
         None => return Json(Error::NotAllowed.into()),
     };
 
-    match data.delete_entry(id, user).await {
+    match data.delete_post(id, user).await {
         Ok(_) => Json(ApiReturn {
             ok: true,
             message: "Entry deleted".to_string(),

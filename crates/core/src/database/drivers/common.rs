@@ -1,6 +1,6 @@
 pub const CREATE_TABLE_USERS: &str = include_str!("./sql/create_users.sql");
-pub const CREATE_TABLE_PAGES: &str = include_str!("./sql/create_pages.sql");
-pub const CREATE_TABLE_ENTRIES: &str = include_str!("./sql/create_entries.sql");
+pub const CREATE_TABLE_JOURNALS: &str = include_str!("./sql/create_journals.sql");
+pub const CREATE_TABLE_POSTS: &str = include_str!("./sql/create_posts.sql");
 pub const CREATE_TABLE_MEMBERSHIPS: &str = include_str!("./sql/create_memberships.sql");
 pub const CREATE_TABLE_REACTIONS: &str = include_str!("./sql/create_reactions.sql");
 pub const CREATE_TABLE_NOTIFICATIONS: &str = include_str!("./sql/create_notifications.sql");

@@ -37,7 +37,7 @@ impl DataManager {
         }
     }
 
-    auto_method!(get_page_by_id()@get_page_from_row -> "SELECT * FROM pages WHERE id = $1" --name="journal page" --returns=Journal --cache-key-tmpl="atto.page:{}");
+    auto_method!(get_page_by_id()@get_page_from_row -> "SELECT * FROM journals WHERE id = $1" --name="journal" --returns=Journal --cache-key-tmpl="atto.journal:{}");
 
     /// Create a new journal page in the database.
     ///
@@ -65,7 +65,7 @@ impl DataManager {
 
         let res = execute!(
             &conn,
-            "INSERT INTO pages VALUES ($1, $2, $3, $4, $5, $6, $7)",
+            "INSERT INTO journals VALUES ($1, $2, $3, $4, $5, $6, $7)",
             &[
                 &data.id.to_string().as_str(),
                 &data.created.to_string().as_str(),
@@ -94,14 +94,14 @@ impl DataManager {
         Ok(())
     }
 
-    auto_method!(delete_page()@get_page_by_id:MANAGE_JOURNAL_PAGES -> "DELETE FROM pages WHERE id = $1" --cache-key-tmpl="atto.page:{}");
-    auto_method!(update_page_title(String)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET title = $1 WHERE id = $2" --cache-key-tmpl="atto.page:{}");
-    auto_method!(update_page_prompt(String)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET prompt = $1 WHERE id = $2" --cache-key-tmpl="atto.page:{}");
-    auto_method!(update_page_read_access(JournalReadAccess)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET read_access = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.page:{}");
-    auto_method!(update_page_write_access(JournalWriteAccess)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE pages SET write_access = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.page:{}");
+    auto_method!(delete_page()@get_page_by_id:MANAGE_JOURNAL_PAGES -> "DELETE journals pages WHERE id = $1" --cache-key-tmpl="atto.journal:{}");
+    auto_method!(update_page_title(String)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE journals SET title = $1 WHERE id = $2" --cache-key-tmpl="atto.journal:{}");
+    auto_method!(update_page_prompt(String)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE journals SET prompt = $1 WHERE id = $2" --cache-key-tmpl="atto.journal:{}");
+    auto_method!(update_page_read_access(JournalReadAccess)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE journals SET read_access = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.journal:{}");
+    auto_method!(update_page_write_access(JournalWriteAccess)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE journals SET write_access = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.journal:{}");
 
-    auto_method!(incr_page_likes() -> "UPDATE pages SET likes = likes + 1 WHERE id = $1" --cache-key-tmpl="atto.pages:{}"  --incr);
-    auto_method!(incr_page_dislikes() -> "UPDATE pages SET likes = dislikes + 1 WHERE id = $1" --cache-key-tmpl="atto.pages:{}" --incr);
-    auto_method!(decr_page_likes() -> "UPDATE pages SET likes = likes - 1 WHERE id = $1" --cache-key-tmpl="atto.pages:{}" --decr);
-    auto_method!(decr_page_dislikes() -> "UPDATE pages SET likes = dislikes - 1 WHERE id = $1" --cache-key-tmpl="atto.pages:{}" --decr);
+    auto_method!(incr_page_likes() -> "UPDATE journals SET likes = likes + 1 WHERE id = $1" --cache-key-tmpl="atto.journal:{}"  --incr);
+    auto_method!(incr_page_dislikes() -> "UPDATE journals SET likes = dislikes + 1 WHERE id = $1" --cache-key-tmpl="atto.journal:{}" --incr);
+    auto_method!(decr_page_likes() -> "UPDATE journals SET likes = likes - 1 WHERE id = $1" --cache-key-tmpl="atto.journal:{}" --decr);
+    auto_method!(decr_page_dislikes() -> "UPDATE journals SET likes = dislikes - 1 WHERE id = $1" --cache-key-tmpl="atto.journal:{}" --decr);
 }
