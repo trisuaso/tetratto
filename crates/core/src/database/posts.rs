@@ -113,7 +113,7 @@ impl DataManager {
         }
 
         // check permission in page
-        let page = match self.get_page_by_id(data.community).await {
+        let page = match self.get_community_by_id(data.community).await {
             Ok(p) => p,
             Err(e) => return Err(e),
         };
@@ -175,9 +175,9 @@ impl DataManager {
         Ok(())
     }
 
-    auto_method!(delete_post()@get_post_by_id:MANAGE_JOURNAL_ENTRIES -> "DELETE FROM posts WHERE id = $1" --cache-key-tmpl="atto.post:{}");
-    auto_method!(update_post_content(String)@get_post_by_id:MANAGE_JOURNAL_ENTRIES -> "UPDATE posts SET content = $1 WHERE id = $2" --cache-key-tmpl="atto.post:{}");
-    auto_method!(update_post_context(PostContext)@get_post_by_id:MANAGE_JOURNAL_ENTRIES -> "UPDATE posts SET context = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.post:{}");
+    auto_method!(delete_post()@get_post_by_id:MANAGE_COMMUNITY_ENTRIES -> "DELETE FROM posts WHERE id = $1" --cache-key-tmpl="atto.post:{}");
+    auto_method!(update_post_content(String)@get_post_by_id:MANAGE_COMMUNITY_ENTRIES -> "UPDATE posts SET content = $1 WHERE id = $2" --cache-key-tmpl="atto.post:{}");
+    auto_method!(update_post_context(PostContext)@get_post_by_id:MANAGE_COMMUNITY_ENTRIES -> "UPDATE posts SET context = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.post:{}");
 
     auto_method!(incr_post_likes() -> "UPDATE posts SET likes = likes + 1 WHERE id = $1" --cache-key-tmpl="atto.post:{}" --incr);
     auto_method!(incr_post_dislikes() -> "UPDATE posts SET likes = dislikes + 1 WHERE id = $1" --cache-key-tmpl="atto.post:{}" --incr);

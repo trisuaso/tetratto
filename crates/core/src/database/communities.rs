@@ -37,12 +37,12 @@ impl DataManager {
         }
     }
 
-    auto_method!(get_page_by_id()@get_community_from_row -> "SELECT * FROM journals WHERE id = $1" --name="journal" --returns=Community --cache-key-tmpl="atto.journal:{}");
+    auto_method!(get_community_by_id()@get_community_from_row -> "SELECT * FROM communities WHERE id = $1" --name="community" --returns=Community --cache-key-tmpl="atto.community:{}");
 
-    /// Create a new journal page in the database.
+    /// Create a new community in the database.
     ///
     /// # Arguments
-    /// * `data` - a mock [`Journal`] object to insert
+    /// * `data` - a mock [`Community`] to insert
     pub async fn create_community(&self, data: Community) -> Result<()> {
         // check values
         if data.title.len() < 2 {
@@ -59,7 +59,7 @@ impl DataManager {
 
         let res = execute!(
             &conn,
-            "INSERT INTO journals VALUES ($1, $2, $3, $4, $5, $6, $7)",
+            "INSERT INTO communities VALUES ($1, $2, $3, $4, $5, $6, $7)",
             &[
                 &data.id.to_string().as_str(),
                 &data.created.to_string().as_str(),
@@ -88,14 +88,14 @@ impl DataManager {
         Ok(())
     }
 
-    auto_method!(delete_community()@get_page_by_id:MANAGE_JOURNAL_PAGES -> "DELETE journals pages WHERE id = $1" --cache-key-tmpl="atto.journal:{}");
-    auto_method!(update_community_title(String)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE journals SET title = $1 WHERE id = $2" --cache-key-tmpl="atto.journal:{}");
-    auto_method!(update_community_context(CommunityContext)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE journals SET prompt = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.journal:{}");
-    auto_method!(update_community_read_access(CommunityReadAccess)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE journals SET read_access = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.journal:{}");
-    auto_method!(update_community_write_access(CommunityWriteAccess)@get_page_by_id:MANAGE_JOURNAL_PAGES -> "UPDATE journals SET write_access = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.journal:{}");
+    auto_method!(delete_community()@get_community_by_id:MANAGE_COMMUNITY_PAGES -> "DELETE communities pages WHERE id = $1" --cache-key-tmpl="atto.community:{}");
+    auto_method!(update_community_title(String)@get_community_by_id:MANAGE_COMMUNITY_PAGES -> "UPDATE communities SET title = $1 WHERE id = $2" --cache-key-tmpl="atto.community:{}");
+    auto_method!(update_community_context(CommunityContext)@get_community_by_id:MANAGE_COMMUNITY_PAGES -> "UPDATE communities SET prompt = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.community:{}");
+    auto_method!(update_community_read_access(CommunityReadAccess)@get_community_by_id:MANAGE_COMMUNITY_PAGES -> "UPDATE communities SET read_access = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.community:{}");
+    auto_method!(update_community_write_access(CommunityWriteAccess)@get_community_by_id:MANAGE_COMMUNITY_PAGES -> "UPDATE communities SET write_access = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.community:{}");
 
-    auto_method!(incr_page_likes() -> "UPDATE journals SET likes = likes + 1 WHERE id = $1" --cache-key-tmpl="atto.journal:{}"  --incr);
-    auto_method!(incr_page_dislikes() -> "UPDATE journals SET likes = dislikes + 1 WHERE id = $1" --cache-key-tmpl="atto.journal:{}" --incr);
-    auto_method!(decr_page_likes() -> "UPDATE journals SET likes = likes - 1 WHERE id = $1" --cache-key-tmpl="atto.journal:{}" --decr);
-    auto_method!(decr_page_dislikes() -> "UPDATE journals SET likes = dislikes - 1 WHERE id = $1" --cache-key-tmpl="atto.journal:{}" --decr);
+    auto_method!(incr_community_likes() -> "UPDATE communities SET likes = likes + 1 WHERE id = $1" --cache-key-tmpl="atto.community:{}"  --incr);
+    auto_method!(incr_community_dislikes() -> "UPDATE communities SET likes = dislikes + 1 WHERE id = $1" --cache-key-tmpl="atto.community:{}" --incr);
+    auto_method!(decr_community_likes() -> "UPDATE communities SET likes = likes - 1 WHERE id = $1" --cache-key-tmpl="atto.community:{}" --decr);
+    auto_method!(decr_community_dislikes() -> "UPDATE communities SET likes = dislikes - 1 WHERE id = $1" --cache-key-tmpl="atto.community:{}" --decr);
 }

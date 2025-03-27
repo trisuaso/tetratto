@@ -15,6 +15,7 @@
                 <span class="desktop">{{ text "general:link.home" }}</span>
             </a>
 
+            {% if user %}
             <a
                 href="/communities"
                 class="button {% if selected == 'communities' %}active{% endif %}"
@@ -24,7 +25,7 @@
                     >{{ text "general:link.communities" }}</span
                 >
             </a>
-            {% endif %}
+            {% endif %} {% endif %}
         </div>
 
         <div class="flex nav_side">

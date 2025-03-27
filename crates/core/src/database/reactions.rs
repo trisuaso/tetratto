@@ -87,7 +87,7 @@ impl DataManager {
         // incr corresponding
         match data.asset_type {
             AssetType::Journal => {
-                if let Err(e) = self.incr_page_likes(data.id).await {
+                if let Err(e) = self.incr_community_likes(data.id).await {
                     return Err(e);
                 }
             }
@@ -131,7 +131,7 @@ impl DataManager {
         // decr corresponding
         match reaction.asset_type {
             AssetType::Journal => {
-                if let Err(e) = self.decr_page_likes(reaction.asset).await {
+                if let Err(e) = self.decr_community_likes(reaction.asset).await {
                     return Err(e);
                 }
             }

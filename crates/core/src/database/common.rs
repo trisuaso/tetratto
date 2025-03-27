@@ -14,7 +14,7 @@ impl DataManager {
         };
 
         execute!(&conn, common::CREATE_TABLE_USERS).unwrap();
-        execute!(&conn, common::CREATE_TABLE_JOURNALS).unwrap();
+        execute!(&conn, common::CREATE_TABLE_COMMUNITIES).unwrap();
         execute!(&conn, common::CREATE_TABLE_POSTS).unwrap();
         execute!(&conn, common::CREATE_TABLE_MEMBERSHIPS).unwrap();
         execute!(&conn, common::CREATE_TABLE_REACTIONS).unwrap();
