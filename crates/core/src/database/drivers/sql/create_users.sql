@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS users (
     settings TEXT NOT NULL,
     tokens TEXT NOT NULL,
     permissions INTEGER NOT NULL,
+    verified INTEGER NOT NULL,
     -- counts
     notification_count INTEGER NOT NULL,
     follower_count INTEGER NOT NULL,

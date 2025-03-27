@@ -324,6 +324,10 @@ table ol {
     border-radius: var(--radius);
 }
 
+.card.small {
+    padding: 0.5rem 1rem;
+}
+
 .card.secondary {
     background: var(--color-surface);
 }

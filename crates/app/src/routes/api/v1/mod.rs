@@ -82,6 +82,14 @@ pub fn routes() -> Router {
             "/auth/profile/{id}/settings",
             post(auth::profile::update_profile_settings_request),
         )
+        .route(
+            "/auth/profile/{id}/tokens",
+            post(auth::profile::update_profile_tokens_request),
+        )
+        .route(
+            "/auth/profile/{id}/verified",
+            post(auth::profile::update_profile_is_verified_request),
+        )
 }
 
 #[derive(Deserialize)]
@@ -139,4 +147,9 @@ pub struct CreateReaction {
     pub asset: usize,
     pub asset_type: AssetType,
     pub is_like: bool,
+}
+
+#[derive(Deserialize)]
+pub struct UpdateUserIsVerified {
+    pub is_verified: bool,
 }

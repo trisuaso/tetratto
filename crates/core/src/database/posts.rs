@@ -5,7 +5,7 @@ use crate::model::{
     Error, Result, auth::User, journal::JournalPost, journal::JournalWriteAccess,
     permissions::FinePermission,
 };
-use crate::{auto_method, execute, get, query_row};
+use crate::{auto_method, execute, get, query_row, query_rows};
 
 #[cfg(feature = "sqlite")]
 use rusqlite::Row;
@@ -60,9 +60,40 @@ impl DataManager {
 
         let res = query_row!(
             &conn,
-            "SELECT * FROM posts WHERE replying_to = $1 LIMIT $2 OFFSET $3",
+            "SELECT * FROM posts WHERE replying_to = $1 ORDER BY created DESC LIMIT $2 OFFSET $3",
             &[&(id as i64), &(batch as i64), &((page * batch) as i64)],
             |x| { Ok(Self::get_post_from_row(x)) }
+        );
+
+        if res.is_err() {
+            return Err(Error::GeneralNotFound("post".to_string()));
+        }
+
+        Ok(res.unwrap())
+    }
+
+    /// Get all posts from the given user (from most recent).
+    ///
+    /// # Arguments
+    /// * `id` - the ID of the user the requested posts belong to
+    /// * `batch` - the limit of posts in each page
+    /// * `page` - the page number
+    pub async fn get_posts_by_user(
+        &self,
+        id: usize,
+        batch: usize,
+        page: usize,
+    ) -> Result<Vec<JournalPost>> {
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = query_rows!(
+            &conn,
+            "SELECT * FROM posts WHERE owner = $1 ORDER BY created DESC LIMIT $2 OFFSET $3",
+            &[&(id as i64), &(batch as i64), &((page * batch) as i64)],
+            |x| { Self::get_post_from_row(x) }
         );
 
         if res.is_err() {

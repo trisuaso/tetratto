@@ -29,10 +29,11 @@ impl DataManager {
             settings: serde_json::from_str(&get!(x->5(String)).to_string()).unwrap(),
             tokens: serde_json::from_str(&get!(x->6(String)).to_string()).unwrap(),
             permissions: FinePermission::from_bits(get!(x->7(u32))).unwrap(),
+            is_verified: if get!(x->8(i8)) == 1 { true } else { false },
             // counts
-            notification_count: get!(x->8(i64)) as usize,
-            follower_count: get!(x->9(i64)) as usize,
-            following_count: get!(x->10(i64)) as usize,
+            notification_count: get!(x->9(i64)) as usize,
+            follower_count: get!(x->10(i64)) as usize,
+            following_count: get!(x->11(i64)) as usize,
         }
     }
 
@@ -91,7 +92,7 @@ impl DataManager {
 
         let res = execute!(
             &conn,
-            "INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+            "INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
             &[
                 &data.id.to_string().as_str(),
                 &data.created.to_string().as_str(),
@@ -101,6 +102,7 @@ impl DataManager {
                 &serde_json::to_string(&data.settings).unwrap().as_str(),
                 &serde_json::to_string(&data.tokens).unwrap().as_str(),
                 &(FinePermission::DEFAULT.bits()).to_string().as_str(),
+                &(if data.is_verified { 1 } else { 0 }).to_string().as_str(),
                 &0.to_string().as_str(),
                 &0.to_string().as_str(),
                 &0.to_string().as_str()
@@ -140,6 +142,34 @@ impl DataManager {
 
         self.2.remove(format!("atto.user:{}", id)).await;
         self.2.remove(format!("atto.user:{}", user.username)).await;
+
+        Ok(())
+    }
+
+    pub async fn update_user_verified_status(&self, id: usize, x: bool, user: User) -> Result<()> {
+        if !user.permissions.check(FinePermission::MANAGE_VERIFIED) {
+            return Err(Error::NotAllowed);
+        }
+
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = execute!(
+            &conn,
+            "UPDATE users SET is_verified = $1 WHERE id = $2",
+            &[
+                &(if x { 1 } else { 0 }).to_string().as_str(),
+                &serde_json::to_string(&x).unwrap().as_str()
+            ]
+        );
+
+        if let Err(e) = res {
+            return Err(Error::DatabaseError(e.to_string()));
+        }
+
+        self.2.remove(format!("atto.user:{}", id)).await;
 
         Ok(())
     }

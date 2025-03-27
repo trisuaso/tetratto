@@ -1,0 +1,21 @@
+{% import "macros.html" as macros %} {% extends "root.html" %} {% block head %}
+<title>{{ error_text }} - Tetratto</title>
+{% endblock %} {% block body %} {{ macros::nav(selected="home") }}
+<main class="flex flex-col gap-2">
+    <div class="card-nest">
+        <div class="card">
+            <b>Error! 😦</b>
+        </div>
+
+        <div class="card flex flex-col gap-4">
+            <p>{{ error_text }}</p>
+            <div class="w-full flex gap-2">
+                <a class="button primary" href="/">Home</a>
+                <a class="button secondary" href="javascript:history.back()"
+                    >Back</a
+                >
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

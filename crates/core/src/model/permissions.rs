@@ -22,6 +22,7 @@ bitflags! {
         const MANAGE_MEMBERSHIPS = 1 << 11;
         const MANAGE_REACTIONS = 1 << 12;
         const MANAGE_FOLLOWS = 1 << 13;
+        const MANAGE_VERIFIED = 1 << 14;
 
         const _ = !0;
     }

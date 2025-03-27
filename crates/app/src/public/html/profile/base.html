@@ -13,10 +13,19 @@
                         {{ macros::avatar(username=profile.username,size="72px")
                         }}
                         <div class="flex flex-col">
-                            <h3 id="username">
-                                {% if profile.settings.display_name %} {{
-                                profile.settings.display_name }} {% else %} {{
-                                profile.username }} {% endif %}
+                            <!-- prettier-ignore -->
+                            <h3 id="username" class="username">
+                                {% if profile.settings.display_name %}
+                                    {{ profile.settings.display_name }}
+                                {% else %}
+                                    {{ profile.username }}
+                                {% endif %}
+
+                                {% if profile.is_verified %}
+                                <span title="Verified">
+                                    {{ icon "badge-check" }}
+                                </span>
+                                {% endif %}
                             </h3>
 
                             <span class="fade">{{ profile.username }}</span>
@@ -24,23 +33,25 @@
                     </div>
 
                     <div class="card flex" id="social">
-                        <div
+                        <a
+                            href="/user/{{ profile.username }}/followers"
                             class="w-full flex justify-center items-center gap-2"
                         >
                             <h4>{{ profile.follower_count }}</h4>
                             <span>{{ text "auth:label.followers" }}</span>
-                        </div>
-                        <div
+                        </a>
+                        <a
+                            href="/user/{{ profile.username }}/following"
                             class="w-full flex justify-center items-center gap-2"
                         >
                             <h4>{{ profile.following_count }}</h4>
                             <span>{{ text "auth:label.following" }}</span>
-                        </div>
+                        </a>
                     </div>
                 </div>
 
                 <div class="card-nest flex flex-col">
-                    <div id="bio" class="card">
+                    <div id="bio" class="card small">
                         {{ profile.settings.biography }}
                     </div>
 
@@ -64,7 +75,7 @@
                 </div>
 
                 <div class="card-nest">
-                    <div class="card flex gap-2 items-center">
+                    <div class="card small flex gap-2 items-center">
                         {{ icon "users-round" }}
                         <span>{{ text "auth:label.joined_journals" }}</span>
                     </div>
