@@ -14,11 +14,29 @@
                 {{ icon "house" }}
                 <span class="desktop">{{ text "general:link.home" }}</span>
             </a>
+
+            <a
+                href="/communities"
+                class="button {% if selected == 'communities' %}active{% endif %}"
+            >
+                {{ icon "book-heart" }}
+                <span class="desktop"
+                    >{{ text "general:link.communities" }}</span
+                >
+            </a>
             {% endif %}
         </div>
 
         <div class="flex nav_side">
             {% if user %}
+            <a href="/notifs" class="button" title="Notifications">
+                {{ icon "bell" }} {% if user.notification_count > 0 %}
+                <span class="notification tr"
+                    >{{ user.notification_count }}</span
+                >
+                {% endif %}
+            </a>
+
             <div class="dropdown">
                 <!-- prettier-ignore -->
                 <button
@@ -34,7 +52,7 @@
                 <div class="inner">
                     <b class="title">{{ user.username }}</b>
                     <a href="/user/{{ user.username }}">
-                        {{ icon "book-heart" }}
+                        {{ icon "circle-user-round" }}
                         <span>{{ text "auth:link.my_profile" }}</span>
                     </a>
 

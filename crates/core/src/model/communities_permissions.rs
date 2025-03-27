@@ -7,7 +7,7 @@ use serde::{
 bitflags! {
     /// Fine-grained journal permissions built using bitwise operations.
     #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
-    pub struct JournalPermission: u32 {
+    pub struct CommunityPermission: u32 {
         const DEFAULT = 1 << 0;
         const ADMINISTRATOR = 1 << 1;
         const MEMBER = 1 << 2;
@@ -18,7 +18,7 @@ bitflags! {
     }
 }
 
-impl Serialize for JournalPermission {
+impl Serialize for CommunityPermission {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -29,7 +29,7 @@ impl Serialize for JournalPermission {
 
 struct JournalPermissionVisitor;
 impl<'de> Visitor<'de> for JournalPermissionVisitor {
-    type Value = JournalPermission;
+    type Value = CommunityPermission;
 
     fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
         formatter.write_str("u32")
@@ -39,10 +39,10 @@ impl<'de> Visitor<'de> for JournalPermissionVisitor {
     where
         E: DeError,
     {
-        if let Some(permission) = JournalPermission::from_bits(value) {
+        if let Some(permission) = CommunityPermission::from_bits(value) {
             Ok(permission)
         } else {
-            Ok(JournalPermission::from_bits_retain(value))
+            Ok(CommunityPermission::from_bits_retain(value))
         }
     }
 
@@ -50,10 +50,10 @@ impl<'de> Visitor<'de> for JournalPermissionVisitor {
     where
         E: DeError,
     {
-        if let Some(permission) = JournalPermission::from_bits(value as u32) {
+        if let Some(permission) = CommunityPermission::from_bits(value as u32) {
             Ok(permission)
         } else {
-            Ok(JournalPermission::from_bits_retain(value as u32))
+            Ok(CommunityPermission::from_bits_retain(value as u32))
         }
     }
 
@@ -61,15 +61,15 @@ impl<'de> Visitor<'de> for JournalPermissionVisitor {
     where
         E: DeError,
     {
-        if let Some(permission) = JournalPermission::from_bits(value as u32) {
+        if let Some(permission) = CommunityPermission::from_bits(value as u32) {
             Ok(permission)
         } else {
-            Ok(JournalPermission::from_bits_retain(value as u32))
+            Ok(CommunityPermission::from_bits_retain(value as u32))
         }
     }
 }
 
-impl<'de> Deserialize<'de> for JournalPermission {
+impl<'de> Deserialize<'de> for CommunityPermission {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
     where
         D: Deserializer<'de>,
@@ -78,15 +78,15 @@ impl<'de> Deserialize<'de> for JournalPermission {
     }
 }
 
-impl JournalPermission {
+impl CommunityPermission {
     /// Join two [`JournalPermission`]s into a single `u32`.
-    pub fn join(lhs: JournalPermission, rhs: JournalPermission) -> JournalPermission {
+    pub fn join(lhs: CommunityPermission, rhs: CommunityPermission) -> CommunityPermission {
         lhs | rhs
     }
 
     /// Check if the given `input` contains the given [`JournalPermission`].
-    pub fn check(self, permission: JournalPermission) -> bool {
-        if (self & JournalPermission::ADMINISTRATOR) == JournalPermission::ADMINISTRATOR {
+    pub fn check(self, permission: CommunityPermission) -> bool {
+        if (self & CommunityPermission::ADMINISTRATOR) == CommunityPermission::ADMINISTRATOR {
             // has administrator permission, meaning everything else is automatically true
             return true;
         }
@@ -96,16 +96,16 @@ impl JournalPermission {
 
     /// Check if the given [`JournalPermission`] qualifies as "Member" status.
     pub fn check_member(self) -> bool {
-        self.check(JournalPermission::MEMBER)
+        self.check(CommunityPermission::MEMBER)
     }
 
     /// Check if the given [`JournalPermission`] qualifies as "Moderator" status.
     pub fn check_moderator(self) -> bool {
-        self.check(JournalPermission::MANAGE_POSTS)
+        self.check(CommunityPermission::MANAGE_POSTS)
     }
 }
 
-impl Default for JournalPermission {
+impl Default for CommunityPermission {
     fn default() -> Self {
         Self::DEFAULT
     }

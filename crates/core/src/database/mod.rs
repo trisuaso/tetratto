@@ -1,8 +1,8 @@
 mod auth;
 mod common;
+mod communities;
 mod drivers;
 mod ipbans;
-mod journals;
 mod memberships;
 mod notifications;
 mod posts;

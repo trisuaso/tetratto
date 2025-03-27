@@ -1,8 +1,10 @@
 use super::*;
 use crate::cache::Cache;
-use crate::model::journal::JournalPostContext;
+use crate::model::communities::PostContext;
 use crate::model::{
-    Error, Result, auth::User, journal::JournalPost, journal::JournalWriteAccess,
+    Error, Result,
+    auth::User,
+    communities::{CommunityWriteAccess, Post},
     permissions::FinePermission,
 };
 use crate::{auto_method, execute, get, query_row, query_rows};
@@ -14,17 +16,17 @@ use rusqlite::Row;
 use tokio_postgres::Row;
 
 impl DataManager {
-    /// Get a [`JournalEntry`] from an SQL row.
+    /// Get a [`Post`] from an SQL row.
     pub(crate) fn get_post_from_row(
         #[cfg(feature = "sqlite")] x: &Row<'_>,
         #[cfg(feature = "postgres")] x: &Row,
-    ) -> JournalPost {
-        JournalPost {
+    ) -> Post {
+        Post {
             id: get!(x->0(i64)) as usize,
             created: get!(x->1(i64)) as usize,
             content: get!(x->2(String)),
             owner: get!(x->3(i64)) as usize,
-            journal: get!(x->4(i64)) as usize,
+            community: get!(x->4(i64)) as usize,
             context: serde_json::from_str(&get!(x->5(String))).unwrap(),
             replying_to: if let Some(id) = get!(x->6(Option<i64>)) {
                 Some(id as usize)
@@ -39,7 +41,7 @@ impl DataManager {
         }
     }
 
-    auto_method!(get_post_by_id()@get_post_from_row -> "SELECT * FROM posts WHERE id = $1" --name="post" --returns=JournalPost --cache-key-tmpl="atto.post:{}");
+    auto_method!(get_post_by_id()@get_post_from_row -> "SELECT * FROM posts WHERE id = $1" --name="post" --returns=Post --cache-key-tmpl="atto.post:{}");
 
     /// Get all posts which are comments on the given post by ID.
     ///
@@ -47,12 +49,7 @@ impl DataManager {
     /// * `id` - the ID of the post the requested posts are commenting on
     /// * `batch` - the limit of posts in each page
     /// * `page` - the page number
-    pub async fn get_post_comments(
-        &self,
-        id: usize,
-        batch: usize,
-        page: usize,
-    ) -> Result<JournalPost> {
+    pub async fn get_post_comments(&self, id: usize, batch: usize, page: usize) -> Result<Post> {
         let conn = match self.connect().await {
             Ok(c) => c,
             Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
@@ -83,7 +80,7 @@ impl DataManager {
         id: usize,
         batch: usize,
         page: usize,
-    ) -> Result<Vec<JournalPost>> {
+    ) -> Result<Vec<Post>> {
         let conn = match self.connect().await {
             Ok(c) => c,
             Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
@@ -107,7 +104,7 @@ impl DataManager {
     ///
     /// # Arguments
     /// * `data` - a mock [`JournalEntry`] object to insert
-    pub async fn create_post(&self, data: JournalPost) -> Result<()> {
+    pub async fn create_post(&self, data: Post) -> Result<()> {
         // check values
         if data.content.len() < 2 {
             return Err(Error::DataTooShort("content".to_string()));
@@ -116,20 +113,20 @@ impl DataManager {
         }
 
         // check permission in page
-        let page = match self.get_page_by_id(data.journal).await {
+        let page = match self.get_page_by_id(data.community).await {
             Ok(p) => p,
             Err(e) => return Err(e),
         };
 
         match page.write_access {
-            JournalWriteAccess::Owner => {
+            CommunityWriteAccess::Owner => {
                 if data.owner != page.owner {
                     return Err(Error::NotAllowed);
                 }
             }
-            JournalWriteAccess::Joined => {
+            CommunityWriteAccess::Joined => {
                 if let Err(_) = self
-                    .get_membership_by_owner_journal(data.owner, page.id)
+                    .get_membership_by_owner_community(data.owner, page.id)
                     .await
                 {
                     return Err(Error::NotAllowed);
@@ -152,7 +149,7 @@ impl DataManager {
                 &Some(data.created.to_string()),
                 &Some(data.content),
                 &Some(data.owner.to_string()),
-                &Some(data.journal.to_string()),
+                &Some(data.community.to_string()),
                 &Some(serde_json::to_string(&data.context).unwrap()),
                 &if let Some(id) = data.replying_to {
                     Some(id.to_string())
@@ -180,7 +177,7 @@ impl DataManager {
 
     auto_method!(delete_post()@get_post_by_id:MANAGE_JOURNAL_ENTRIES -> "DELETE FROM posts WHERE id = $1" --cache-key-tmpl="atto.post:{}");
     auto_method!(update_post_content(String)@get_post_by_id:MANAGE_JOURNAL_ENTRIES -> "UPDATE posts SET content = $1 WHERE id = $2" --cache-key-tmpl="atto.post:{}");
-    auto_method!(update_post_context(JournalPostContext)@get_post_by_id:MANAGE_JOURNAL_ENTRIES -> "UPDATE posts SET context = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.post:{}");
+    auto_method!(update_post_context(PostContext)@get_post_by_id:MANAGE_JOURNAL_ENTRIES -> "UPDATE posts SET context = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.post:{}");
 
     auto_method!(incr_post_likes() -> "UPDATE posts SET likes = likes + 1 WHERE id = $1" --cache-key-tmpl="atto.post:{}" --incr);
     auto_method!(incr_post_dislikes() -> "UPDATE posts SET likes = dislikes + 1 WHERE id = $1" --cache-key-tmpl="atto.post:{}" --incr);

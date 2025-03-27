@@ -38,7 +38,7 @@ impl DataManager {
 
         let res = query_row!(
             &conn,
-            "SELECT * FROM userblocks WHERE initator = $1 AND receiver = $2",
+            "SELECT * FROM userblocks WHERE initiator = $1 AND receiver = $2",
             &[&(initiator as i64), &(receiver as i64)],
             |x| { Ok(Self::get_userblock_from_row(x)) }
         );

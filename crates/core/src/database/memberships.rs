@@ -1,10 +1,10 @@
 use super::*;
 use crate::cache::Cache;
 use crate::model::{
-    Error, Result, auth::User, journal::JournalMembership, journal_permissions::JournalPermission,
-    permissions::FinePermission,
+    Error, Result, auth::User, communities::CommunityMembership,
+    communities_permissions::CommunityPermission, permissions::FinePermission,
 };
-use crate::{auto_method, execute, get, query_row};
+use crate::{auto_method, execute, get, query_row, query_rows};
 
 #[cfg(feature = "sqlite")]
 use rusqlite::Row;
@@ -17,24 +17,24 @@ impl DataManager {
     pub(crate) fn get_membership_from_row(
         #[cfg(feature = "sqlite")] x: &Row<'_>,
         #[cfg(feature = "postgres")] x: &Row,
-    ) -> JournalMembership {
-        JournalMembership {
+    ) -> CommunityMembership {
+        CommunityMembership {
             id: get!(x->0(i64)) as usize,
             created: get!(x->1(i64)) as usize,
             owner: get!(x->2(i64)) as usize,
-            journal: get!(x->3(i64)) as usize,
-            role: JournalPermission::from_bits(get!(x->4(u32))).unwrap(),
+            community: get!(x->3(i64)) as usize,
+            role: CommunityPermission::from_bits(get!(x->4(u32))).unwrap(),
         }
     }
 
-    auto_method!(get_membership_by_id()@get_membership_from_row -> "SELECT * FROM memberships WHERE id = $1" --name="journal membership" --returns=JournalMembership --cache-key-tmpl="atto.membership:{}");
+    auto_method!(get_membership_by_id()@get_membership_from_row -> "SELECT * FROM memberships WHERE id = $1" --name="journal membership" --returns=CommunityMembership --cache-key-tmpl="atto.membership:{}");
 
-    /// Get a journal membership by `owner` and `journal`.
-    pub async fn get_membership_by_owner_journal(
+    /// Get a community membership by `owner` and `community`.
+    pub async fn get_membership_by_owner_community(
         &self,
         owner: usize,
-        journal: usize,
-    ) -> Result<JournalMembership> {
+        community: usize,
+    ) -> Result<CommunityMembership> {
         let conn = match self.connect().await {
             Ok(c) => c,
             Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
@@ -42,23 +42,44 @@ impl DataManager {
 
         let res = query_row!(
             &conn,
-            "SELECT * FROM memberships WHERE owner = $1 AND journal = $2",
-            &[&(owner as i64), &(journal as i64)],
+            "SELECT * FROM memberships WHERE owner = $1 AND community = $2",
+            &[&(owner as i64), &(community as i64)],
             |x| { Ok(Self::get_membership_from_row(x)) }
         );
 
         if res.is_err() {
-            return Err(Error::GeneralNotFound("journal membership".to_string()));
+            return Err(Error::GeneralNotFound("community membership".to_string()));
         }
 
         Ok(res.unwrap())
     }
 
-    /// Create a new journal membership in the database.
+    /// Get all community memberships by `owner`.
+    pub async fn get_memberships_by_owner(&self, owner: usize) -> Result<Vec<CommunityMembership>> {
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = query_rows!(
+            &conn,
+            "SELECT * FROM memberships WHERE owner = $1",
+            &[&(owner as i64)],
+            |x| { Self::get_membership_from_row(x) }
+        );
+
+        if res.is_err() {
+            return Err(Error::GeneralNotFound("community membership".to_string()));
+        }
+
+        Ok(res.unwrap())
+    }
+
+    /// Create a new community membership in the database.
     ///
     /// # Arguments
-    /// * `data` - a mock [`JournalMembership`] object to insert
-    pub async fn create_membership(&self, data: JournalMembership) -> Result<()> {
+    /// * `data` - a mock [`CommunityMembership`] object to insert
+    pub async fn create_membership(&self, data: CommunityMembership) -> Result<()> {
         let conn = match self.connect().await {
             Ok(c) => c,
             Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
@@ -71,7 +92,7 @@ impl DataManager {
                 &data.id.to_string().as_str(),
                 &data.created.to_string().as_str(),
                 &data.owner.to_string().as_str(),
-                &data.journal.to_string().as_str(),
+                &data.community.to_string().as_str(),
                 &(data.role.bits()).to_string().as_str(),
             ]
         );
@@ -91,8 +112,8 @@ impl DataManager {
             // pull other user's membership status
             if let Ok(z) = self.get_membership_by_id(user.id).await {
                 // somebody with MANAGE_ROLES _and_ a higher role number can remove us
-                if (!z.role.check(JournalPermission::MANAGE_ROLES) | (z.role < y.role))
-                    && !z.role.check(JournalPermission::ADMINISTRATOR)
+                if (!z.role.check(CommunityPermission::MANAGE_ROLES) | (z.role < y.role))
+                    && !z.role.check(CommunityPermission::ADMINISTRATOR)
                 {
                     return Err(Error::NotAllowed);
                 }
@@ -125,7 +146,7 @@ impl DataManager {
     pub async fn update_membership_role(
         &self,
         id: usize,
-        new_role: JournalPermission,
+        new_role: CommunityPermission,
     ) -> Result<()> {
         let conn = match self.connect().await {
             Ok(c) => c,

@@ -3,6 +3,7 @@ version = "1.0.0"
 
 [data]
 "general:link.home" = "Home"
+"general:link.communities" = "Communities"
 
 "dialog:action.okay" = "Ok"
 "dialog:action.continue" = "Continue"
@@ -13,8 +14,14 @@ version = "1.0.0"
 "auth:action.login" = "Login"
 "auth:action.register" = "Register"
 "auth:action.logout" = "Logout"
+"auto:action.follow" = "Follow"
+"auto:action.unfollow" = "Unfollow"
 "auth:link.my_profile" = "My profile"
 "auth:link.settings" = "Settings"
 "auth:label.followers" = "Followers"
 "auth:label.following" = "Following"
 "auth:label.joined_journals" = "Joined Journals"
+
+"communities:action.create" = "Create"
+"communities:label.create_new" = "Create new community"
+"communities:label.name" = "Name"

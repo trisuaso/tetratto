@@ -1,11 +1,11 @@
 use axum::{Extension, Json, extract::Path, response::IntoResponse};
 use axum_extra::extract::CookieJar;
-use tetratto_core::model::{ApiReturn, Error, journal::Journal};
+use tetratto_core::model::{ApiReturn, Error, communities::Community};
 
 use crate::{
     State, get_user_from_token,
     routes::api::v1::{
-        CreateJournal, UpdateJournalPrompt, UpdateJournalReadAccess, UpdateJournalTitle,
+        CreateCommunity, UpdateCommunityContext, UpdateJournalReadAccess, UpdateJournalTitle,
         UpdateJournalWriteAccess,
     },
 };
@@ -13,7 +13,7 @@ use crate::{
 pub async fn create_request(
     jar: CookieJar,
     Extension(data): Extension<State>,
-    Json(req): Json<CreateJournal>,
+    Json(req): Json<CreateCommunity>,
 ) -> impl IntoResponse {
     let data = &(data.read().await).0;
     let user = match get_user_from_token!(jar, data) {
@@ -22,12 +22,12 @@ pub async fn create_request(
     };
 
     match data
-        .create_page(Journal::new(req.title, req.prompt, user.id))
+        .create_community(Community::new(req.title, user.id))
         .await
     {
         Ok(_) => Json(ApiReturn {
             ok: true,
-            message: "Page created".to_string(),
+            message: "Community created".to_string(),
             payload: (),
         }),
         Err(e) => return Json(e.into()),
@@ -45,10 +45,10 @@ pub async fn delete_request(
         None => return Json(Error::NotAllowed.into()),
     };
 
-    match data.delete_page(id, user).await {
+    match data.delete_community(id, user).await {
         Ok(_) => Json(ApiReturn {
             ok: true,
-            message: "Page deleted".to_string(),
+            message: "Community deleted".to_string(),
             payload: (),
         }),
         Err(e) => return Json(e.into()),
@@ -67,21 +67,21 @@ pub async fn update_title_request(
         None => return Json(Error::NotAllowed.into()),
     };
 
-    match data.update_page_title(id, user, req.title).await {
+    match data.update_community_title(id, user, req.title).await {
         Ok(_) => Json(ApiReturn {
             ok: true,
-            message: "Page updated".to_string(),
+            message: "Community updated".to_string(),
             payload: (),
         }),
         Err(e) => return Json(e.into()),
     }
 }
 
-pub async fn update_prompt_request(
+pub async fn update_context_request(
     jar: CookieJar,
     Extension(data): Extension<State>,
     Path(id): Path<usize>,
-    Json(req): Json<UpdateJournalPrompt>,
+    Json(req): Json<UpdateCommunityContext>,
 ) -> impl IntoResponse {
     let data = &(data.read().await).0;
     let user = match get_user_from_token!(jar, data) {
@@ -89,10 +89,10 @@ pub async fn update_prompt_request(
         None => return Json(Error::NotAllowed.into()),
     };
 
-    match data.update_page_prompt(id, user, req.prompt).await {
+    match data.update_community_context(id, user, req.context).await {
         Ok(_) => Json(ApiReturn {
             ok: true,
-            message: "Page updated".to_string(),
+            message: "Community updated".to_string(),
             payload: (),
         }),
         Err(e) => return Json(e.into()),
@@ -111,10 +111,13 @@ pub async fn update_read_access_request(
         None => return Json(Error::NotAllowed.into()),
     };
 
-    match data.update_page_read_access(id, user, req.access).await {
+    match data
+        .update_community_read_access(id, user, req.access)
+        .await
+    {
         Ok(_) => Json(ApiReturn {
             ok: true,
-            message: "Page updated".to_string(),
+            message: "Community updated".to_string(),
             payload: (),
         }),
         Err(e) => return Json(e.into()),
@@ -133,10 +136,13 @@ pub async fn update_write_access_request(
         None => return Json(Error::NotAllowed.into()),
     };
 
-    match data.update_page_write_access(id, user, req.access).await {
+    match data
+        .update_community_write_access(id, user, req.access)
+        .await
+    {
         Ok(_) => Json(ApiReturn {
             ok: true,
-            message: "Page updated".to_string(),
+            message: "Community updated".to_string(),
             payload: (),
         }),
         Err(e) => return Json(e.into()),

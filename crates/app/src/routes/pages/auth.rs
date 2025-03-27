@@ -15,7 +15,7 @@ pub async fn login_request(jar: CookieJar, Extension(data): Extension<State>) ->
     }
 
     let lang = get_lang!(jar, data.0);
-    let mut context = initial_context(&data.0.0, lang, &user);
+    let mut context = initial_context(&data.0.0, lang, &user).await;
 
     Ok(Html(
         data.1.render("auth/login.html", &mut context).unwrap(),
@@ -35,7 +35,7 @@ pub async fn register_request(
     }
 
     let lang = get_lang!(jar, data.0);
-    let mut context = initial_context(&data.0.0, lang, &user);
+    let mut context = initial_context(&data.0.0, lang, &user).await;
 
     Ok(Html(
         data.1.render("auth/register.html", &mut context).unwrap(),

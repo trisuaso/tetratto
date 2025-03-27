@@ -11,7 +11,7 @@ pub async fn index_request(jar: CookieJar, Extension(data): Extension<State>) ->
     let user = get_user_from_token!(jar, data.0);
 
     let lang = get_lang!(jar, data.0);
-    let mut context = initial_context(&data.0.0, lang, &user);
+    let mut context = initial_context(&data.0.0, lang, &user).await;
 
     Html(data.1.render("misc/index.html", &mut context).unwrap())
 }

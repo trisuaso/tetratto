@@ -40,6 +40,8 @@ pub const AUTH_REGISTER: &str = include_str!("./public/html/auth/register.html")
 pub const PROFILE_BASE: &str = include_str!("./public/html/profile/base.html");
 pub const PROFILE_POSTS: &str = include_str!("./public/html/profile/posts.html");
 
+pub const COMMUNITIES_LIST: &str = include_str!("./public/html/communities/list.html");
+
 // langs
 pub const LANG_EN_US: &str = include_str!("./langs/en-US.toml");
 
@@ -145,6 +147,8 @@ pub(crate) async fn write_assets(config: &Config) -> PathBufD {
     write_template!(html_path->"profile/base.html"(crate::assets::PROFILE_BASE) -d "profile" --config=config);
     write_template!(html_path->"profile/posts.html"(crate::assets::PROFILE_POSTS) --config=config);
 
+    write_template!(html_path->"communities/list.html"(crate::assets::COMMUNITIES_LIST) -d "communities" --config=config);
+
     html_path
 }
 
@@ -179,7 +183,11 @@ pub(crate) async fn init_dirs(config: &Config) {
 pub(crate) static CACHE_BREAKER: LazyLock<String> = LazyLock::new(|| salt());
 
 /// Create the initial template context.
-pub(crate) fn initial_context(config: &Config, lang: &LangFile, user: &Option<User>) -> Context {
+pub(crate) async fn initial_context(
+    config: &Config,
+    lang: &LangFile,
+    user: &Option<User>,
+) -> Context {
     let mut ctx = Context::new();
     ctx.insert("config", &config);
     ctx.insert("user", &user);

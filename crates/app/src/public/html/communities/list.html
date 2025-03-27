@@ -1,0 +1,30 @@
+{% import "macros.html" as macros %} {% extends "root.html" %} {% block head %}
+<title>My communities - {{ config.name }}</title>
+{% endblock %} {% block body %} {{ macros::nav(selected="communities") }}
+<main class="flex flex-col gap-2">
+    <div class="card-nest">
+        <div class="card">
+            <b>{{ text "communities:label.create_new" }}</b>
+        </div>
+
+        <form class="card flex flex-col gap-2">
+            <div class="flex flex-col gap-1">
+                <label for="">{{ text "communities:label.name" }}</label>
+                <input
+                    type="text"
+                    name="title"
+                    id="title"
+                    placeholder="name"
+                    required
+                    minlength="2"
+                    maxlength="32"
+                />
+            </div>
+
+            <button class="primary">
+                {{ text "communities:action.create" }}
+            </button>
+        </form>
+    </div>
+</main>
+{% endblock %}

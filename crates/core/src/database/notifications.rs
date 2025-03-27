@@ -26,7 +26,7 @@ impl DataManager {
 
     auto_method!(get_notification_by_id()@get_notification_from_row -> "SELECT * FROM notifications WHERE id = $1" --name="notification" --returns=Notification --cache-key-tmpl="atto.notification:{}");
 
-    /// Get a reaction by `owner` and `asset`.
+    /// Get all notifications by `owner`.
     pub async fn get_notifications_by_owner(&self, owner: usize) -> Result<Vec<Notification>> {
         let conn = match self.connect().await {
             Ok(c) => c,
@@ -107,9 +107,9 @@ impl DataManager {
         self.2.remove(format!("atto.notification:{}", id)).await;
 
         // decr notification count
-        // self.decr_user_notifications(notification.owner)
-        //     .await
-        //     .unwrap();
+        self.decr_user_notifications(notification.owner)
+            .await
+            .unwrap();
 
         // return
         Ok(())

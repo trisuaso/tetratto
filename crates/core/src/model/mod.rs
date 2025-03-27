@@ -1,6 +1,6 @@
 pub mod auth;
-pub mod journal;
-pub mod journal_permissions;
+pub mod communities;
+pub mod communities_permissions;
 pub mod permissions;
 pub mod reactions;
 

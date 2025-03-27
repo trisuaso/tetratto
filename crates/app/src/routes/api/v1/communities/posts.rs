@@ -1,6 +1,6 @@
 use axum::{Extension, Json, extract::Path, response::IntoResponse};
 use axum_extra::extract::CookieJar;
-use tetratto_core::model::{ApiReturn, Error, journal::JournalPost};
+use tetratto_core::model::{ApiReturn, Error, communities::Post};
 
 use crate::{
     State, get_user_from_token,
@@ -19,7 +19,7 @@ pub async fn create_request(
     };
 
     match data
-        .create_post(JournalPost::new(
+        .create_post(Post::new(
             req.content,
             req.journal,
             req.replying_to,
@@ -29,7 +29,7 @@ pub async fn create_request(
     {
         Ok(_) => Json(ApiReturn {
             ok: true,
-            message: "Entry created".to_string(),
+            message: "Post created".to_string(),
             payload: (),
         }),
         Err(e) => return Json(e.into()),
@@ -50,7 +50,7 @@ pub async fn delete_request(
     match data.delete_post(id, user).await {
         Ok(_) => Json(ApiReturn {
             ok: true,
-            message: "Entry deleted".to_string(),
+            message: "Post deleted".to_string(),
             payload: (),
         }),
         Err(e) => return Json(e.into()),
@@ -72,7 +72,7 @@ pub async fn update_content_request(
     match data.update_post_content(id, user, req.content).await {
         Ok(_) => Json(ApiReturn {
             ok: true,
-            message: "Entry updated".to_string(),
+            message: "Post updated".to_string(),
             payload: (),
         }),
         Err(e) => return Json(e.into()),
@@ -94,7 +94,7 @@ pub async fn update_context_request(
     match data.update_post_context(id, user, req.context).await {
         Ok(_) => Json(ApiReturn {
             ok: true,
-            message: "Entry updated".to_string(),
+            message: "Post updated".to_string(),
             payload: (),
         }),
         Err(e) => return Json(e.into()),

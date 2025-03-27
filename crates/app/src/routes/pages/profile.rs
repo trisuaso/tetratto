@@ -6,6 +6,14 @@ use axum::{
     response::{Html, IntoResponse},
 };
 use axum_extra::extract::CookieJar;
+use tera::Context;
+use tetratto_core::model::{Error, auth::User};
+
+pub fn profile_context(context: &mut Context, profile: &User, is_self: bool, is_following: bool) {
+    context.insert("profile", &profile);
+    context.insert("is_self", &is_self);
+    context.insert("is_following", &is_following);
+}
 
 /// `/user/{username}`
 pub async fn posts_request(
@@ -19,7 +27,7 @@ pub async fn posts_request(
 
     let other_user = match data.0.get_user_by_username(&username).await {
         Ok(ua) => ua,
-        Err(e) => return Err(Html(render_error(e, &jar, &data, &user))),
+        Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
     };
 
     let posts = match data
@@ -28,15 +36,46 @@ pub async fn posts_request(
         .await
     {
         Ok(p) => p,
-        Err(e) => return Err(Html(render_error(e, &jar, &data, &user))),
+        Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
     };
 
+    // check if we're blocked
+    if let Some(ref ua) = user {
+        if data
+            .0
+            .get_userblock_by_initiator_receiver(other_user.id, ua.id)
+            .await
+            .is_ok()
+        {
+            return Err(Html(
+                render_error(Error::NotAllowed, &jar, &data, &user).await,
+            ));
+        }
+    }
+
+    // init context
     let lang = get_lang!(jar, data.0);
-    let mut context = initial_context(&data.0.0, lang, &user);
+    let mut context = initial_context(&data.0.0, lang, &user).await;
 
-    context.insert("profile", &other_user);
+    let is_self = if let Some(ref ua) = user {
+        ua.id == other_user.id
+    } else {
+        false
+    };
+
+    let is_following = if let Some(ref ua) = user {
+        data.0
+            .get_userfollow_by_initiator_receiver(ua.id, other_user.id)
+            .await
+            .is_ok()
+    } else {
+        false
+    };
+
     context.insert("posts", &posts);
+    profile_context(&mut context, &other_user, is_self, is_following);
 
+    // return
     Ok(Html(
         data.1.render("profile/posts.html", &mut context).unwrap(),
     ))

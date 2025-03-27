@@ -1,5 +1,5 @@
 pub mod auth;
-pub mod journal;
+pub mod communities;
 pub mod reactions;
 
 use axum::{
@@ -8,7 +8,7 @@ use axum::{
 };
 use serde::Deserialize;
 use tetratto_core::model::{
-    journal::{JournalPostContext, JournalReadAccess, JournalWriteAccess},
+    communities::{CommunityContext, CommunityReadAccess, CommunityWriteAccess, PostContext},
     reactions::AssetType,
 };
 
@@ -19,34 +19,40 @@ pub fn routes() -> Router {
         .route("/reactions/{id}", get(reactions::get_request))
         .route("/reactions/{id}", delete(reactions::delete_request))
         // journal journals
-        .route("/journals", post(journal::journals::create_request))
-        .route("/journals/{id}", delete(journal::journals::delete_request))
         .route(
-            "/journals/{id}/title",
-            post(journal::journals::update_title_request),
+            "/communities",
+            post(communities::communities::create_request),
         )
         .route(
-            "/journals/{id}/prompt",
-            post(journal::journals::update_prompt_request),
+            "/communities/{id}",
+            delete(communities::communities::delete_request),
+        )
+        .route(
+            "/communities/{id}/title",
+            post(communities::communities::update_title_request),
+        )
+        .route(
+            "/communities/{id}/context",
+            post(communities::communities::update_context_request),
         )
         .route(
             "/journals/{id}/access/read",
-            post(journal::journals::update_read_access_request),
+            post(communities::communities::update_read_access_request),
         )
         .route(
             "/journals/{id}/access/write",
-            post(journal::journals::update_write_access_request),
+            post(communities::communities::update_write_access_request),
         )
-        // journal posts
-        .route("/posts", post(journal::posts::create_request))
-        .route("/posts/{id}", delete(journal::posts::delete_request))
+        // posts
+        .route("/posts", post(communities::posts::create_request))
+        .route("/posts/{id}", delete(communities::posts::delete_request))
         .route(
             "/posts/{id}/content",
-            post(journal::posts::update_content_request),
+            post(communities::posts::update_content_request),
         )
         .route(
             "/posts/{id}/context",
-            post(journal::posts::update_context_request),
+            post(communities::posts::update_context_request),
         )
         // auth
         // global
@@ -99,9 +105,8 @@ pub struct AuthProps {
 }
 
 #[derive(Deserialize)]
-pub struct CreateJournal {
+pub struct CreateCommunity {
     pub title: String,
-    pub prompt: String,
 }
 
 #[derive(Deserialize)]
@@ -110,18 +115,18 @@ pub struct UpdateJournalTitle {
 }
 
 #[derive(Deserialize)]
-pub struct UpdateJournalPrompt {
-    pub prompt: String,
+pub struct UpdateCommunityContext {
+    pub context: CommunityContext,
 }
 
 #[derive(Deserialize)]
 pub struct UpdateJournalReadAccess {
-    pub access: JournalReadAccess,
+    pub access: CommunityReadAccess,
 }
 
 #[derive(Deserialize)]
 pub struct UpdateJournalWriteAccess {
-    pub access: JournalWriteAccess,
+    pub access: CommunityWriteAccess,
 }
 
 #[derive(Deserialize)]
@@ -139,7 +144,7 @@ pub struct UpdateJournalEntryContent {
 
 #[derive(Deserialize)]
 pub struct UpdateJournalEntryContext {
-    pub context: JournalPostContext,
+    pub context: PostContext,
 }
 
 #[derive(Deserialize)]
