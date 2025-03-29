@@ -1,64 +1,25 @@
-use axum::{
-    Extension, Json,
-    body::Body,
-    extract::{Path, Query},
-    response::IntoResponse,
-};
+use axum::{Extension, Json, body::Body, extract::Path, response::IntoResponse};
 use axum_extra::extract::CookieJar;
 use pathbufd::{PathBufD, pathd};
-use serde::Deserialize;
-use std::{
-    fs::{File, exists},
-    io::Read,
-};
-use tetratto_core::model::{ApiReturn, Error};
+use std::fs::exists;
+use tetratto_core::model::{ApiReturn, Error, permissions::FinePermission};
 
 use crate::{
     State,
     avif::{Image, save_avif_buffer},
     get_user_from_token,
+    routes::api::v1::auth::images::{MAXIUMUM_FILE_SIZE, read_image},
 };
 
-pub fn read_image(path: PathBufD) -> Vec<u8> {
-    let mut bytes = Vec::new();
-
-    for byte in File::open(path).unwrap().bytes() {
-        bytes.push(byte.unwrap())
-    }
-
-    bytes
-}
-
-#[derive(Deserialize, PartialEq, Eq)]
-pub enum AvatarSelectorType {
-    #[serde(alias = "username")]
-    Username,
-    #[serde(alias = "id")]
-    Id,
-}
-
-#[derive(Deserialize)]
-pub struct AvatarSelectorQuery {
-    pub selector_type: AvatarSelectorType,
-}
-
-/// Get a profile's avatar image
-/// `/api/v1/auth/profile/{id}/avatar`
+/// Get a community's avatar image
+/// `/api/v1/communities/{id}/avatar`
 pub async fn avatar_request(
-    Path(selector): Path<String>,
+    Path(id): Path<usize>,
     Extension(data): Extension<State>,
-    Query(req): Query<AvatarSelectorQuery>,
 ) -> impl IntoResponse {
     let data = &(data.read().await).0;
 
-    let user = match {
-        if req.selector_type == AvatarSelectorType::Id {
-            data.get_user_by_id(selector.parse::<usize>().unwrap())
-                .await
-        } else {
-            data.get_user_by_username(&selector).await
-        }
-    } {
+    let community = match data.get_community_by_id(id).await {
         Ok(ua) => ua,
         Err(_) => {
             return (
@@ -72,8 +33,11 @@ pub async fn avatar_request(
         }
     };
 
-    let path =
-        PathBufD::current().extend(&["avatars", &data.0.dirs.media, &format!("{}.avif", &user.id)]);
+    let path = PathBufD::current().extend(&[
+        "community_avatars",
+        &data.0.dirs.media,
+        &format!("{}.avif", &community.id),
+    ]);
 
     if !exists(&path).unwrap() {
         return (
@@ -95,12 +59,12 @@ pub async fn avatar_request(
 /// Get a profile's banner image
 /// `/api/v1/auth/profile/{id}/banner`
 pub async fn banner_request(
-    Path(username): Path<String>,
+    Path(id): Path<usize>,
     Extension(data): Extension<State>,
 ) -> impl IntoResponse {
     let data = &(data.read().await).0;
 
-    let user = match data.get_user_by_username(&username).await {
+    let community = match data.get_community_by_id(id).await {
         Ok(ua) => ua,
         Err(_) => {
             return (
@@ -114,8 +78,11 @@ pub async fn banner_request(
         }
     };
 
-    let path =
-        PathBufD::current().extend(&["banners", &data.0.dirs.media, &format!("{}.avif", &user.id)]);
+    let path = PathBufD::current().extend(&[
+        "community_banners",
+        &data.0.dirs.media,
+        &format!("{}.avif", &community.id),
+    ]);
 
     if !exists(&path).unwrap() {
         return (
@@ -134,11 +101,10 @@ pub async fn banner_request(
     )
 }
 
-pub static MAXIUMUM_FILE_SIZE: usize = 8388608;
-
 /// Upload avatar
 pub async fn upload_avatar_request(
     jar: CookieJar,
+    Path(id): Path<usize>,
     Extension(data): Extension<State>,
     img: Image,
 ) -> impl IntoResponse {
@@ -149,7 +115,25 @@ pub async fn upload_avatar_request(
         None => return Json(Error::NotAllowed.into()),
     };
 
-    let path = pathd!("{}/avatars/{}.avif", data.0.dirs.media, &auth_user.id);
+    let community = match data.get_community_by_id(id).await {
+        Ok(c) => c,
+        Err(e) => return Json(e.into()),
+    };
+
+    if auth_user.id != community.owner {
+        if !auth_user
+            .permissions
+            .check(FinePermission::MANAGE_COMMUNITIES)
+        {
+            return Json(Error::NotAllowed.into());
+        }
+    }
+
+    let path = pathd!(
+        "{}/community_avatars/{}.avif",
+        data.0.dirs.media,
+        &auth_user.id
+    );
 
     // check file size
     if img.0.len() > MAXIUMUM_FILE_SIZE {
@@ -176,6 +160,7 @@ pub async fn upload_avatar_request(
 /// Upload banner
 pub async fn upload_banner_request(
     jar: CookieJar,
+    Path(id): Path<usize>,
     Extension(data): Extension<State>,
     img: Image,
 ) -> impl IntoResponse {
@@ -186,7 +171,25 @@ pub async fn upload_banner_request(
         None => return Json(Error::NotAllowed.into()),
     };
 
-    let path = pathd!("{}/banners/{}.avif", data.0.dirs.media, &auth_user.id);
+    let community = match data.get_community_by_id(id).await {
+        Ok(c) => c,
+        Err(e) => return Json(e.into()),
+    };
+
+    if auth_user.id != community.owner {
+        if !auth_user
+            .permissions
+            .check(FinePermission::MANAGE_COMMUNITIES)
+        {
+            return Json(Error::NotAllowed.into());
+        }
+    }
+
+    let path = pathd!(
+        "{}/community_banners/{}.avif",
+        data.0.dirs.media,
+        &auth_user.id
+    );
 
     // check file size
     if img.0.len() > MAXIUMUM_FILE_SIZE {

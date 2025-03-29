@@ -16,10 +16,10 @@ impl DataManager {
         #[cfg(feature = "postgres")] x: &Row,
     ) -> UserBlock {
         UserBlock {
-            id: get!(x->0(i64)) as usize,
-            created: get!(x->1(i64)) as usize,
-            initiator: get!(x->2(i64)) as usize,
-            receiver: get!(x->3(i64)) as usize,
+            id: get!(x->0(isize)) as usize,
+            created: get!(x->1(isize)) as usize,
+            initiator: get!(x->2(isize)) as usize,
+            receiver: get!(x->3(isize)) as usize,
         }
     }
 

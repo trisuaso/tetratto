@@ -1,0 +1,87 @@
+{% import "macros.html" as macros %} {% import "components.html" as components
+%} {% extends "root.html" %} {% block head %}
+<title>{{ community.context.display_name }} - {{ config.name }}</title>
+{% endblock %} {% block body %} {{ macros::nav() }}
+<article>
+    <div class="content_container">
+        <div class="w-full flex gap-4 flex-collapse">
+            <div
+                class="lhs flex flex-col gap-2 sm:w-full"
+                style="min-width: 20rem"
+            >
+                <div class="card-nest w-full">
+                    <div class="card flex gap-2" id="community_avatar_and_name">
+                        {{
+                        components::community_avatar(id=community.id,size="72px")
+                        }}
+                        <div class="flex flex-col">
+                            <!-- prettier-ignore -->
+                            <h3 id="title" class="title">
+                                {% if community.context.display_name %}
+                                    {{ community.context.display_name }}
+                                {% else %}
+                                    {{ community.username }}
+                                {% endif %}
+                            </h3>
+
+                            <span class="fade">{{ community.title }}</span>
+                        </div>
+                    </div>
+
+                    {% if user %}
+                    <div class="card flex" id="join_or_leave">
+                        {% if not is_owner %} {% if not is_member %}
+                        <button class="primary">
+                            {{ icon "circle-plus" }}
+                            <span>{{ text "communities:action.join" }}</span>
+                        </button>
+                        {% else %}
+                        <button class="camo red">
+                            {{ icon "circle-minus" }}
+                            <span>{{ text "communities:action.leave" }}</span>
+                        </button>
+                        {% endif %} {% else %}
+                        <a
+                            href="/community/{{ community.title }}/manage"
+                            class="button primary"
+                        >
+                            {{ icon "settings" }}
+                            <span
+                                >{{ text "communities:action.configure" }}</span
+                            >
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="card-nest flex flex-col">
+                    <div id="bio" class="card small">
+                        {{ community.context.description }}
+                    </div>
+
+                    <div class="card flex flex-col gap-2">
+                        <div class="w-full flex justify-between items-center">
+                            <span class="notification chip">ID</span>
+                            <button
+                                title="Copy"
+                                onclick="trigger('atto::copy_text', [{{ community.id }}])"
+                                class="camo small"
+                            >
+                                {{ icon "copy" }}
+                            </button>
+                        </div>
+
+                        <div class="w-full flex justify-between items-center">
+                            <span class="notification chip">Created</span>
+                            <span class="date">{{ community.created }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rhs w-full">{% block content %}{% endblock %}</div>
+        </div>
+    </div>
+</article>
+{% endblock %}

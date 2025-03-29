@@ -18,8 +18,11 @@ pub struct Community {
     /// The owner of the community page (and moderators) are the ***only*** people
     /// capable of removing posts.
     pub write_access: CommunityWriteAccess,
+    // likes
     pub likes: isize,
     pub dislikes: isize,
+    // counts
+    pub member_count: usize,
 }
 
 impl Community {
@@ -31,25 +34,31 @@ impl Community {
                 .parse::<usize>()
                 .unwrap(),
             created: unix_epoch_timestamp() as usize,
-            title,
-            context: CommunityContext::default(),
+            title: title.clone(),
+            context: CommunityContext {
+                display_name: title,
+                ..Default::default()
+            },
             owner,
             read_access: CommunityReadAccess::default(),
             write_access: CommunityWriteAccess::default(),
             likes: 0,
             dislikes: 0,
+            member_count: 0,
         }
     }
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct CommunityContext {
+    pub display_name: String,
     pub description: String,
 }
 
 impl Default for CommunityContext {
     fn default() -> Self {
         Self {
+            display_name: String::new(),
             description: String::new(),
         }
     }

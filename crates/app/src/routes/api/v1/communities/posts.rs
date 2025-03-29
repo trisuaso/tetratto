@@ -4,13 +4,13 @@ use tetratto_core::model::{ApiReturn, Error, communities::Post};
 
 use crate::{
     State, get_user_from_token,
-    routes::api::v1::{CreateJournalEntry, UpdateJournalEntryContent, UpdateJournalEntryContext},
+    routes::api::v1::{CreatePost, UpdatePostContent, UpdatePostContext},
 };
 
 pub async fn create_request(
     jar: CookieJar,
     Extension(data): Extension<State>,
-    Json(req): Json<CreateJournalEntry>,
+    Json(req): Json<CreatePost>,
 ) -> impl IntoResponse {
     let data = &(data.read().await).0;
     let user = match get_user_from_token!(jar, data) {
@@ -21,16 +21,26 @@ pub async fn create_request(
     match data
         .create_post(Post::new(
             req.content,
-            req.journal,
-            req.replying_to,
+            match req.community.parse::<usize>() {
+                Ok(x) => x,
+                Err(e) => return Json(Error::MiscError(e.to_string()).into()),
+            },
+            if let Some(rt) = req.replying_to {
+                match rt.parse::<usize>() {
+                    Ok(x) => Some(x),
+                    Err(e) => return Json(Error::MiscError(e.to_string()).into()),
+                }
+            } else {
+                None
+            },
             user.id,
         ))
         .await
     {
-        Ok(_) => Json(ApiReturn {
+        Ok(id) => Json(ApiReturn {
             ok: true,
             message: "Post created".to_string(),
-            payload: (),
+            payload: Some(id.to_string()),
         }),
         Err(e) => return Json(e.into()),
     }
@@ -61,7 +71,7 @@ pub async fn update_content_request(
     jar: CookieJar,
     Extension(data): Extension<State>,
     Path(id): Path<usize>,
-    Json(req): Json<UpdateJournalEntryContent>,
+    Json(req): Json<UpdatePostContent>,
 ) -> impl IntoResponse {
     let data = &(data.read().await).0;
     let user = match get_user_from_token!(jar, data) {
@@ -83,7 +93,7 @@ pub async fn update_context_request(
     jar: CookieJar,
     Extension(data): Extension<State>,
     Path(id): Path<usize>,
-    Json(req): Json<UpdateJournalEntryContext>,
+    Json(req): Json<UpdatePostContext>,
 ) -> impl IntoResponse {
     let data = &(data.read().await).0;
     let user = match get_user_from_token!(jar, data) {

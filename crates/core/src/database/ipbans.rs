@@ -17,9 +17,9 @@ impl DataManager {
     ) -> IpBan {
         IpBan {
             ip: get!(x->0(String)),
-            created: get!(x->1(i64)) as usize,
+            created: get!(x->1(isize)) as usize,
             reason: get!(x->2(String)),
-            moderator: get!(x->3(i64)) as usize,
+            moderator: get!(x->3(isize)) as usize,
         }
     }
 

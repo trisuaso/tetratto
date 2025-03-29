@@ -1,4 +1,5 @@
-{% macro nav(selected="", show_lhs=true) -%}
+{% import "components.html" as components %} {% macro nav(selected="",
+show_lhs=true) -%}
 <nav>
     <div class="content_container">
         <div class="flex nav_side">
@@ -46,7 +47,7 @@
                     exclude="dropdown"
                     style="gap: 0.25rem !important"
                 >
-                    {{ macros::avatar(username=user.username, size="24px") }}
+                    {{ components::avatar(username=user.username, size="24px") }}
                     {{ icon "chevron-down" c(dropdown-arrow) }}
                 </button>
 
@@ -94,12 +95,4 @@
         </div>
     </div>
 </nav>
-{%- endmacro %} {% macro avatar(username, size="24px") -%}
-<img
-    title="{{ username }}'s avatar"
-    src="/api/v1/auth/profile/{{ username }}/avatar"
-    alt="@{{ username }}"
-    class="avatar shadow"
-    style="--size: {{ size }}"
-/>
 {%- endmacro %}

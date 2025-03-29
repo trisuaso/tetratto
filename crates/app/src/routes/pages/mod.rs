@@ -24,6 +24,8 @@ pub fn routes() -> Router {
         .route("/user/{username}", get(profile::posts_request))
         // communities
         .route("/communities", get(communities::list_request))
+        .route("/community/{title}", get(communities::feed_request))
+        .route("/post/{id}", get(communities::post_request))
 }
 
 pub async fn render_error(

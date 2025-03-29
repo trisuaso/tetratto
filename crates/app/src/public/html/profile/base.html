@@ -10,7 +10,8 @@
             >
                 <div class="card-nest w-full">
                     <div class="card flex gap-2" id="user_avatar_and_name">
-                        {{ macros::avatar(username=profile.username,size="72px")
+                        {{
+                        components::avatar(username=profile.username,size="72px")
                         }}
                         <div class="flex flex-col">
                             <!-- prettier-ignore -->
@@ -77,14 +78,21 @@
                 <div class="card-nest">
                     <div class="card small flex gap-2 items-center">
                         {{ icon "users-round" }}
-                        <span>{{ text "auth:label.joined_journals" }}</span>
+                        <span>{{ text "auth:label.joined_communities" }}</span>
                     </div>
 
-                    <div class="card flex flex-wrap gap-2"></div>
+                    <div class="card flex flex-wrap gap-2">
+                        {% for community in communities %}
+                        <a href="/community/{{ community.title }}">
+                            {{ components::community_avatar(id=community.id,
+                            community=community, size="48px") }}
+                        </a>
+                        {% endfor %}
+                    </div>
                 </div>
             </div>
 
-            <div class="rhs sm:w-full">{% block content %}{% endblock %}</div>
+            <div class="rhs w-full">{% block content %}{% endblock %}</div>
         </div>
     </div>
 </article>

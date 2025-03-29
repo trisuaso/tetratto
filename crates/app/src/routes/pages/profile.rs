@@ -7,10 +7,17 @@ use axum::{
 };
 use axum_extra::extract::CookieJar;
 use tera::Context;
-use tetratto_core::model::{Error, auth::User};
+use tetratto_core::model::{Error, auth::User, communities::Community};
 
-pub fn profile_context(context: &mut Context, profile: &User, is_self: bool, is_following: bool) {
+pub fn profile_context(
+    context: &mut Context,
+    profile: &User,
+    communities: &Vec<Community>,
+    is_self: bool,
+    is_following: bool,
+) {
     context.insert("profile", &profile);
+    context.insert("communities", &communities);
     context.insert("is_self", &is_self);
     context.insert("is_following", &is_following);
 }
@@ -30,15 +37,6 @@ pub async fn posts_request(
         Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
     };
 
-    let posts = match data
-        .0
-        .get_posts_by_user(other_user.id, 12, props.page)
-        .await
-    {
-        Ok(p) => p,
-        Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
-    };
-
     // check if we're blocked
     if let Some(ref ua) = user {
         if data
@@ -52,6 +50,27 @@ pub async fn posts_request(
             ));
         }
     }
+
+    // fetch data
+    let posts = match data
+        .0
+        .get_posts_by_user(other_user.id, 12, props.page)
+        .await
+    {
+        Ok(p) => match data.0.fill_posts_with_community(p).await {
+            Ok(p) => p,
+            Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
+        },
+        Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
+    };
+
+    let communities = match data.0.get_memberships_by_owner(other_user.id).await {
+        Ok(m) => match data.0.fill_communities(m).await {
+            Ok(m) => m,
+            Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
+        },
+        Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
+    };
 
     // init context
     let lang = get_lang!(jar, data.0);
@@ -73,7 +92,13 @@ pub async fn posts_request(
     };
 
     context.insert("posts", &posts);
-    profile_context(&mut context, &other_user, is_self, is_following);
+    profile_context(
+        &mut context,
+        &other_user,
+        &communities,
+        is_self,
+        is_following,
+    );
 
     // return
     Ok(Html(

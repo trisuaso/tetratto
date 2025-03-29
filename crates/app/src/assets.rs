@@ -29,6 +29,7 @@ pub const ME_JS: &str = include_str!("./public/js/me.js");
 // html
 pub const ROOT: &str = include_str!("./public/html/root.html");
 pub const MACROS: &str = include_str!("./public/html/macros.html");
+pub const COMPONENTS: &str = include_str!("./public/html/components.html");
 
 pub const MISC_INDEX: &str = include_str!("./public/html/misc/index.html");
 pub const MISC_ERROR: &str = include_str!("./public/html/misc/error.html");
@@ -41,6 +42,9 @@ pub const PROFILE_BASE: &str = include_str!("./public/html/profile/base.html");
 pub const PROFILE_POSTS: &str = include_str!("./public/html/profile/posts.html");
 
 pub const COMMUNITIES_LIST: &str = include_str!("./public/html/communities/list.html");
+pub const COMMUNITIES_BASE: &str = include_str!("./public/html/communities/base.html");
+pub const COMMUNITIES_FEED: &str = include_str!("./public/html/communities/feed.html");
+pub const COMMUNITIES_POST: &str = include_str!("./public/html/communities/post.html");
 
 // langs
 pub const LANG_EN_US: &str = include_str!("./langs/en-US.toml");
@@ -136,6 +140,7 @@ pub(crate) async fn write_assets(config: &Config) -> PathBufD {
 
     write_template!(html_path->"root.html"(crate::assets::ROOT) --config=config);
     write_template!(html_path->"macros.html"(crate::assets::MACROS) --config=config);
+    write_template!(html_path->"components.html"(crate::assets::COMPONENTS) --config=config);
 
     write_template!(html_path->"misc/index.html"(crate::assets::MISC_INDEX) -d "misc" --config=config);
     write_template!(html_path->"misc/error.html"(crate::assets::MISC_ERROR) --config=config);
@@ -148,6 +153,9 @@ pub(crate) async fn write_assets(config: &Config) -> PathBufD {
     write_template!(html_path->"profile/posts.html"(crate::assets::PROFILE_POSTS) --config=config);
 
     write_template!(html_path->"communities/list.html"(crate::assets::COMMUNITIES_LIST) -d "communities" --config=config);
+    write_template!(html_path->"communities/base.html"(crate::assets::COMMUNITIES_BASE) --config=config);
+    write_template!(html_path->"communities/feed.html"(crate::assets::COMMUNITIES_FEED) --config=config);
+    write_template!(html_path->"communities/post.html"(crate::assets::COMMUNITIES_POST) --config=config);
 
     html_path
 }
@@ -162,7 +170,13 @@ pub(crate) async fn init_dirs(config: &Config) {
         &PathBufD::current().extend(&[config.dirs.media.as_str(), "avatars"])
     );
     create_dir_if_not_exists!(
+        &PathBufD::current().extend(&[config.dirs.media.as_str(), "community_avatars"])
+    );
+    create_dir_if_not_exists!(
         &PathBufD::current().extend(&[config.dirs.media.as_str(), "banners"])
+    );
+    create_dir_if_not_exists!(
+        &PathBufD::current().extend(&[config.dirs.media.as_str(), "community_banners"])
     );
 
     write_if_track!(images_path->"default-avatar.svg"(DEFAULT_AVATAR) --config=config);
@@ -191,6 +205,15 @@ pub(crate) async fn initial_context(
     let mut ctx = Context::new();
     ctx.insert("config", &config);
     ctx.insert("user", &user);
+
+    if let Some(ua) = user {
+        ctx.insert("is_helper", &ua.permissions.check_helper());
+        ctx.insert("is_manager", &ua.permissions.check_manager());
+    } else {
+        ctx.insert("is_helper", &false);
+        ctx.insert("is_manager", &false);
+    }
+
     ctx.insert("lang", &lang.data);
     ctx.insert("random_cache_breaker", &CACHE_BREAKER.clone());
     ctx

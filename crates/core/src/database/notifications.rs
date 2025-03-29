@@ -16,11 +16,11 @@ impl DataManager {
         #[cfg(feature = "postgres")] x: &Row,
     ) -> Notification {
         Notification {
-            id: get!(x->0(i64)) as usize,
-            created: get!(x->1(i64)) as usize,
+            id: get!(x->0(isize)) as usize,
+            created: get!(x->1(isize)) as usize,
             title: get!(x->2(String)),
             content: get!(x->3(String)),
-            owner: get!(x->4(i64)) as usize,
+            owner: get!(x->4(isize)) as usize,
         }
     }
 

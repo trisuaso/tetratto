@@ -18,7 +18,11 @@ pub fn routes() -> Router {
         .route("/reactions", post(reactions::create_request))
         .route("/reactions/{id}", get(reactions::get_request))
         .route("/reactions/{id}", delete(reactions::delete_request))
-        // journal journals
+        // communities
+        .route(
+            "/communities/find/{id}",
+            get(communities::communities::redirect_from_id),
+        )
         .route(
             "/communities",
             post(communities::communities::create_request),
@@ -36,12 +40,28 @@ pub fn routes() -> Router {
             post(communities::communities::update_context_request),
         )
         .route(
-            "/journals/{id}/access/read",
+            "/communities/{id}/access/read",
             post(communities::communities::update_read_access_request),
         )
         .route(
-            "/journals/{id}/access/write",
+            "/communities/{id}/access/write",
             post(communities::communities::update_write_access_request),
+        )
+        .route(
+            "/communities/{id}/upload/avatar",
+            post(communities::images::upload_avatar_request),
+        )
+        .route(
+            "/communities/{id}/upload/banner",
+            post(communities::images::upload_banner_request),
+        )
+        .route(
+            "/communities/{id}/avatar",
+            get(communities::images::avatar_request),
+        )
+        .route(
+            "/communities/{id}/banner",
+            get(communities::images::banner_request),
         )
         // posts
         .route("/posts", post(communities::posts::create_request))
@@ -96,6 +116,10 @@ pub fn routes() -> Router {
             "/auth/profile/{id}/verified",
             post(auth::profile::update_profile_is_verified_request),
         )
+        .route(
+            "/auth/profile/find/{id}",
+            get(auth::profile::redirect_from_id),
+        )
 }
 
 #[derive(Deserialize)]
@@ -110,7 +134,7 @@ pub struct CreateCommunity {
 }
 
 #[derive(Deserialize)]
-pub struct UpdateJournalTitle {
+pub struct UpdateCommunityTitle {
     pub title: String,
 }
 
@@ -120,30 +144,30 @@ pub struct UpdateCommunityContext {
 }
 
 #[derive(Deserialize)]
-pub struct UpdateJournalReadAccess {
+pub struct UpdateCommunityReadAccess {
     pub access: CommunityReadAccess,
 }
 
 #[derive(Deserialize)]
-pub struct UpdateJournalWriteAccess {
+pub struct UpdateCommunityWriteAccess {
     pub access: CommunityWriteAccess,
 }
 
 #[derive(Deserialize)]
-pub struct CreateJournalEntry {
+pub struct CreatePost {
     pub content: String,
-    pub journal: usize,
+    pub community: String,
     #[serde(default)]
-    pub replying_to: Option<usize>,
+    pub replying_to: Option<String>,
 }
 
 #[derive(Deserialize)]
-pub struct UpdateJournalEntryContent {
+pub struct UpdatePostContent {
     pub content: String,
 }
 
 #[derive(Deserialize)]
-pub struct UpdateJournalEntryContext {
+pub struct UpdatePostContext {
     pub context: PostContext,
 }
 

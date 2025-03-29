@@ -78,11 +78,7 @@ body {
     overflow-x: hidden;
 }
 
-main,
-article,
-nav,
-header,
-footer {
+main {
     width: 80ch;
     margin: 0 auto;
     padding: 0.75rem 1rem;
@@ -422,9 +418,14 @@ select {
     transition: background 0.15s;
     resize: vertical;
     width: 100%;
+    font-family: inherit;
     /* personality */
     background: transparent;
     color: inherit;
+}
+
+textarea {
+    min-height: 5rem;
 }
 
 input:focus,
@@ -1062,6 +1063,10 @@ details.accordion .inner {
 }
 
 @media screen and (max-width: 900px) {
+    .flex-collapse {
+        flex-direction: column !important;
+    }
+
     .sm\:static {
         position: static !important;
     }

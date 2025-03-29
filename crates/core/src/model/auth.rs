@@ -45,6 +45,12 @@ impl Default for UserSettings {
     }
 }
 
+impl Default for User {
+    fn default() -> Self {
+        Self::new("<unknown>".to_string(), String::new())
+    }
+}
+
 impl User {
     /// Create a new [`User`].
     pub fn new(username: String, password: String) -> Self {
@@ -67,6 +73,15 @@ impl User {
             notification_count: 0,
             follower_count: 0,
             following_count: 0,
+        }
+    }
+
+    /// Deleted user profile.
+    pub fn deleted() -> Self {
+        Self {
+            username: "<deleted>".to_string(),
+            id: 0,
+            ..Default::default()
         }
     }
 

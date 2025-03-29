@@ -10,8 +10,8 @@ bitflags! {
     pub struct FinePermission: u32 {
         const DEFAULT = 1 << 0;
         const ADMINISTRATOR = 1 << 1;
-        const MANAGE_COMMUNITY_PAGES = 1 << 2;
-        const MANAGE_COMMUNITY_ENTRIES = 1 << 3;
+        const MANAGE_COMMUNITIES = 1 << 2;
+        const MANAGE_POSTS = 1 << 3;
         const MANAGE_POST_REPLIES = 1 << 4;
         const MANAGE_USERS = 1 << 5;
         const MANAGE_BANS = 1 << 6; // includes managing IP bans
@@ -106,8 +106,8 @@ impl FinePermission {
 
     /// Check if the given [`FinePermission`] qualifies as "Helper" status.
     pub fn check_helper(self) -> bool {
-        self.check(FinePermission::MANAGE_COMMUNITY_ENTRIES)
-            && self.check(FinePermission::MANAGE_COMMUNITY_PAGES)
+        self.check(FinePermission::MANAGE_COMMUNITIES)
+            && self.check(FinePermission::MANAGE_POSTS)
             && self.check(FinePermission::MANAGE_POST_REPLIES)
             && self.check(FinePermission::MANAGE_WARNINGS)
             && self.check(FinePermission::VIEW_REPORTS)

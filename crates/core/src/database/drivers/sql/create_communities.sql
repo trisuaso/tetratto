@@ -8,5 +8,7 @@ CREATE TABLE IF NOT EXISTS communities (
     write_access TEXT NOT NULL,
     -- likes
     likes INTEGER NOT NULL,
-    dislikes INTEGER NOT NULL
+    dislikes INTEGER NOT NULL,
+    -- counts
+    member_count INTEGER NOT NULL
 )

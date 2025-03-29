@@ -1,5 +1,6 @@
 use super::*;
 use crate::cache::Cache;
+use crate::model::communities::Community;
 use crate::model::{
     Error, Result, auth::User, communities::CommunityMembership,
     communities_permissions::CommunityPermission, permissions::FinePermission,
@@ -19,15 +20,24 @@ impl DataManager {
         #[cfg(feature = "postgres")] x: &Row,
     ) -> CommunityMembership {
         CommunityMembership {
-            id: get!(x->0(i64)) as usize,
-            created: get!(x->1(i64)) as usize,
-            owner: get!(x->2(i64)) as usize,
-            community: get!(x->3(i64)) as usize,
+            id: get!(x->0(isize)) as usize,
+            created: get!(x->1(isize)) as usize,
+            owner: get!(x->2(isize)) as usize,
+            community: get!(x->3(isize)) as usize,
             role: CommunityPermission::from_bits(get!(x->4(u32))).unwrap(),
         }
     }
 
     auto_method!(get_membership_by_id()@get_membership_from_row -> "SELECT * FROM memberships WHERE id = $1" --name="journal membership" --returns=CommunityMembership --cache-key-tmpl="atto.membership:{}");
+
+    /// Replace a list of community memberships with the proper community.
+    pub async fn fill_communities(&self, list: Vec<CommunityMembership>) -> Result<Vec<Community>> {
+        let mut communities: Vec<Community> = Vec::new();
+        for membership in &list {
+            communities.push(self.get_community_by_id(membership.community).await?);
+        }
+        Ok(communities)
+    }
 
     /// Get a community membership by `owner` and `community`.
     pub async fn get_membership_by_owner_community(
@@ -87,7 +97,7 @@ impl DataManager {
 
         let res = execute!(
             &conn,
-            "INSERT INTO memberships VALUES ($1, $2, $3, $4, $5",
+            "INSERT INTO memberships VALUES ($1, $2, $3, $4, $5)",
             &[
                 &data.id.to_string().as_str(),
                 &data.created.to_string().as_str(),
@@ -100,6 +110,10 @@ impl DataManager {
         if let Err(e) = res {
             return Err(Error::DatabaseError(e.to_string()));
         }
+
+        self.incr_community_member_count(data.community)
+            .await
+            .unwrap();
 
         Ok(())
     }
@@ -138,6 +152,8 @@ impl DataManager {
         }
 
         self.2.remove(format!("atto.membership:{}", id)).await;
+
+        self.decr_community_member_count(y.community).await.unwrap();
 
         Ok(())
     }

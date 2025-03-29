@@ -21,8 +21,8 @@ impl DataManager {
         #[cfg(feature = "postgres")] x: &Row,
     ) -> User {
         User {
-            id: get!(x->0(i64)) as usize,
-            created: get!(x->1(i64)) as usize,
+            id: get!(x->0(isize)) as usize,
+            created: get!(x->1(isize)) as usize,
             username: get!(x->2(String)),
             password: get!(x->3(String)),
             salt: get!(x->4(String)),
@@ -31,9 +31,9 @@ impl DataManager {
             permissions: FinePermission::from_bits(get!(x->7(u32))).unwrap(),
             is_verified: if get!(x->8(i8)) == 1 { true } else { false },
             // counts
-            notification_count: get!(x->9(i64)) as usize,
-            follower_count: get!(x->10(i64)) as usize,
-            following_count: get!(x->11(i64)) as usize,
+            notification_count: get!(x->9(isize)) as usize,
+            follower_count: get!(x->10(isize)) as usize,
+            following_count: get!(x->11(isize)) as usize,
         }
     }
 
@@ -116,7 +116,7 @@ impl DataManager {
         Ok(())
     }
 
-    /// Create a new user in the database.
+    /// Delete an existing user in the database.
     ///
     /// # Arguments
     /// * `id` - the ID of the user
