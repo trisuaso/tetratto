@@ -1,5 +1,6 @@
 pub mod auth;
 pub mod communities;
+pub mod notifications;
 pub mod reactions;
 
 use axum::{
@@ -120,6 +121,16 @@ pub fn routes() -> Router {
             "/auth/profile/find/{id}",
             get(auth::profile::redirect_from_id),
         )
+        // notifications
+        .route(
+            "/notifications/my",
+            delete(notifications::delete_all_request),
+        )
+        .route("/notifications/{id}", delete(notifications::delete_request))
+        .route(
+            "/notifications/{id}/read",
+            delete(notifications::update_read_status_request),
+        )
 }
 
 #[derive(Deserialize)]
@@ -181,4 +192,9 @@ pub struct CreateReaction {
 #[derive(Deserialize)]
 pub struct UpdateUserIsVerified {
     pub is_verified: bool,
+}
+
+#[derive(Deserialize)]
+pub struct UpdateNotificationRead {
+    pub read: bool,
 }

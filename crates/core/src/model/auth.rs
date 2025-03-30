@@ -114,6 +114,7 @@ pub struct Notification {
     pub title: String,
     pub content: String,
     pub owner: usize,
+    pub read: bool,
 }
 
 impl Notification {
@@ -128,6 +129,7 @@ impl Notification {
             title,
             content,
             owner,
+            read: false,
         }
     }
 }

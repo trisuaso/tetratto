@@ -21,6 +21,7 @@ impl DataManager {
             title: get!(x->2(String)),
             content: get!(x->3(String)),
             owner: get!(x->4(isize)) as usize,
+            read: if get!(x->5(i8)) == 1 { true } else { false },
         }
     }
 
@@ -59,13 +60,14 @@ impl DataManager {
 
         let res = execute!(
             &conn,
-            "INSERT INTO reactions VALUES ($1, $2, $3, $4, $5)",
+            "INSERT INTO notifications VALUES ($1, $2, $3, $4, $5, $6)",
             &[
                 &data.id.to_string().as_str(),
                 &data.created.to_string().as_str(),
                 &data.title.to_string().as_str(),
                 &data.content.to_string().as_str(),
-                &data.owner.to_string().as_str()
+                &data.owner.to_string().as_str(),
+                &(if data.read { 1 } else { 0 }).to_string().as_str()
             ]
         );
 
@@ -80,7 +82,7 @@ impl DataManager {
         Ok(())
     }
 
-    pub async fn delete_notification(&self, id: usize, user: User) -> Result<()> {
+    pub async fn delete_notification(&self, id: usize, user: &User) -> Result<()> {
         let notification = self.get_notification_by_id(id).await?;
 
         if user.id != notification.owner {
@@ -112,6 +114,63 @@ impl DataManager {
             .unwrap();
 
         // return
+        Ok(())
+    }
+
+    pub async fn delete_all_notifications(&self, user: &User) -> Result<()> {
+        let notifications = self.get_notifications_by_owner(user.id).await?;
+
+        for notification in notifications {
+            if user.id != notification.owner {
+                if !user.permissions.check(FinePermission::MANAGE_NOTIFICATIONS) {
+                    return Err(Error::NotAllowed);
+                }
+            }
+
+            self.delete_notification(notification.id, user).await?
+        }
+
+        Ok(())
+    }
+
+    pub async fn update_notification_read(
+        &self,
+        id: usize,
+        new_read: bool,
+        user: &User,
+    ) -> Result<()> {
+        let y = self.get_notification_by_id(id).await?;
+
+        if y.owner != user.id {
+            if !user.permissions.check(FinePermission::MANAGE_NOTIFICATIONS) {
+                return Err(Error::NotAllowed);
+            }
+        }
+
+        // ...
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = execute!(
+            &conn,
+            "UPDATE notifications SET read = $1 WHERE id = $2",
+            &[&(if new_read { 1 } else { 0 }).to_string(), &id.to_string()]
+        );
+
+        if let Err(e) = res {
+            return Err(Error::DatabaseError(e.to_string()));
+        }
+
+        self.2.remove(format!("atto.notification:{}", id)).await;
+
+        if (y.read == true) && (new_read == false) {
+            self.incr_user_notifications(user.id).await?;
+        } else if (y.read == false) && (new_read == true) {
+            self.decr_user_notifications(user.id).await?;
+        }
+
         Ok(())
     }
 }

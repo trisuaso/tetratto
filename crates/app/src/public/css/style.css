@@ -600,6 +600,10 @@ nav .button:not(.title):not(.active):hover {
         top: unset;
     }
 
+    body {
+        padding-bottom: 72px;
+    }
+
     nav button:not(.dropdown *),
     nav .button:not(.dropdown *) {
         font-size: 12px;

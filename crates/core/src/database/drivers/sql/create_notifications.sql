@@ -3,5 +3,6 @@ CREATE TABLE IF NOT EXISTS notifications (
     created INTEGER NOT NULL,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
-    owner INTEGER NOT NULL
+    owner INTEGER NOT NULL,
+    read INTEGER NOT NULL
 )

@@ -2,7 +2,7 @@ use super::*;
 use crate::cache::Cache;
 use crate::model::{
     Error, Result,
-    auth::User,
+    auth::{Notification, User},
     permissions::FinePermission,
     reactions::{AssetType, Reaction},
 };
@@ -61,7 +61,7 @@ impl DataManager {
     ///
     /// # Arguments
     /// * `data` - a mock [`Reaction`] object to insert
-    pub async fn create_reaction(&self, data: Reaction) -> Result<()> {
+    pub async fn create_reaction(&self, data: Reaction, user: &User) -> Result<()> {
         let conn = match self.connect().await {
             Ok(c) => c,
             Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
@@ -95,6 +95,24 @@ impl DataManager {
                     }
                 } {
                     return Err(e);
+                } else if data.is_like {
+                    let community = self.get_community_by_id(data.asset).await.unwrap();
+
+                    if community.owner != user.id {
+                        if let Err(e) = self
+                            .create_notification(Notification::new(
+                                "Your community has received a like!".to_string(),
+                                format!(
+                                    "[@{}](/api/v1/auth/profile/find/{}) has liked your community!",
+                                    user.username, user.id
+                                ),
+                                community.owner,
+                            ))
+                            .await
+                        {
+                            return Err(e);
+                        }
+                    }
                 }
             }
             AssetType::Post => {
@@ -106,6 +124,24 @@ impl DataManager {
                     }
                 } {
                     return Err(e);
+                } else if data.is_like {
+                    let post = self.get_post_by_id(data.asset).await.unwrap();
+
+                    if post.owner != user.id {
+                        if let Err(e) = self
+                            .create_notification(Notification::new(
+                                "Your post has received a like!".to_string(),
+                                format!(
+                                    "[@{}](/api/v1/auth/profile/find/{}) has liked your post!",
+                                    user.username, user.id
+                                ),
+                                post.owner,
+                            ))
+                            .await
+                        {
+                            return Err(e);
+                        }
+                    }
                 }
             }
         };

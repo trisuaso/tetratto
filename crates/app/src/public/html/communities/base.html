@@ -25,18 +25,6 @@
                             </h3>
 
                             <span class="fade">{{ community.title }}</span>
-
-                            {% if user %}
-                            <div
-                                class="flex gap-1 reactions_box"
-                                hook="check_reactions"
-                                hook-arg:id="{{ community.id }}"
-                            >
-                                {{ components::likes(id=community.id,
-                                asset_type="Community", likes=community.likes,
-                                dislikes=community.dislikes) }}
-                            </div>
-                            {% endif %}
                         </div>
                     </div>
 
@@ -69,7 +57,51 @@
                                 <div
                                     id="manage_fields"
                                     class="flex flex-col gap-2"
-                                ></div>
+                                >
+                                    <div class="card-nest">
+                                        <div class="card small">
+                                            <b>Read access</b>
+                                        </div>
+
+                                        <div class="card">
+                                            <select
+                                                onchange="save_access(event, 'read')"
+                                            >
+                                                <option value="Everybody">
+                                                    Everybody
+                                                </option>
+                                                <option value="Unlisted">
+                                                    Unlisted
+                                                </option>
+                                                <option value="Private">
+                                                    Private
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="card-nest">
+                                        <div class="card small">
+                                            <b>Write access</b>
+                                        </div>
+
+                                        <div class="card">
+                                            <select
+                                                onchange="save_access(event, 'write')"
+                                            >
+                                                <option value="Everybody">
+                                                    Everybody
+                                                </option>
+                                                <option value="Joined">
+                                                    Joined
+                                                </option>
+                                                <option value="Owner">
+                                                    Owner only
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
 
                                 <hr class="margin" />
 
@@ -96,7 +128,7 @@
                                     document.getElementById("manage_fields"),
                                     [
                                         [
-                                            ["display_name", "Title"],
+                                            ["display_name", "Display title"],
                                             "{{ community.context.display_name }}",
                                             "input",
                                         ],
@@ -111,7 +143,7 @@
 
                                 window.save_context = () => {
                                     fetch(
-                                        `/api/v1/communities/{{ community.id }}/context`,
+                                        "/api/v1/communities/{{ community.id }}/context",
                                         {
                                             method: "POST",
                                             headers: {
@@ -120,6 +152,31 @@
                                             },
                                             body: JSON.stringify({
                                                 context: settings,
+                                            }),
+                                        },
+                                    )
+                                        .then((res) => res.json())
+                                        .then((res) => {
+                                            trigger("atto::toast", [
+                                                res.ok ? "success" : "error",
+                                                res.message,
+                                            ]);
+                                        });
+                                };
+
+                                window.save_access = (event, mode) => {
+                                    const selected =
+                                        event.target.selectedOptions[0];
+                                    fetch(
+                                        `/api/v1/communities/{{ community.id }}/access/${mode}`,
+                                        {
+                                            method: "POST",
+                                            headers: {
+                                                "Content-Type":
+                                                    "application/json",
+                                            },
+                                            body: JSON.stringify({
+                                                access: selected.value,
                                             }),
                                         },
                                     )
@@ -158,6 +215,28 @@
                         <div class="w-full flex justify-between items-center">
                             <span class="notification chip">Created</span>
                             <span class="date">{{ community.created }}</span>
+                        </div>
+
+                        <div class="w-full flex justify-between items-center">
+                            <span class="notification chip">Score</span>
+                            <div class="flex gap-2">
+                                <b
+                                    >{{ community.likes - community.dislikes
+                                    }}</b
+                                >
+                                {% if user %}
+                                <div
+                                    class="flex gap-1 reactions_box"
+                                    hook="check_reactions"
+                                    hook-arg:id="{{ community.id }}"
+                                >
+                                    {{ components::likes(id=community.id,
+                                    asset_type="Community",
+                                    likes=community.likes,
+                                    dislikes=community.dislikes) }}
+                                </div>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                 </div>
