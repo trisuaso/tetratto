@@ -48,4 +48,47 @@
                 ]);
             });
     });
+
+    self.define("react", async (_, element, asset, asset_type, is_like) => {
+        fetch("/api/v1/reactions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                asset,
+                asset_type,
+                is_like,
+            }),
+        })
+            .then((res) => res.json())
+            .then((res) => {
+                trigger("atto::toast", [
+                    res.ok ? "success" : "error",
+                    res.message,
+                ]);
+
+                if (res.ok) {
+                    const like = element.parentElement.querySelector(
+                        '[hook_element="reaction.like"]',
+                    );
+
+                    const dislike = element.parentElement.querySelector(
+                        '[hook_element="reaction.dislike"]',
+                    );
+
+                    if (is_like) {
+                        like.classList.add("green");
+                        like.querySelector("svg").classList.add("filled");
+
+                        dislike.classList.remove("red");
+                    } else {
+                        dislike.classList.add("red");
+
+                        like.classList.remove("green");
+                        like.querySelector("svg").classList.remove("filled");
+                    }
+                }
+            });
+    });
 })();

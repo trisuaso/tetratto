@@ -25,6 +25,18 @@
                             </h3>
 
                             <span class="fade">{{ community.title }}</span>
+
+                            {% if user %}
+                            <div
+                                class="flex gap-1 reactions_box"
+                                hook="check_reactions"
+                                hook-arg:id="{{ community.id }}"
+                            >
+                                {{ components::likes(id=community.id,
+                                asset_type="Community", likes=community.likes,
+                                dislikes=community.dislikes) }}
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
 
@@ -41,15 +53,86 @@
                             <span>{{ text "communities:action.leave" }}</span>
                         </button>
                         {% endif %} {% else %}
-                        <a
-                            href="/community/{{ community.title }}/manage"
+                        <button
+                            href="/community/{{ community.title }}"
                             class="button primary"
+                            onclick="document.getElementById('manage').showModal()"
                         >
                             {{ icon "settings" }}
                             <span
                                 >{{ text "communities:action.configure" }}</span
                             >
-                        </a>
+                        </button>
+
+                        <dialog id="manage">
+                            <div class="inner">
+                                <div
+                                    id="manage_fields"
+                                    class="flex flex-col gap-2"
+                                ></div>
+
+                                <hr class="margin" />
+
+                                <button
+                                    onclick="document.getElementById('manage').close(); save_context()"
+                                >
+                                    {{ icon "check" }}
+                                    <span
+                                        >{{ text "dialog:action.save_and_close"
+                                        }}</span
+                                    >
+                                </button>
+                            </div>
+                        </dialog>
+
+                        <script>
+                            setTimeout(() => {
+                                const ui = ns("ui");
+                                const settings = JSON.parse(
+                                    "{{ community_context_serde|safe }}",
+                                );
+
+                                ui.generate_settings_ui(
+                                    document.getElementById("manage_fields"),
+                                    [
+                                        [
+                                            ["display_name", "Title"],
+                                            "{{ community.context.display_name }}",
+                                            "input",
+                                        ],
+                                        [
+                                            ["description", "Description"],
+                                            "{{ community.context.description }}",
+                                            "textarea",
+                                        ],
+                                    ],
+                                    settings,
+                                );
+
+                                window.save_context = () => {
+                                    fetch(
+                                        `/api/v1/communities/{{ community.id }}/context`,
+                                        {
+                                            method: "POST",
+                                            headers: {
+                                                "Content-Type":
+                                                    "application/json",
+                                            },
+                                            body: JSON.stringify({
+                                                context: settings,
+                                            }),
+                                        },
+                                    )
+                                        .then((res) => res.json())
+                                        .then((res) => {
+                                            trigger("atto::toast", [
+                                                res.ok ? "success" : "error",
+                                                res.message,
+                                            ]);
+                                        });
+                                };
+                            }, 250);
+                        </script>
                         {% endif %}
                     </div>
                     {% endif %}
@@ -57,7 +140,7 @@
 
                 <div class="card-nest flex flex-col">
                     <div id="bio" class="card small">
-                        {{ community.context.description }}
+                        {{ community.context.description|markdown|safe }}
                     </div>
 
                     <div class="card flex flex-col gap-2">

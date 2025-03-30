@@ -11,6 +11,7 @@ version = "1.0.0"
 "dialog:action.cancel" = "Cancel"
 "dialog:action.yes" = "Yes"
 "dialog:action.no" = "No"
+"dialog:action.save_and_close" = "Save and close"
 
 "auth:action.login" = "Login"
 "auth:action.register" = "Register"

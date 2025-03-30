@@ -7,14 +7,18 @@ use assets::{init_dirs, write_assets};
 pub use tetratto_core::*;
 
 use axum::{Extension, Router};
-use tera::Tera;
+use tera::{Tera, Value};
 use tower_http::trace::{self, TraceLayer};
 use tracing::{Level, info};
 
-use std::sync::Arc;
+use std::{collections::HashMap, sync::Arc};
 use tokio::sync::RwLock;
 
 pub(crate) type State = Arc<RwLock<(DataManager, Tera)>>;
+
+fn render_markdown(value: &Value, _: &HashMap<String, Value>) -> tera::Result<Value> {
+    Ok(tetratto_shared::markdown::render_markdown(&value.as_str().unwrap()).into())
+}
 
 #[tokio::main]
 async fn main() {
@@ -33,12 +37,12 @@ async fn main() {
     let database = DataManager::new(config.clone()).await.unwrap();
     database.init().await.unwrap();
 
+    let mut tera = Tera::new(&format!("{html_path}/**/*")).unwrap();
+    tera.register_filter("markdown", render_markdown);
+
     let app = Router::new()
         .merge(routes::routes(&config))
-        .layer(Extension(Arc::new(RwLock::new((
-            database,
-            Tera::new(&format!("{html_path}/**/*")).unwrap(),
-        )))))
+        .layer(Extension(Arc::new(RwLock::new((database, tera)))))
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))

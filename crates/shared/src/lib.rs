@@ -1,4 +1,5 @@
 pub mod hash;
+pub mod markdown;
 pub mod snow;
 pub mod time;
 

@@ -53,7 +53,7 @@
 
                 <div class="card-nest flex flex-col">
                     <div id="bio" class="card small">
-                        {{ profile.settings.biography }}
+                        {{ profile.settings.biography|markdown|safe }}
                     </div>
 
                     <div class="card flex flex-col gap-2">

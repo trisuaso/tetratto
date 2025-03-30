@@ -86,13 +86,25 @@ impl DataManager {
 
         // incr corresponding
         match data.asset_type {
-            AssetType::Journal => {
-                if let Err(e) = self.incr_community_likes(data.id).await {
+            AssetType::Community => {
+                if let Err(e) = {
+                    if data.is_like {
+                        self.incr_community_likes(data.asset).await
+                    } else {
+                        self.incr_community_dislikes(data.asset).await
+                    }
+                } {
                     return Err(e);
                 }
             }
-            AssetType::JournalEntry => {
-                if let Err(e) = self.incr_post_likes(data.id).await {
+            AssetType::Post => {
+                if let Err(e) = {
+                    if data.is_like {
+                        self.incr_post_likes(data.asset).await
+                    } else {
+                        self.incr_post_dislikes(data.asset).await
+                    }
+                } {
                     return Err(e);
                 }
             }
@@ -102,7 +114,7 @@ impl DataManager {
         Ok(())
     }
 
-    pub async fn delete_reaction(&self, id: usize, user: User) -> Result<()> {
+    pub async fn delete_reaction(&self, id: usize, user: &User) -> Result<()> {
         let reaction = self.get_reaction_by_id(id).await?;
 
         if user.id != reaction.owner {
@@ -130,13 +142,25 @@ impl DataManager {
 
         // decr corresponding
         match reaction.asset_type {
-            AssetType::Journal => {
-                if let Err(e) = self.decr_community_likes(reaction.asset).await {
+            AssetType::Community => {
+                if let Err(e) = {
+                    if reaction.is_like {
+                        self.decr_community_likes(reaction.asset).await
+                    } else {
+                        self.decr_community_dislikes(reaction.asset).await
+                    }
+                } {
                     return Err(e);
                 }
             }
-            AssetType::JournalEntry => {
-                if let Err(e) = self.decr_post_likes(reaction.asset).await {
+            AssetType::Post => {
+                if let Err(e) = {
+                    if reaction.is_like {
+                        self.decr_post_likes(reaction.asset).await
+                    } else {
+                        self.decr_post_dislikes(reaction.asset).await
+                    }
+                } {
                     return Err(e);
                 }
             }

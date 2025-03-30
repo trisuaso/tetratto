@@ -38,6 +38,28 @@
     {% if user.settings.display_name %} {{ user.settings.display_name }} {% else
     %} {{ user.username }} {% endif %}
 </div>
+{%- endmacro %} {% macro likes(id, asset_type, likes=0, dislikes=0) -%}
+<button
+    title="Like"
+    class="camo small"
+    hook_element="reaction.like"
+    onclick="trigger('me::react', [event.target, '{{ id }}', '{{ asset_type }}', true])"
+>
+    {{ icon "heart" }} {% if likes > 0 %}
+    <span>{{ likes }}</span>
+    {% endif %}
+</button>
+
+<button
+    title="Dislike"
+    class="camo small"
+    hook_element="reaction.dislike"
+    onclick="trigger('me::react', [event.target, '{{ id }}', '{{ asset_type }}', false])"
+>
+    {{ icon "heart-crack" }} {% if dislikes > 0 %}
+    <span>{{ dislikes }}</span>
+    {% endif %}
+</button>
 {%- endmacro %} {% macro post(post, owner, secondary=false, community=false,
 show_community=true) -%}
 <div class="card flex flex-col gap-2 {% if secondary %}secondary{% endif %}">
@@ -68,21 +90,23 @@ show_community=true) -%}
                 {% endif %}
             </div>
 
-            <span id="post-content:{{ post.id }}">{{ post.content }}</span>
+            <span id="post-content:{{ post.id }}"
+                >{{ post.content|markdown|safe }}</span
+            >
         </div>
     </div>
 
     <div class="flex justify-between items-center gap-2 w-full">
-        <div class="flex gap-1 reactions_box">
-            {% if user %}
-            <button title="Like" class="primary small">
-                {{ icon "heart" }}
-            </button>
-            <button title="Dislike" class="secondary small">
-                {{ icon "heart-crack" }}
-            </button>
-            {% endif %}
+        {% if user %}
+        <div
+            class="flex gap-1 reactions_box"
+            hook="check_reactions"
+            hook-arg:id="{{ post.id }}"
+        >
+            {{ components::likes(id=post.id, asset_type="Post",
+            likes=post.likes, dislikes=post.dislikes) }}
         </div>
+        {% endif %}
 
         <div class="flex gap-1 buttons_box">
             <a href="/post/{{ post.id }}" class="button camo small">

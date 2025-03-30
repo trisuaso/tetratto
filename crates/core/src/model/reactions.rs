@@ -4,8 +4,8 @@ use tetratto_shared::{snow::AlmostSnowflake, unix_epoch_timestamp};
 /// All of the items which support reactions.
 #[derive(Serialize, Deserialize)]
 pub enum AssetType {
-    Journal,
-    JournalEntry,
+    Community,
+    Post,
 }
 
 #[derive(Serialize, Deserialize)]

@@ -116,14 +116,14 @@ impl DataManager {
 
     auto_method!(delete_community()@get_community_by_id:MANAGE_COMMUNITIES -> "DELETE communities pages WHERE id = $1" --cache-key-tmpl=cache_clear_community);
     auto_method!(update_community_title(String)@get_community_by_id:MANAGE_COMMUNITIES -> "UPDATE communities SET title = $1 WHERE id = $2" --cache-key-tmpl=cache_clear_community);
-    auto_method!(update_community_context(CommunityContext)@get_community_by_id:MANAGE_COMMUNITIES -> "UPDATE communities SET prompt = $1 WHERE id = $2" --serde --cache-key-tmpl=cache_clear_community);
+    auto_method!(update_community_context(CommunityContext)@get_community_by_id:MANAGE_COMMUNITIES -> "UPDATE communities SET context = $1 WHERE id = $2" --serde --cache-key-tmpl=cache_clear_community);
     auto_method!(update_community_read_access(CommunityReadAccess)@get_community_by_id:MANAGE_COMMUNITIES -> "UPDATE communities SET read_access = $1 WHERE id = $2" --serde --cache-key-tmpl=cache_clear_community);
     auto_method!(update_community_write_access(CommunityWriteAccess)@get_community_by_id:MANAGE_COMMUNITIES -> "UPDATE communities SET write_access = $1 WHERE id = $2" --serde --cache-key-tmpl=cache_clear_community);
 
     auto_method!(incr_community_likes()@get_community_by_id -> "UPDATE communities SET likes = likes + 1 WHERE id = $1" --cache-key-tmpl=cache_clear_community --incr);
-    auto_method!(incr_community_dislikes()@get_community_by_id -> "UPDATE communities SET likes = dislikes + 1 WHERE id = $1" --cache-key-tmpl=cache_clear_community --incr);
+    auto_method!(incr_community_dislikes()@get_community_by_id -> "UPDATE communities SET dislikes = dislikes + 1 WHERE id = $1" --cache-key-tmpl=cache_clear_community --incr);
     auto_method!(decr_community_likes()@get_community_by_id -> "UPDATE communities SET likes = likes - 1 WHERE id = $1" --cache-key-tmpl=cache_clear_community --decr);
-    auto_method!(decr_community_dislikes()@get_community_by_id -> "UPDATE communities SET likes = dislikes - 1 WHERE id = $1" --cache-key-tmpl=cache_clear_community --decr);
+    auto_method!(decr_community_dislikes()@get_community_by_id -> "UPDATE communities SET dislikes = dislikes - 1 WHERE id = $1" --cache-key-tmpl=cache_clear_community --decr);
 
     auto_method!(incr_community_member_count()@get_community_by_id -> "UPDATE communities SET member_count = member_count + 1 WHERE id = $1" --cache-key-tmpl=cache_clear_community --incr);
     auto_method!(decr_community_member_count()@get_community_by_id -> "UPDATE communities SET member_count = member_count - 1 WHERE id = $1" --cache-key-tmpl=cache_clear_community --decr);

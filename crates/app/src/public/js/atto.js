@@ -455,21 +455,33 @@ media_theme_pref();
     self.define("hooks::check_reactions", async ({ $ }) => {
         const observer = $.offload_work_to_client_when_in_view(
             async (element) => {
+                const like = element.querySelector(
+                    '[hook_element="reaction.like"]',
+                );
+
+                const dislike = element.querySelector(
+                    '[hook_element="reaction.dislike"]',
+                );
+
                 const reaction = await (
                     await fetch(
                         `/api/v1/reactions/${element.getAttribute("hook-arg:id")}`,
                     )
                 ).json();
 
-                if (reaction.success) {
-                    element.classList.add("green");
-                    element.querySelector("svg").classList.add("filled");
+                if (reaction.ok) {
+                    if (reaction.payload.is_like) {
+                        like.classList.add("green");
+                        like.querySelector("svg").classList.add("filled");
+                    } else {
+                        dislike.classList.add("red");
+                    }
                 }
             },
         );
 
         for (const element of Array.from(
-            document.querySelectorAll("[hook=check_reaction]") || [],
+            document.querySelectorAll("[hook=check_reactions]") || [],
         )) {
             observer.observe(element);
         }
@@ -618,4 +630,45 @@ media_theme_pref();
             });
         }
     });
+})();
+
+// ui ns
+(() => {
+    const self = reg_ns("ui");
+
+    self.define("render_settings_ui_field", (_, into_element, option) => {
+        into_element.innerHTML += `<div class="card-nest">
+            <div class="card small">
+                <b>${option.label.replaceAll("_", " ")}</b>
+            </div>
+
+            <div class="card">
+                <${option.input_element_type || "input"}
+                    type="text"
+                    onchange="window.set_setting_field('${option.key}', event.target.value)"
+                    placeholder="${option.key}"
+                    ${option.input_element_type === "input" ? `value="${option.value}"/>` : ">"}
+${option.input_element_type === "textarea" ? `${option.value}</textarea>` : ""}
+            </div>
+        </div>`;
+    });
+
+    self.define(
+        "generate_settings_ui",
+        ({ $ }, into_element, options, settings_ref) => {
+            for (const option of options) {
+                $.render_settings_ui_field(into_element, {
+                    key: Array.isArray(option[0]) ? option[0][0] : option[0],
+                    label: Array.isArray(option[0]) ? option[0][1] : option[0],
+                    value: option[1],
+                    input_element_type: option[2],
+                });
+            }
+
+            window.set_setting_field = (key, value) => {
+                settings_ref[key] = value;
+                console.log("update", key);
+            };
+        },
+    );
 })();

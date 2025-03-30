@@ -287,9 +287,9 @@ impl DataManager {
     auto_method!(update_post_context(PostContext)@get_post_by_id:MANAGE_POSTS -> "UPDATE posts SET context = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.post:{}");
 
     auto_method!(incr_post_likes() -> "UPDATE posts SET likes = likes + 1 WHERE id = $1" --cache-key-tmpl="atto.post:{}" --incr);
-    auto_method!(incr_post_dislikes() -> "UPDATE posts SET likes = dislikes + 1 WHERE id = $1" --cache-key-tmpl="atto.post:{}" --incr);
+    auto_method!(incr_post_dislikes() -> "UPDATE posts SET dislikes = dislikes + 1 WHERE id = $1" --cache-key-tmpl="atto.post:{}" --incr);
     auto_method!(decr_post_likes() -> "UPDATE posts SET likes = likes - 1 WHERE id = $1" --cache-key-tmpl="atto.post:{}" --decr);
-    auto_method!(decr_post_dislikes() -> "UPDATE posts SET likes = dislikes - 1 WHERE id = $1" --cache-key-tmpl="atto.post:{}" --decr);
+    auto_method!(decr_post_dislikes() -> "UPDATE posts SET dislikes = dislikes - 1 WHERE id = $1" --cache-key-tmpl="atto.post:{}" --decr);
 
     auto_method!(incr_post_comments() -> "UPDATE posts SET comment_count = comment_count + 1 WHERE id = $1" --cache-key-tmpl="atto.post:{}" --incr);
     auto_method!(decr_post_comments() -> "UPDATE posts SET comment_count = comment_count - 1 WHERE id = $1" --cache-key-tmpl="atto.post:{}" --decr);

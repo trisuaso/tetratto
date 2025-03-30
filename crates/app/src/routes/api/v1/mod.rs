@@ -173,7 +173,7 @@ pub struct UpdatePostContext {
 
 #[derive(Deserialize)]
 pub struct CreateReaction {
-    pub asset: usize,
+    pub asset: String,
     pub asset_type: AssetType,
     pub is_like: bool,
 }

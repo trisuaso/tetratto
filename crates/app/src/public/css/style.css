@@ -152,7 +152,14 @@ button svg {
 }
 
 hr {
-    border-top: 1px var(--color-super-lowered);
+    border-top: solid 1px var(--color-super-lowered) !important;
+    border-left: 0;
+    border-bottom: 0;
+    border-right: 0;
+}
+
+hr.margin {
+    margin: 1rem 0;
 }
 
 p,

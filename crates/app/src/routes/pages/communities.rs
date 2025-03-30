@@ -80,6 +80,15 @@ pub fn community_context(
     context.insert("community", &community);
     context.insert("is_owner", &is_owner);
     context.insert("is_joined", &is_joined);
+
+    if is_owner {
+        context.insert(
+            "community_context_serde",
+            &serde_json::to_string(&community.context)
+                .unwrap()
+                .replace("\"", "\\\""),
+        );
+    }
 }
 
 /// `/community/{title}`

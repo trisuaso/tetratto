@@ -36,10 +36,34 @@ pub async fn create_request(
         None => return Json(Error::NotAllowed.into()),
     };
 
+    let asset_id = match req.asset.parse::<usize>() {
+        Ok(n) => n,
+        Err(e) => return Json(Error::MiscError(e.to_string()).into()),
+    };
+
+    // check for existing reaction
+    if let Ok(r) = data.get_reaction_by_owner_asset(user.id, asset_id).await {
+        match data.delete_reaction(r.id, &user).await {
+            Ok(_) => {
+                // if we're trying to create a reaction of a DIFFERENT TYPE, then
+                // we don't need to return here
+                if r.is_like == req.is_like {
+                    return Json(ApiReturn {
+                        ok: true,
+                        message: "Reaction removed".to_string(),
+                        payload: (),
+                    });
+                }
+            }
+            Err(e) => return Json(e.into()),
+        };
+    }
+
+    // create reaction
     match data
         .create_reaction(Reaction::new(
             user.id,
-            req.asset,
+            asset_id,
             req.asset_type,
             req.is_like,
         ))
@@ -50,7 +74,7 @@ pub async fn create_request(
             message: "Reaction created".to_string(),
             payload: (),
         }),
-        Err(e) => return Json(e.into()),
+        Err(e) => Json(e.into()),
     }
 }
 
@@ -70,7 +94,7 @@ pub async fn delete_request(
         Err(e) => return Json(e.into()),
     };
 
-    match data.delete_reaction(reaction.id, user).await {
+    match data.delete_reaction(reaction.id, &user).await {
         Ok(_) => Json(ApiReturn {
             ok: true,
             message: "Reaction deleted".to_string(),
