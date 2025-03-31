@@ -41,11 +41,13 @@ pub const AUTH_REGISTER: &str = include_str!("./public/html/auth/register.html")
 
 pub const PROFILE_BASE: &str = include_str!("./public/html/profile/base.html");
 pub const PROFILE_POSTS: &str = include_str!("./public/html/profile/posts.html");
+pub const PROFILE_SETTINGS: &str = include_str!("./public/html/profile/settings.html");
 
 pub const COMMUNITIES_LIST: &str = include_str!("./public/html/communities/list.html");
 pub const COMMUNITIES_BASE: &str = include_str!("./public/html/communities/base.html");
 pub const COMMUNITIES_FEED: &str = include_str!("./public/html/communities/feed.html");
 pub const COMMUNITIES_POST: &str = include_str!("./public/html/communities/post.html");
+pub const COMMUNITIES_SETTINGS: &str = include_str!("./public/html/communities/settings.html");
 
 // langs
 pub const LANG_EN_US: &str = include_str!("./langs/en-US.toml");
@@ -153,11 +155,13 @@ pub(crate) async fn write_assets(config: &Config) -> PathBufD {
 
     write_template!(html_path->"profile/base.html"(crate::assets::PROFILE_BASE) -d "profile" --config=config);
     write_template!(html_path->"profile/posts.html"(crate::assets::PROFILE_POSTS) --config=config);
+    write_template!(html_path->"profile/settings.html"(crate::assets::PROFILE_SETTINGS) --config=config);
 
     write_template!(html_path->"communities/list.html"(crate::assets::COMMUNITIES_LIST) -d "communities" --config=config);
     write_template!(html_path->"communities/base.html"(crate::assets::COMMUNITIES_BASE) --config=config);
     write_template!(html_path->"communities/feed.html"(crate::assets::COMMUNITIES_FEED) --config=config);
     write_template!(html_path->"communities/post.html"(crate::assets::COMMUNITIES_POST) --config=config);
+    write_template!(html_path->"communities/settings.html"(crate::assets::COMMUNITIES_SETTINGS) --config=config);
 
     html_path
 }

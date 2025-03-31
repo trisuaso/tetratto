@@ -9,6 +9,48 @@ use axum_extra::extract::CookieJar;
 use tera::Context;
 use tetratto_core::model::{Error, auth::User, communities::Community};
 
+/// `/settings`
+pub async fn settings_request(
+    jar: CookieJar,
+    Extension(data): Extension<State>,
+) -> impl IntoResponse {
+    let data = data.read().await;
+    let user = match get_user_from_token!(jar, data.0) {
+        Some(ua) => ua,
+        None => {
+            return Err(Html(
+                render_error(Error::NotAllowed, &jar, &data, &None).await,
+            ));
+        }
+    };
+
+    let settings = user.settings.clone();
+    let tokens = user.tokens.clone();
+
+    let lang = get_lang!(jar, data.0);
+    let mut context = initial_context(&data.0.0, lang, &Some(user)).await;
+
+    context.insert(
+        "user_settings_serde",
+        &serde_json::to_string(&settings)
+            .unwrap()
+            .replace("\"", "\\\""),
+    );
+    context.insert(
+        "user_tokens_serde",
+        &serde_json::to_string(&tokens)
+            .unwrap()
+            .replace("\"", "\\\""),
+    );
+
+    // return
+    Ok(Html(
+        data.1
+            .render("profile/settings.html", &mut context)
+            .unwrap(),
+    ))
+}
+
 pub fn profile_context(
     context: &mut Context,
     profile: &User,

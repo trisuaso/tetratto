@@ -34,8 +34,8 @@ pub async fn avatar_request(
     };
 
     let path = PathBufD::current().extend(&[
+        data.0.dirs.media.as_str(),
         "community_avatars",
-        &data.0.dirs.media,
         &format!("{}.avif", &community.id),
     ]);
 
@@ -79,8 +79,8 @@ pub async fn banner_request(
     };
 
     let path = PathBufD::current().extend(&[
+        data.0.dirs.media.as_str(),
         "community_banners",
-        &data.0.dirs.media,
         &format!("{}.avif", &community.id),
     ]);
 
@@ -132,7 +132,7 @@ pub async fn upload_avatar_request(
     let path = pathd!(
         "{}/community_avatars/{}.avif",
         data.0.dirs.media,
-        &auth_user.id
+        &community.id
     );
 
     // check file size
@@ -188,7 +188,7 @@ pub async fn upload_banner_request(
     let path = pathd!(
         "{}/community_banners/{}.avif",
         data.0.dirs.media,
-        &auth_user.id
+        &community.id
     );
 
     // check file size

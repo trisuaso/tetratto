@@ -7,6 +7,20 @@ use axum::{
 use axum_extra::extract::CookieJar;
 use tetratto_core::model::Error;
 
+pub async fn not_found(jar: CookieJar, Extension(data): Extension<State>) -> impl IntoResponse {
+    let data = data.read().await;
+    let user = get_user_from_token!(jar, data.0);
+    Html(
+        render_error(
+            Error::GeneralNotFound("page".to_string()),
+            &jar,
+            &data,
+            &user,
+        )
+        .await,
+    )
+}
+
 /// `/`
 pub async fn index_request(jar: CookieJar, Extension(data): Extension<State>) -> impl IntoResponse {
     let data = data.read().await;

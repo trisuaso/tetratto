@@ -16,11 +16,7 @@
                         <div class="flex flex-col">
                             <!-- prettier-ignore -->
                             <h3 id="username" class="username">
-                                {% if profile.settings.display_name %}
-                                    {{ profile.settings.display_name }}
-                                {% else %}
-                                    {{ profile.username }}
-                                {% endif %}
+                                {{ components::username(user=profile) }}
 
                                 {% if profile.is_verified %}
                                 <span title="Verified">

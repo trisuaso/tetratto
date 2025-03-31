@@ -6,7 +6,7 @@ use crate::model::{
     permissions::FinePermission,
 };
 use crate::{auto_method, execute, get, query_row};
-use tetratto_shared::hash::hash_salted;
+use tetratto_shared::hash::{hash_salted, salt};
 
 #[cfg(feature = "sqlite")]
 use rusqlite::Row;
@@ -86,7 +86,7 @@ impl DataManager {
 
         // make sure username isn't taken
         if self.get_user_by_username(&data.username).await.is_ok() {
-            return Err(Error::MiscError("Username in use".to_string()));
+            return Err(Error::UsernameInUse);
         }
 
         // ...
@@ -130,7 +130,7 @@ impl DataManager {
     pub async fn delete_user(&self, id: usize, password: &str, force: bool) -> Result<()> {
         let user = self.get_user_by_id(id).await?;
 
-        if (hash_salted(password.to_string(), user.salt) != user.password) && !force {
+        if (hash_salted(password.to_string(), user.salt.clone()) != user.password) && !force {
             return Err(Error::IncorrectPassword);
         }
 
@@ -145,8 +145,7 @@ impl DataManager {
             return Err(Error::DatabaseError(e.to_string()));
         }
 
-        self.2.remove(format!("atto.user:{}", id)).await;
-        self.2.remove(format!("atto.user:{}", user.username)).await;
+        self.cache_clear_user(&user).await;
 
         Ok(())
     }
@@ -166,7 +165,8 @@ impl DataManager {
             "UPDATE users SET is_verified = $1 WHERE id = $2",
             &[
                 &(if x { 1 } else { 0 }).to_string().as_str(),
-                &serde_json::to_string(&x).unwrap().as_str()
+                &serde_json::to_string(&x).unwrap().as_str(),
+                &id.to_string().as_str()
             ]
         );
 
@@ -174,20 +174,86 @@ impl DataManager {
             return Err(Error::DatabaseError(e.to_string()));
         }
 
-        self.2.remove(format!("atto.user:{}", id)).await;
+        self.cache_clear_user(&user).await;
 
         Ok(())
     }
 
-    auto_method!(update_user_tokens(Vec<Token>) -> "UPDATE users SET tokens = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.user:{}");
-    auto_method!(update_user_settings(UserSettings) -> "UPDATE users SET settings = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.user:{}");
+    pub async fn update_user_password(
+        &self,
+        id: usize,
+        from: String,
+        to: String,
+        user: User,
+        force: bool,
+    ) -> Result<()> {
+        // verify password
+        if (hash_salted(from.clone(), user.salt.clone()) != user.password) && !force {
+            return Err(Error::MiscError("Password does not match".to_string()));
+        }
 
-    auto_method!(incr_user_notifications() -> "UPDATE users SET notification_count = notification_count + 1 WHERE id = $1" --cache-key-tmpl="atto.user:{}" --incr);
-    auto_method!(decr_user_notifications() -> "UPDATE users SET notification_count = notification_count - 1 WHERE id = $1" --cache-key-tmpl="atto.user:{}" --decr);
+        // ...
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
 
-    auto_method!(incr_user_follower_count() -> "UPDATE users SET follower_count = follower_count + 1 WHERE id = $1" --cache-key-tmpl="atto.user:{}" --incr);
-    auto_method!(decr_user_follower_count() -> "UPDATE users SET follower_count = follower_count - 1 WHERE id = $1" --cache-key-tmpl="atto.user:{}" --decr);
+        let new_salt = salt();
+        let new_password = hash_salted(to, new_salt.clone());
+        let res = execute!(
+            &conn,
+            "UPDATE users SET password = $1, salt = $2 WHERE id = $3",
+            &[
+                &new_password.as_str(),
+                &new_salt.as_str(),
+                &id.to_string().as_str()
+            ]
+        );
 
-    auto_method!(incr_user_following_count() -> "UPDATE users SET following_count = following_count + 1 WHERE id = $1" --cache-key-tmpl="atto.user:{}" --incr);
-    auto_method!(decr_user_following_count() -> "UPDATE users SET following_count = following_count - 1 WHERE id = $1" --cache-key-tmpl="atto.user:{}" --decr);
+        if let Err(e) = res {
+            return Err(Error::DatabaseError(e.to_string()));
+        }
+
+        self.cache_clear_user(&user).await;
+
+        Ok(())
+    }
+
+    pub async fn update_user_username(&self, id: usize, to: String, user: User) -> Result<()> {
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = execute!(
+            &conn,
+            "UPDATE users SET username = $1 WHERE id = $3",
+            &[&to.as_str(), &id.to_string().as_str()]
+        );
+
+        if let Err(e) = res {
+            return Err(Error::DatabaseError(e.to_string()));
+        }
+
+        self.cache_clear_user(&user).await;
+
+        Ok(())
+    }
+
+    pub async fn cache_clear_user(&self, user: &User) {
+        self.2.remove(format!("atto.user:{}", user.id)).await;
+        self.2.remove(format!("atto.user:{}", user.username)).await;
+    }
+
+    auto_method!(update_user_tokens(Vec<Token>)@get_user_by_id -> "UPDATE users SET tokens = $1 WHERE id = $2" --serde --cache-key-tmpl=cache_clear_user);
+    auto_method!(update_user_settings(UserSettings)@get_user_by_id -> "UPDATE users SET settings = $1 WHERE id = $2" --serde --cache-key-tmpl=cache_clear_user);
+
+    auto_method!(incr_user_notifications()@get_user_by_id -> "UPDATE users SET notification_count = notification_count + 1 WHERE id = $1" --cache-key-tmpl=cache_clear_user --incr);
+    auto_method!(decr_user_notifications()@get_user_by_id -> "UPDATE users SET notification_count = notification_count - 1 WHERE id = $1" --cache-key-tmpl=cache_clear_user --decr);
+
+    auto_method!(incr_user_follower_count()@get_user_by_id -> "UPDATE users SET follower_count = follower_count + 1 WHERE id = $1" --cache-key-tmpl=cache_clear_user --incr);
+    auto_method!(decr_user_follower_count()@get_user_by_id -> "UPDATE users SET follower_count = follower_count - 1 WHERE id = $1" --cache-key-tmpl=cache_clear_user --decr);
+
+    auto_method!(incr_user_following_count()@get_user_by_id -> "UPDATE users SET following_count = following_count + 1 WHERE id = $1" --cache-key-tmpl=cache_clear_user --incr);
+    auto_method!(decr_user_following_count()@get_user_by_id -> "UPDATE users SET following_count = following_count - 1 WHERE id = $1" --cache-key-tmpl=cache_clear_user --decr);
 }

@@ -29,6 +29,7 @@ pub enum Error {
     AlreadyAuthenticated,
     DataTooLong(String),
     DataTooShort(String),
+    UsernameInUse,
     Unknown,
 }
 
@@ -46,6 +47,7 @@ impl ToString for Error {
             Self::AlreadyAuthenticated => "Already authenticated".to_string(),
             Self::DataTooLong(name) => format!("Given {name} is too long!"),
             Self::DataTooShort(name) => format!("Given {name} is too short!"),
+            Self::UsernameInUse => "Username in use".to_string(),
             _ => format!("An unknown error as occurred: ({:?})", self),
         }
     }

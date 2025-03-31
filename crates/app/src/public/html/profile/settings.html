@@ -1,0 +1,395 @@
+{% import "macros.html" as macros %} {% extends "root.html" %} {% block head %}
+<title>Settings - {{ config.name }}</title>
+{% endblock %} {% block body %} {{ macros::nav() }}
+<main class="flex flex-col gap-2">
+    <div class="pillmenu">
+        <a
+            data-tab-button="account"
+            class="active"
+            href="#/account"
+            onclick="show_save_button()"
+        >
+            {{ text "settings:tab.account" }}
+        </a>
+
+        <a
+            data-tab-button="profile"
+            href="#/profile"
+            onclick="show_save_button()"
+        >
+            {{ text "settings:tab.profile" }}
+        </a>
+
+        <a
+            data-tab-button="sessions"
+            href="#/sessions"
+            onclick="hide_save_button()"
+        >
+            {{ text "settings:tab.sessions" }}
+        </a>
+    </div>
+
+    <div class="card w-full tertiary" data-tab="account">
+        <div class="flex flex-col gap-2" id="account_settings">
+            <div class="card-nest" ui_ident="change_password">
+                <div class="card small">
+                    <b>{{ text "settings:label.change_password" }}</b>
+                </div>
+
+                <form
+                    class="card flex flex-col gap-2"
+                    onsubmit="change_password(event)"
+                >
+                    <div class="flex flex-col gap-1">
+                        <label for="current_password"
+                            >{{ text "settings:label.current_password" }}</label
+                        >
+                        <input
+                            type="password"
+                            name="current_password"
+                            id="current_password"
+                            placeholder="current_password"
+                            required
+                            minlength="6"
+                            autocomplete="off"
+                        />
+                    </div>
+
+                    <div class="flex flex-col gap-1">
+                        <label for="new_password"
+                            >{{ text "settings:label.new_password" }}</label
+                        >
+                        <input
+                            type="password"
+                            name="new_password"
+                            id="new_password"
+                            placeholder="new_password"
+                            required
+                            minlength="6"
+                            autocomplete="off"
+                        />
+                    </div>
+
+                    <button class="primary">
+                        {{ icon "check" }}
+                        <span>{{ text "general:action.save" }}</span>
+                    </button>
+                </form>
+            </div>
+
+            <div class="card-nest" ui_ident="change_username">
+                <div class="card small">
+                    <b>{{ text "settings:label.change_username" }}</b>
+                </div>
+
+                <form
+                    class="card flex flex-col gap-2"
+                    onsubmit="change_username(event)"
+                >
+                    <div class="flex flex-col gap-1">
+                        <label for="new_username"
+                            >{{ text "settings:label.new_username" }}</label
+                        >
+                        <input
+                            type="text"
+                            name="new_username"
+                            id="new_username"
+                            placeholder="new_username"
+                            required
+                            minlength="2"
+                        />
+                    </div>
+
+                    <button class="primary">
+                        {{ icon "check" }}
+                        <span>{{ text "general:action.save" }}</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="card w-full tertiary hidden" data-tab="profile">
+        <div class="flex flex-col gap-2" id="profile_settings">
+            <div class="card-nest" ui_ident="change_avatar">
+                <div class="card small">
+                    <b>{{ text "settings:label.change_avatar" }}</b>
+                </div>
+
+                <form
+                    class="card flex gap-2 flex-row flex-wrap items-center"
+                    method="post"
+                    enctype="multipart/form-data"
+                    onsubmit="upload_avatar(event)"
+                >
+                    <input
+                        id="avatar_file"
+                        name="file"
+                        type="file"
+                        accept="image/png,image/jpeg,image/avif,image/webp"
+                        class="w-content"
+                    />
+
+                    <button class="primary">{{ icon "check" }}</button>
+                </form>
+            </div>
+
+            <div class="card-nest" ui_ident="change_banner">
+                <div class="card small">
+                    <b>{{ text "settings:label.change_banner" }}</b>
+                </div>
+
+                <form
+                    class="card flex gap-2 flex-row flex-wrap items-center"
+                    method="post"
+                    enctype="multipart/form-data"
+                    onsubmit="upload_banner(event)"
+                >
+                    <input
+                        id="banner_file"
+                        name="file"
+                        type="file"
+                        accept="image/png,image/jpeg,image/avif,image/webp"
+                        class="w-content"
+                    />
+
+                    <button class="primary">{{ icon "check" }}</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div
+        class="card w-full tertiary hidden flex flex-col gap-2"
+        data-tab="sessions"
+    >
+        {% for token in user.tokens %}
+        <div class="card w-full flex justify-between flex-collapse gap-2">
+            <div class="flex flex-col gap-1">
+                <b
+                    style="
+                        width: 200px;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                    "
+                    >{{ token[1] }}</b
+                >
+                <span class="fade">{{ token[0] }}</span>
+                <span class="fade date">{{ token[2] }}</span>
+            </div>
+
+            <button
+                class="quaternary red"
+                onclick="remove_token('{{ token[1] }}')"
+            >
+                {{ text "general:action.delete" }}
+            </button>
+        </div>
+        {% endfor %}
+    </div>
+
+    <button onclick="save_settings()" id="save_button" data-turbo-permanent>
+        {{ icon "check" }}
+        <span>{{ text "general:action.save" }}</span>
+    </button>
+
+    <script>
+        function show_save_button() {
+            document.getElementById("save_button").removeAttribute("style");
+        }
+
+        function hide_save_button() {
+            document.getElementById("save_button").style.display = "none";
+        }
+
+        setTimeout(() => {
+            const ui = ns("ui");
+            const settings = JSON.parse("{{ user_settings_serde|safe }}");
+            let tokens = JSON.parse("{{ user_tokens_serde|safe }}");
+
+            globalThis.remove_token = async (id) => {
+                if (
+                    !(await trigger("atto::confirm", [
+                        "Are you sure you would like to do this?",
+                    ]))
+                ) {
+                    return;
+                }
+
+                // reconstruct tokens (but without the token with the given id)
+                const new_tokens = [];
+
+                for (const token of tokens) {
+                    if (token[1] === id) {
+                        continue;
+                    }
+
+                    new_tokens.push(token);
+                }
+
+                tokens = new_tokens;
+
+                // send request to save
+                fetch("/api/v1/auth/profile/{{ user.id }}/tokens", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(tokens),
+                })
+                    .then((res) => res.json())
+                    .then((res) => {
+                        trigger("atto::toast", [
+                            res.ok ? "success" : "error",
+                            res.message,
+                        ]);
+                    });
+            };
+
+            globalThis.save_settings = () => {
+                fetch("/api/v1/auth/profile/{{ user.id }}/settings", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(settings),
+                })
+                    .then((res) => res.json())
+                    .then((res) => {
+                        trigger("atto::toast", [
+                            res.ok ? "success" : "error",
+                            res.message,
+                        ]);
+                    });
+            };
+
+            globalThis.change_password = (e) => {
+                e.preventDefault();
+                fetch("/api/v1/auth/profile/{{ user.id }}/password", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        from: e.target.current_password.value,
+                        to: e.target.new_password.value,
+                    }),
+                })
+                    .then((res) => res.json())
+                    .then((res) => {
+                        trigger("atto::toast", [
+                            res.ok ? "success" : "error",
+                            res.message,
+                        ]);
+                    });
+            };
+
+            globalThis.change_username = async (e) => {
+                e.preventDefault();
+
+                if (
+                    !(await trigger("atto::confirm", [
+                        "Are you sure you would like to do this?",
+                    ]))
+                ) {
+                    return;
+                }
+
+                fetch("/api/v1/auth/profile/{{ user.id }}/username", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        to: e.target.new_username.value,
+                    }),
+                })
+                    .then((res) => res.json())
+                    .then((res) => {
+                        trigger("atto::toast", [
+                            res.ok ? "success" : "error",
+                            res.message,
+                        ]);
+                    });
+            };
+
+            globalThis.upload_avatar = (e) => {
+                e.preventDefault();
+                e.target.querySelector("button").style.display = "none";
+
+                fetch("/api/v1/auth/upload/avatar", {
+                    method: "POST",
+                    body: e.target.file.files[0],
+                })
+                    .then((res) => res.json())
+                    .then((res) => {
+                        trigger("atto::toast", [
+                            res.ok ? "success" : "error",
+                            res.message,
+                        ]);
+
+                        e.target
+                            .querySelector("button")
+                            .removeAttribute("style");
+                    });
+
+                alert("Avatar upload in progress. Please wait!");
+            };
+
+            globalThis.upload_banner = (e) => {
+                e.preventDefault();
+                e.target.querySelector("button").style.display = "none";
+
+                fetch("/api/v1/auth/upload/banner", {
+                    method: "POST",
+                    body: e.target.file.files[0],
+                })
+                    .then((res) => res.json())
+                    .then((res) => {
+                        trigger("atto::toast", [
+                            res.ok ? "success" : "error",
+                            res.message,
+                        ]);
+
+                        e.target
+                            .querySelector("button")
+                            .removeAttribute("style");
+                    });
+
+                alert("Banner upload in progress. Please wait!");
+            };
+
+            const account_settings =
+                document.getElementById("account_settings");
+            const profile_settings =
+                document.getElementById("profile_settings");
+
+            ui.refresh_container(account_settings, [
+                "change_password",
+                "change_username",
+            ]);
+            ui.refresh_container(profile_settings, [
+                "change_avatar",
+                "change_banner",
+            ]);
+
+            ui.generate_settings_ui(
+                account_settings,
+                [
+                    [
+                        ["display_name", "Display name"],
+                        "{{ user.settings.display_name }}",
+                        "input",
+                    ],
+                    [
+                        ["biography", "Biography"],
+                        "{{ user.settings.biography }}",
+                        "textarea",
+                    ],
+                ],
+                settings,
+            );
+        });
+    </script>
+</main>
+{% endblock %}

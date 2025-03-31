@@ -636,10 +636,20 @@ media_theme_pref();
 (() => {
     const self = reg_ns("ui");
 
+    self.define("refresh_container", (_, element, keep) => {
+        for (const child of element.children) {
+            if (keep.includes(child.getAttribute("ui_ident"))) {
+                continue;
+            }
+
+            child.remove();
+        }
+    });
+
     self.define("render_settings_ui_field", (_, into_element, option) => {
         into_element.innerHTML += `<div class="card-nest">
             <div class="card small">
-                <b>${option.label.replaceAll("_", " ")}</b>
+                <label for="${option.key}"><b>${option.label.replaceAll("_", " ")}</b></label>
             </div>
 
             <div class="card">
@@ -647,6 +657,8 @@ media_theme_pref();
                     type="text"
                     onchange="window.set_setting_field('${option.key}', event.target.value)"
                     placeholder="${option.key}"
+                    name="${option.key}"
+                    id="${option.key}"
                     ${option.input_element_type === "input" ? `value="${option.value}"/>` : ">"}
 ${option.input_element_type === "textarea" ? `${option.value}</textarea>` : ""}
             </div>

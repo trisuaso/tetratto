@@ -25,7 +25,7 @@ pub struct User {
     pub following_count: usize,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct UserSettings {
     #[serde(default)]
     pub display_name: String,

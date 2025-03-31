@@ -31,7 +31,11 @@ show_lhs=true) -%}
 
         <div class="flex nav_side">
             {% if user %}
-            <a href="/notifs" class="button" title="Notifications">
+            <a
+                href="/notifs"
+                class="button {% if selected == 'notifications' %}active{% endif %}"
+                title="Notifications"
+            >
                 {% if user.notification_count > 0 %} {{ icon "bell-dot" }}
                 <span class="notification tr"
                     >{{ user.notification_count }}</span

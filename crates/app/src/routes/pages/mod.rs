@@ -18,14 +18,20 @@ pub fn routes() -> Router {
         // misc
         .route("/", get(misc::index_request))
         .route("/notifs", get(misc::notifications_request))
+        .fallback_service(get(misc::not_found))
         // auth
         .route("/auth/register", get(auth::register_request))
         .route("/auth/login", get(auth::login_request))
         // profile
+        .route("/settings", get(profile::settings_request))
         .route("/user/{username}", get(profile::posts_request))
         // communities
         .route("/communities", get(communities::list_request))
         .route("/community/{title}", get(communities::feed_request))
+        .route(
+            "/community/{title}/manage",
+            get(communities::settings_request),
+        )
         .route("/post/{id}", get(communities::post_request))
 }
 

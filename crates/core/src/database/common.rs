@@ -465,6 +465,31 @@ macro_rules! auto_method {
         }
     };
 
+    ($name:ident($x:ty)@$select_fn:ident -> $query:literal --serde --cache-key-tmpl=$cache_key_tmpl:ident) => {
+        pub async fn $name(&self, id: usize, x: $x) -> Result<()> {
+            let y = self.$select_fn(id).await?;
+
+            let conn = match self.connect().await {
+                Ok(c) => c,
+                Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+            };
+
+            let res = execute!(
+                &conn,
+                $query,
+                &[&serde_json::to_string(&x).unwrap(), &id.to_string()]
+            );
+
+            if let Err(e) = res {
+                return Err(Error::DatabaseError(e.to_string()));
+            }
+
+            self.$cache_key_tmpl(&y).await;
+
+            Ok(())
+        }
+    };
+
     ($name:ident($x:ty)@$select_fn:ident:$permission:ident -> $query:literal --serde --cache-key-tmpl=$cache_key_tmpl:ident) => {
         pub async fn $name(&self, id: usize, user: User, x: $x) -> Result<()> {
             let y = self.$select_fn(id).await?;

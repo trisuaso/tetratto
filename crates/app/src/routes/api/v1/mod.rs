@@ -110,6 +110,14 @@ pub fn routes() -> Router {
             post(auth::profile::update_profile_settings_request),
         )
         .route(
+            "/auth/profile/{id}/password",
+            post(auth::profile::update_profile_password_request),
+        )
+        .route(
+            "/auth/profile/{id}/username",
+            post(auth::profile::update_profile_username_request),
+        )
+        .route(
             "/auth/profile/{id}/tokens",
             post(auth::profile::update_profile_tokens_request),
         )
@@ -187,6 +195,17 @@ pub struct CreateReaction {
     pub asset: String,
     pub asset_type: AssetType,
     pub is_like: bool,
+}
+
+#[derive(Deserialize)]
+pub struct UpdateUserPassword {
+    pub from: String,
+    pub to: String,
+}
+
+#[derive(Deserialize)]
+pub struct UpdateUserUsername {
+    pub to: String,
 }
 
 #[derive(Deserialize)]

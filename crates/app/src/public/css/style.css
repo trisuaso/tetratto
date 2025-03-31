@@ -335,6 +335,10 @@ table ol {
     background: var(--color-surface);
 }
 
+.card.tertiary {
+    background: var(--color-lowered);
+}
+
 .card-nest {
     box-shadow: var(--shadow-x-offset) var(--shadow-y-offset) var(--shadow-size)
         var(--color-shadow);
@@ -375,6 +379,8 @@ button,
     background: var(--color-primary);
     color: var(--color-text-primary);
     font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none !important;
 }
 
 button.small,
@@ -411,6 +417,17 @@ button.tertiary,
 button.tertiary:hover,
 .button.tertiary:hover {
     background: var(--color-super-raised);
+}
+
+button.quaternary,
+.button.quaternary {
+    background: var(--color-lowered);
+    color: var(--color-text-lowered);
+}
+
+button.quaternary:hover,
+.button.quaternary:hover {
+    background: var(--color-super-lowered);
 }
 
 button.camo,
@@ -506,6 +523,25 @@ select:focus {
 .pillmenu a:last-child {
     border-top-right-radius: var(--radius);
     border-bottom-right-radius: var(--radius);
+}
+
+@media screen and (max-width: 900px) {
+    .pillmenu {
+        /* convert into a sidemenu */
+        flex-direction: column;
+    }
+
+    .pillmenu a:first-child {
+        border-top-left-radius: var(--radius);
+        border-top-right-radius: var(--radius);
+        border-bottom-left-radius: 0;
+    }
+
+    .pillmenu a:last-child {
+        border-top-right-radius: 0;
+        border-bottom-left-radius: var(--radius);
+        border-bottom-right-radius: var(--radius);
+    }
 }
 
 /* notification */

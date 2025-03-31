@@ -4,6 +4,7 @@
     src="/api/v1/auth/profile/{{ username }}/avatar?selector_type={{ selector_type }}"
     alt="@{{ username }}"
     class="avatar shadow"
+    loading="lazy"
     style="--size: {{ size }}"
 />
 {%- endmacro %} {% macro community_avatar(id, community=false, size="24px") -%}
@@ -12,6 +13,7 @@
     src="/api/v1/communities/{{ id }}/avatar"
     alt="{{ community.title }}"
     class="avatar shadow"
+    loading="lazy"
     style="--size: {{ size }}"
 />
 {% else %}
@@ -19,6 +21,7 @@
     src="/api/v1/communities/{{ id }}/avatar"
     alt="{{ id }}"
     class="avatar shadow"
+    loading="lazy"
     style="--size: {{ size }}"
 />
 {% endif %} {%- endmacro %} {% macro community_listing_card(community) -%}
@@ -28,7 +31,7 @@
 >
     {{ components::community_avatar(id=community.id, community=community,
     size="48px") }}
-    <div class="flex flex-col gap-1">
+    <div class="flex flex-col">
         <h3>{{ community.context.display_name }}</h3>
         <span class="fade"><b>{{ community.member_count }}</b> members</span>
     </div>

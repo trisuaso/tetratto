@@ -40,155 +40,15 @@
                             <span>{{ text "communities:action.leave" }}</span>
                         </button>
                         {% endif %} {% else %}
-                        <button
-                            href="/community/{{ community.title }}"
+                        <a
+                            href="/community/{{ community.title }}/manage"
                             class="button primary"
-                            onclick="document.getElementById('manage').showModal()"
                         >
                             {{ icon "settings" }}
                             <span
                                 >{{ text "communities:action.configure" }}</span
                             >
-                        </button>
-
-                        <dialog id="manage">
-                            <div class="inner">
-                                <div
-                                    id="manage_fields"
-                                    class="flex flex-col gap-2"
-                                >
-                                    <div class="card-nest">
-                                        <div class="card small">
-                                            <b>Read access</b>
-                                        </div>
-
-                                        <div class="card">
-                                            <select
-                                                onchange="save_access(event, 'read')"
-                                            >
-                                                <option value="Everybody">
-                                                    Everybody
-                                                </option>
-                                                <option value="Unlisted">
-                                                    Unlisted
-                                                </option>
-                                                <option value="Private">
-                                                    Private
-                                                </option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div class="card-nest">
-                                        <div class="card small">
-                                            <b>Write access</b>
-                                        </div>
-
-                                        <div class="card">
-                                            <select
-                                                onchange="save_access(event, 'write')"
-                                            >
-                                                <option value="Everybody">
-                                                    Everybody
-                                                </option>
-                                                <option value="Joined">
-                                                    Joined
-                                                </option>
-                                                <option value="Owner">
-                                                    Owner only
-                                                </option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <hr class="margin" />
-
-                                <button
-                                    onclick="document.getElementById('manage').close(); save_context()"
-                                >
-                                    {{ icon "check" }}
-                                    <span
-                                        >{{ text "dialog:action.save_and_close"
-                                        }}</span
-                                    >
-                                </button>
-                            </div>
-                        </dialog>
-
-                        <script>
-                            setTimeout(() => {
-                                const ui = ns("ui");
-                                const settings = JSON.parse(
-                                    "{{ community_context_serde|safe }}",
-                                );
-
-                                ui.generate_settings_ui(
-                                    document.getElementById("manage_fields"),
-                                    [
-                                        [
-                                            ["display_name", "Display title"],
-                                            "{{ community.context.display_name }}",
-                                            "input",
-                                        ],
-                                        [
-                                            ["description", "Description"],
-                                            "{{ community.context.description }}",
-                                            "textarea",
-                                        ],
-                                    ],
-                                    settings,
-                                );
-
-                                window.save_context = () => {
-                                    fetch(
-                                        "/api/v1/communities/{{ community.id }}/context",
-                                        {
-                                            method: "POST",
-                                            headers: {
-                                                "Content-Type":
-                                                    "application/json",
-                                            },
-                                            body: JSON.stringify({
-                                                context: settings,
-                                            }),
-                                        },
-                                    )
-                                        .then((res) => res.json())
-                                        .then((res) => {
-                                            trigger("atto::toast", [
-                                                res.ok ? "success" : "error",
-                                                res.message,
-                                            ]);
-                                        });
-                                };
-
-                                window.save_access = (event, mode) => {
-                                    const selected =
-                                        event.target.selectedOptions[0];
-                                    fetch(
-                                        `/api/v1/communities/{{ community.id }}/access/${mode}`,
-                                        {
-                                            method: "POST",
-                                            headers: {
-                                                "Content-Type":
-                                                    "application/json",
-                                            },
-                                            body: JSON.stringify({
-                                                access: selected.value,
-                                            }),
-                                        },
-                                    )
-                                        .then((res) => res.json())
-                                        .then((res) => {
-                                            trigger("atto::toast", [
-                                                res.ok ? "success" : "error",
-                                                res.message,
-                                            ]);
-                                        });
-                                };
-                            }, 250);
-                        </script>
+                        </a>
                         {% endif %}
                     </div>
                     {% endif %}

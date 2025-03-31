@@ -72,8 +72,11 @@ pub async fn avatar_request(
         }
     };
 
-    let path =
-        PathBufD::current().extend(&["avatars", &data.0.dirs.media, &format!("{}.avif", &user.id)]);
+    let path = PathBufD::current().extend(&[
+        data.0.dirs.media.as_str(),
+        "avatars",
+        &format!("{}.avif", &user.id),
+    ]);
 
     if !exists(&path).unwrap() {
         return (
@@ -114,8 +117,11 @@ pub async fn banner_request(
         }
     };
 
-    let path =
-        PathBufD::current().extend(&["banners", &data.0.dirs.media, &format!("{}.avif", &user.id)]);
+    let path = PathBufD::current().extend(&[
+        data.0.dirs.media.as_str(),
+        "banners",
+        &format!("{}.avif", &user.id),
+    ]);
 
     if !exists(&path).unwrap() {
         return (

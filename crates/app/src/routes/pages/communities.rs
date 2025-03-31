@@ -80,15 +80,6 @@ pub fn community_context(
     context.insert("community", &community);
     context.insert("is_owner", &is_owner);
     context.insert("is_joined", &is_joined);
-
-    if is_owner {
-        context.insert(
-            "community_context_serde",
-            &serde_json::to_string(&community.context)
-                .unwrap()
-                .replace("\"", "\\\""),
-        );
-    }
 }
 
 /// `/community/{title}`
@@ -148,6 +139,53 @@ pub async fn feed_request(
     Ok(Html(
         data.1
             .render("communities/feed.html", &mut context)
+            .unwrap(),
+    ))
+}
+
+/// `/community/{title}/manage`
+pub async fn settings_request(
+    jar: CookieJar,
+    Path(title): Path<String>,
+    Extension(data): Extension<State>,
+) -> impl IntoResponse {
+    let data = data.read().await;
+    let user = match get_user_from_token!(jar, data.0) {
+        Some(ua) => ua,
+        None => {
+            return Err(Html(
+                render_error(Error::NotAllowed, &jar, &data, &None).await,
+            ));
+        }
+    };
+
+    let community = match data.0.get_community_by_title(&title.to_lowercase()).await {
+        Ok(ua) => ua,
+        Err(e) => return Err(Html(render_error(e, &jar, &data, &Some(user)).await)),
+    };
+
+    if user.id != community.owner {
+        return Err(Html(
+            render_error(Error::NotAllowed, &jar, &data, &None).await,
+        ));
+    }
+
+    // init context
+    let lang = get_lang!(jar, data.0);
+    let mut context = initial_context(&data.0.0, lang, &Some(user)).await;
+
+    context.insert("community", &community);
+    context.insert(
+        "community_context_serde",
+        &serde_json::to_string(&community.context)
+            .unwrap()
+            .replace("\"", "\\\""),
+    );
+
+    // return
+    Ok(Html(
+        data.1
+            .render("communities/settings.html", &mut context)
             .unwrap(),
     ))
 }
