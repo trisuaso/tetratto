@@ -57,7 +57,7 @@ impl DataManager {
         Ok(res.unwrap())
     }
 
-    /// Create a new journal membership in the database.
+    /// Create a new reaction in the database.
     ///
     /// # Arguments
     /// * `data` - a mock [`Reaction`] object to insert

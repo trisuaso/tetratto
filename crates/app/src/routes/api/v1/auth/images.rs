@@ -51,13 +51,11 @@ pub async fn avatar_request(
 ) -> impl IntoResponse {
     let data = &(data.read().await).0;
 
-    let user = match {
-        if req.selector_type == AvatarSelectorType::Id {
-            data.get_user_by_id(selector.parse::<usize>().unwrap())
-                .await
-        } else {
-            data.get_user_by_username(&selector).await
-        }
+    let user = match if req.selector_type == AvatarSelectorType::Id {
+        data.get_user_by_id(selector.parse::<usize>().unwrap())
+            .await
+    } else {
+        data.get_user_by_username(&selector).await
     } {
         Ok(ua) => ua,
         Err(_) => {

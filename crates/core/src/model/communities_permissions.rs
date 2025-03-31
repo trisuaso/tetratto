@@ -13,6 +13,7 @@ bitflags! {
         const MEMBER = 1 << 2;
         const MANAGE_POSTS = 1 << 3;
         const MANAGE_ROLES = 1 << 4;
+        const BANNED = 1 << 5;
 
         const _ = !0;
     }
@@ -89,6 +90,9 @@ impl CommunityPermission {
         if (self & CommunityPermission::ADMINISTRATOR) == CommunityPermission::ADMINISTRATOR {
             // has administrator permission, meaning everything else is automatically true
             return true;
+        } else if (self & CommunityPermission::BANNED) == CommunityPermission::BANNED {
+            // has banned permission, meaning everything else is automatically false
+            return false;
         }
 
         (self & permission) == permission
@@ -107,6 +111,6 @@ impl CommunityPermission {
 
 impl Default for CommunityPermission {
     fn default() -> Self {
-        Self::DEFAULT
+        Self::DEFAULT | Self::MEMBER
     }
 }

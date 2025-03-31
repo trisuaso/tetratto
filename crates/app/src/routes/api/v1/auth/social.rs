@@ -26,7 +26,7 @@ pub async fn follow_request(
                 message: "User unfollowed".to_string(),
                 payload: (),
             }),
-            Err(e) => return Json(e.into()),
+            Err(e) => Json(e.into()),
         }
     } else {
         // create
@@ -36,7 +36,7 @@ pub async fn follow_request(
                 message: "User followed".to_string(),
                 payload: (),
             }),
-            Err(e) => return Json(e.into()),
+            Err(e) => Json(e.into()),
         }
     }
 }
@@ -61,7 +61,7 @@ pub async fn block_request(
                 message: "User unblocked".to_string(),
                 payload: (),
             }),
-            Err(e) => return Json(e.into()),
+            Err(e) => Json(e.into()),
         }
     } else {
         // create
@@ -76,7 +76,7 @@ pub async fn block_request(
                             message: "User unfollowed".to_string(),
                             payload: (),
                         }),
-                        Err(e) => return Json(e.into()),
+                        Err(e) => Json(e.into()),
                     }
                 } else {
                     // not following user, don't do anything else
@@ -87,7 +87,7 @@ pub async fn block_request(
                     })
                 }
             }
-            Err(e) => return Json(e.into()),
+            Err(e) => Json(e.into()),
         }
     }
 }

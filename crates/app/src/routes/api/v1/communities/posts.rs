@@ -42,7 +42,7 @@ pub async fn create_request(
             message: "Post created".to_string(),
             payload: Some(id.to_string()),
         }),
-        Err(e) => return Json(e.into()),
+        Err(e) => Json(e.into()),
     }
 }
 
@@ -63,7 +63,7 @@ pub async fn delete_request(
             message: "Post deleted".to_string(),
             payload: (),
         }),
-        Err(e) => return Json(e.into()),
+        Err(e) => Json(e.into()),
     }
 }
 
@@ -85,7 +85,7 @@ pub async fn update_content_request(
             message: "Post updated".to_string(),
             payload: (),
         }),
-        Err(e) => return Json(e.into()),
+        Err(e) => Json(e.into()),
     }
 }
 
@@ -107,6 +107,6 @@ pub async fn update_context_request(
             message: "Post updated".to_string(),
             payload: (),
         }),
-        Err(e) => return Json(e.into()),
+        Err(e) => Json(e.into()),
     }
 }

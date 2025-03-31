@@ -28,7 +28,7 @@ impl DataManager {
         }
     }
 
-    auto_method!(get_membership_by_id()@get_membership_from_row -> "SELECT * FROM memberships WHERE id = $1" --name="journal membership" --returns=CommunityMembership --cache-key-tmpl="atto.membership:{}");
+    auto_method!(get_membership_by_id()@get_membership_from_row -> "SELECT * FROM memberships WHERE id = $1" --name="community membership" --returns=CommunityMembership --cache-key-tmpl="atto.membership:{}");
 
     /// Replace a list of community memberships with the proper community.
     pub async fn fill_communities(&self, list: Vec<CommunityMembership>) -> Result<Vec<Community>> {
@@ -73,7 +73,7 @@ impl DataManager {
 
         let res = query_rows!(
             &conn,
-            "SELECT * FROM memberships WHERE owner = $1",
+            "SELECT * FROM memberships WHERE owner = $1 AND role IS NOT 33",
             &[&(owner as i64)],
             |x| { Self::get_membership_from_row(x) }
         );
@@ -90,6 +90,16 @@ impl DataManager {
     /// # Arguments
     /// * `data` - a mock [`CommunityMembership`] object to insert
     pub async fn create_membership(&self, data: CommunityMembership) -> Result<()> {
+        // make sure membership doesn't already exist
+        if self
+            .get_membership_by_owner_community(data.owner, data.community)
+            .await
+            .is_ok()
+        {
+            return Err(Error::MiscError("Already joined community".to_string()));
+        }
+
+        // ...
         let conn = match self.connect().await {
             Ok(c) => c,
             Err(e) => return Err(Error::DatabaseConnection(e.to_string())),

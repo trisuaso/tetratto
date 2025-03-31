@@ -10,6 +10,7 @@ use axum::{
 use serde::Deserialize;
 use tetratto_core::model::{
     communities::{CommunityContext, CommunityReadAccess, CommunityWriteAccess, PostContext},
+    communities_permissions::CommunityPermission,
     reactions::AssetType,
 };
 
@@ -139,6 +140,23 @@ pub fn routes() -> Router {
             "/notifications/{id}/read_status",
             post(notifications::update_read_status_request),
         )
+        // community memberships
+        .route(
+            "/communities/{id}/join",
+            post(communities::communities::create_membership),
+        )
+        .route(
+            "/communities/{cid}/memberships/{uid}",
+            get(communities::communities::get_membership),
+        )
+        .route(
+            "/communities/{cid}/memberships/{uid}",
+            delete(communities::communities::delete_membership),
+        )
+        .route(
+            "/communities/{cid}/memberships/{uid}/role",
+            post(communities::communities::update_membership_role),
+        )
 }
 
 #[derive(Deserialize)]
@@ -216,4 +234,9 @@ pub struct UpdateUserIsVerified {
 #[derive(Deserialize)]
 pub struct UpdateNotificationRead {
     pub read: bool,
+}
+
+#[derive(Deserialize)]
+pub struct UpdateMembershipRole {
+    pub role: CommunityPermission,
 }

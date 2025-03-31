@@ -45,9 +45,7 @@ pub async fn settings_request(
 
     // return
     Ok(Html(
-        data.1
-            .render("profile/settings.html", &mut context)
-            .unwrap(),
+        data.1.render("profile/settings.html", &context).unwrap(),
     ))
 }
 
@@ -143,7 +141,5 @@ pub async fn posts_request(
     );
 
     // return
-    Ok(Html(
-        data.1.render("profile/posts.html", &mut context).unwrap(),
-    ))
+    Ok(Html(data.1.render("profile/posts.html", &context).unwrap()))
 }

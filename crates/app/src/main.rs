@@ -17,7 +17,7 @@ use tokio::sync::RwLock;
 pub(crate) type State = Arc<RwLock<(DataManager, Tera)>>;
 
 fn render_markdown(value: &Value, _: &HashMap<String, Value>) -> tera::Result<Value> {
-    Ok(tetratto_shared::markdown::render_markdown(&value.as_str().unwrap()).into())
+    Ok(tetratto_shared::markdown::render_markdown(value.as_str().unwrap()).into())
 }
 
 #[tokio::main]

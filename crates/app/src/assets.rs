@@ -200,7 +200,7 @@ pub(crate) async fn init_dirs(config: &Config) {
 }
 
 /// A random ASCII value inserted into the URL of static assets to "break" the cache. Essentially just for cache busting.
-pub(crate) static CACHE_BREAKER: LazyLock<String> = LazyLock::new(|| salt());
+pub(crate) static CACHE_BREAKER: LazyLock<String> = LazyLock::new(salt);
 
 /// Create the initial template context.
 pub(crate) async fn initial_context(

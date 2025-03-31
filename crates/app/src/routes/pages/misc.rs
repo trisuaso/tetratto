@@ -27,9 +27,9 @@ pub async fn index_request(jar: CookieJar, Extension(data): Extension<State>) ->
     let user = get_user_from_token!(jar, data.0);
 
     let lang = get_lang!(jar, data.0);
-    let mut context = initial_context(&data.0.0, lang, &user).await;
+    let context = initial_context(&data.0.0, lang, &user).await;
 
-    Html(data.1.render("misc/index.html", &mut context).unwrap())
+    Html(data.1.render("misc/index.html", &context).unwrap())
 }
 
 /// `/notifs`
@@ -58,8 +58,6 @@ pub async fn notifications_request(
 
     // return
     Ok(Html(
-        data.1
-            .render("misc/notifications.html", &mut context)
-            .unwrap(),
+        data.1.render("misc/notifications.html", &context).unwrap(),
     ))
 }

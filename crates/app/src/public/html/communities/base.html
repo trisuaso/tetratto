@@ -29,16 +29,63 @@
 
                     {% if user %}
                     <div class="card flex" id="join_or_leave">
-                        {% if not is_owner %} {% if not is_member %}
-                        <button class="primary">
+                        {% if not is_owner %} {% if not is_joined %}
+                        <button class="primary" onclick="join_community()">
                             {{ icon "circle-plus" }}
                             <span>{{ text "communities:action.join" }}</span>
                         </button>
+
+                        <script>
+                            globalThis.join_community = () => {
+                                fetch(
+                                    "/api/v1/communities/{{ community.id }}/join",
+                                    {
+                                        method: "POST",
+                                    },
+                                )
+                                    .then((res) => res.json())
+                                    .then((res) => {
+                                        trigger("atto::toast", [
+                                            res.ok ? "success" : "error",
+                                            res.message,
+                                        ]);
+                                    });
+                            };
+                        </script>
                         {% else %}
-                        <button class="camo red">
+                        <button
+                            class="quaternary red"
+                            onclick="leave_community()"
+                        >
                             {{ icon "circle-minus" }}
                             <span>{{ text "communities:action.leave" }}</span>
                         </button>
+
+                        <script>
+                            globalThis.leave_community = async () => {
+                                if (
+                                    !(await trigger("atto::confirm", [
+                                        "Are you sure you would like to do this?",
+                                    ]))
+                                ) {
+                                    return;
+                                }
+
+                                fetch(
+                                    "/api/v1/communities/{{ community.id }}/memberships/{{ user.id }}",
+                                    {
+                                        method: "DELETE",
+                                    },
+                                )
+                                    .then((res) => res.json())
+                                    .then((res) => {
+                                        trigger("atto::toast", [
+                                            res.ok ? "success" : "error",
+                                            res.message,
+                                        ]);
+                                    });
+                            };
+                        </script>
                         {% endif %} {% else %}
                         <a
                             href="/community/{{ community.title }}/manage"
@@ -64,7 +111,7 @@
                             <span class="notification chip">ID</span>
                             <button
                                 title="Copy"
-                                onclick="trigger('atto::copy_text', [{{ community.id }}])"
+                                onclick="trigger('atto::copy_text', ['{{ community.id }}'])"
                                 class="camo small"
                             >
                                 {{ icon "copy" }}
@@ -74,6 +121,11 @@
                         <div class="w-full flex justify-between items-center">
                             <span class="notification chip">Created</span>
                             <span class="date">{{ community.created }}</span>
+                        </div>
+
+                        <div class="w-full flex justify-between items-center">
+                            <span class="notification chip">Members</span>
+                            <span>{{ community.member_count }}</span>
                         </div>
 
                         <div class="w-full flex justify-between items-center">

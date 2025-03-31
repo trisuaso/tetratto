@@ -10,10 +10,14 @@
         <a href="#/profile" data-tab-button="profile"
             >{{ text "settings:tab.profile" }}</a
         >
+
+        <a href="#/members" data-tab-button="members"
+            >{{ text "communities:tab.members" }}</a
+        >
     </div>
 
-    <div class="card tertiary w-full" data-tab="general">
-        <div id="manage_fields" class="flex flex-col gap-2">
+    <div class="w-full flex flex-col gap-2" data-tab="general">
+        <div id="manage_fields" class="card tertiary flex flex-col gap-2">
             <div class="card-nest" ui_ident="read_access">
                 <div class="card small">
                     <b>Read access</b>
@@ -30,7 +34,7 @@
 
             <div class="card-nest" ui_ident="write_access">
                 <div class="card small">
-                    <b>Write access</b>
+                    <b>Post permission</b>
                 </div>
 
                 <div class="card">
@@ -41,6 +45,18 @@
                     </select>
                 </div>
             </div>
+        </div>
+
+        <div class="flex gap-2 flex-wrap">
+            <button onclick="save_context()">
+                {{ icon "check" }}
+                <span>{{ text "general:action.save" }}</span>
+            </button>
+
+            <a href="/community/{{ community.title }}" class="button secondary">
+                {{ icon "arrow-left" }}
+                <span>{{ text "general:action.back" }}</span>
+            </a>
         </div>
     </div>
 
@@ -95,18 +111,178 @@
         </div>
     </div>
 
-    <div class="flex gap-2 flex-wrap">
-        <button onclick="save_context()">
-            {{ icon "check" }}
-            <span>{{ text "general:action.save" }}</span>
-        </button>
+    <div
+        class="card tertiary w-full hidden flex flex-col gap-2"
+        data-tab="members"
+    >
+        <div class="card-nest">
+            <div class="card small">
+                <b>{{ text "communities:label.select_member" }}</b>
+            </div>
 
-        <a href="/community/{{ community.title }}" class="button secondary">
-            {{ icon "arrow-left" }}
-            <span>{{ text "general:action.back" }}</span>
-        </a>
+            <form
+                class="card flex-col gap-2"
+                onsubmit="select_user_from_form(event)"
+            >
+                <div class="flex flex-col gap-1">
+                    <div class="flex flex-col gap-1">
+                        <label for="uid"
+                            >{{ text "communities:label.user_id" }}</label
+                        >
+                        <input
+                            type="number"
+                            name="uid"
+                            id="uid"
+                            placeholder="user id"
+                            required
+                            minlength="18"
+                        />
+                    </div>
+
+                    <button class="primary">
+                        {{ text "communities:action.select" }}
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card flex flex-col gap-2 w-full" id="membership_info"></div>
     </div>
 </main>
+
+<script>
+    setTimeout(() => {
+        const element = document.getElementById("membership_info");
+        const ui = ns("ui");
+
+        globalThis.ban_user = async (uid) => {
+            if (
+                !(await trigger("atto::confirm", [
+                    "Are you sure you would like to do this?",
+                ]))
+            ) {
+                return;
+            }
+
+            fetch(
+                `/api/v1/communities/{{ community.id }}/memberships/${uid}/role`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        role: 33,
+                    }),
+                },
+            )
+                .then((res) => res.json())
+                .then((res) => {
+                    trigger("atto::toast", [
+                        res.ok ? "success" : "error",
+                        res.message,
+                    ]);
+                });
+        };
+
+        globalThis.unban_user = async (uid) => {
+            if (
+                !(await trigger("atto::confirm", [
+                    "Are you sure you would like to do this?",
+                ]))
+            ) {
+                return;
+            }
+
+            fetch(
+                `/api/v1/communities/{{ community.id }}/memberships/${uid}/role`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        role: 5,
+                    }),
+                },
+            )
+                .then((res) => res.json())
+                .then((res) => {
+                    trigger("atto::toast", [
+                        res.ok ? "success" : "error",
+                        res.message,
+                    ]);
+                });
+        };
+
+        globalThis.select_user_from_form = (e) => {
+            e.preventDefault();
+            fetch(
+                `/api/v1/communities/{{ community.id }}/memberships/${e.target.uid.value}`,
+            )
+                .then((res) => res.json())
+                .then((res) => {
+                    trigger("atto::toast", [
+                        res.ok ? "success" : "error",
+                        res.message,
+                    ]);
+
+                    if (!res.ok) {
+                        return;
+                    }
+
+                    element.innerHTML = `<div class="flex gap-2" ui_ident="actions">
+                        <a target="_blank" class="button" href="/api/v1/auth/profile/find/${e.target.uid.value}">Open user profile</a>
+                        ${res.payload.role !== 33 ? `<button class="red quaternary" onclick="ban_user('${e.target.uid.value}')">Ban</button>` : `<button class="quaternary" onclick="unban_user('${e.target.uid.value}')">Unban</button>`}
+                    </div>`;
+
+                    ui.refresh_container(element, ["actions"]);
+                    ui.generate_settings_ui(
+                        element,
+                        [
+                            [
+                                ["role", "Permission level"],
+                                res.payload.role,
+                                "input",
+                            ],
+                        ],
+                        null,
+                        {
+                            role: async (new_role) => {
+                                if (
+                                    !(await trigger("atto::confirm", [
+                                        "Are you sure you would like to do this?",
+                                    ]))
+                                ) {
+                                    return;
+                                }
+
+                                fetch(
+                                    `/api/v1/communities/{{ community.id }}/memberships/${e.target.uid.value}/role`,
+                                    {
+                                        method: "POST",
+                                        headers: {
+                                            "Content-Type": "application/json",
+                                        },
+                                        body: JSON.stringify({
+                                            role: Number.parseInt(new_role),
+                                        }),
+                                    },
+                                )
+                                    .then((res) => res.json())
+                                    .then((res) => {
+                                        trigger("atto::toast", [
+                                            res.ok ? "success" : "error",
+                                            res.message,
+                                        ]);
+                                    });
+                            },
+                        },
+                    );
+                });
+        };
+    }, 250);
+</script>
 
 <script>
     setTimeout(() => {

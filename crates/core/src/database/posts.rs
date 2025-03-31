@@ -167,6 +167,35 @@ impl DataManager {
         Ok(res.unwrap())
     }
 
+    /// Check if the given `uid` can post in the given `community`.
+    pub async fn check_can_post(&self, community: &Community, uid: usize) -> bool {
+        match community.write_access {
+            CommunityWriteAccess::Owner => {
+                if uid != community.owner {
+                    false
+                } else {
+                    true
+                }
+            }
+            CommunityWriteAccess::Joined => {
+                match self
+                    .get_membership_by_owner_community(uid, community.id)
+                    .await
+                {
+                    Ok(m) => {
+                        if !m.role.check_member() {
+                            false
+                        } else {
+                            true
+                        }
+                    }
+                    Err(_) => false,
+                }
+            }
+            _ => true,
+        }
+    }
+
     /// Create a new journal entry in the database.
     ///
     /// # Arguments
@@ -185,22 +214,9 @@ impl DataManager {
             Err(e) => return Err(e),
         };
 
-        match community.write_access {
-            CommunityWriteAccess::Owner => {
-                if data.owner != community.owner {
-                    return Err(Error::NotAllowed);
-                }
-            }
-            CommunityWriteAccess::Joined => {
-                if let Err(_) = self
-                    .get_membership_by_owner_community(data.owner, community.id)
-                    .await
-                {
-                    return Err(Error::NotAllowed);
-                }
-            }
-            _ => (),
-        };
+        if !self.check_can_post(&community, data.owner).await {
+            return Err(Error::NotAllowed);
+        }
 
         // check if we're blocked
         if let Some(replying_to) = data.replying_to {

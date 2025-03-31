@@ -18,7 +18,7 @@ pub async fn redirect_from_id(
     Extension(data): Extension<State>,
     Path(id): Path<String>,
 ) -> impl IntoResponse {
-    match (&(data.read().await).0)
+    match (data.read().await).0
         .get_user_by_id(match id.parse::<usize>() {
             Ok(id) => id,
             Err(_) => return Redirect::to("/"),
@@ -43,10 +43,8 @@ pub async fn update_profile_settings_request(
         None => return Json(Error::NotAllowed.into()),
     };
 
-    if user.id != id {
-        if !user.permissions.check(FinePermission::MANAGE_USERS) {
-            return Json(Error::NotAllowed.into());
-        }
+    if user.id != id && !user.permissions.check(FinePermission::MANAGE_USERS) {
+        return Json(Error::NotAllowed.into());
     }
 
     match data.update_user_settings(id, req).await {
@@ -72,10 +70,8 @@ pub async fn update_profile_password_request(
         None => return Json(Error::NotAllowed.into()),
     };
 
-    if user.id != id {
-        if !user.permissions.check(FinePermission::MANAGE_USERS) {
-            return Json(Error::NotAllowed.into());
-        }
+    if user.id != id && !user.permissions.check(FinePermission::MANAGE_USERS) {
+        return Json(Error::NotAllowed.into());
     }
 
     match data
@@ -103,10 +99,8 @@ pub async fn update_profile_username_request(
         None => return Json(Error::NotAllowed.into()),
     };
 
-    if user.id != id {
-        if !user.permissions.check(FinePermission::MANAGE_USERS) {
-            return Json(Error::NotAllowed.into());
-        }
+    if user.id != id && !user.permissions.check(FinePermission::MANAGE_USERS) {
+        return Json(Error::NotAllowed.into());
     }
 
     if data.get_user_by_username(&req.to).await.is_ok() {
@@ -136,10 +130,8 @@ pub async fn update_profile_tokens_request(
         None => return Json(Error::NotAllowed.into()),
     };
 
-    if user.id != id {
-        if !user.permissions.check(FinePermission::MANAGE_USERS) {
-            return Json(Error::NotAllowed.into());
-        }
+    if user.id != id && !user.permissions.check(FinePermission::MANAGE_USERS) {
+        return Json(Error::NotAllowed.into());
     }
 
     match data.update_user_tokens(id, req).await {

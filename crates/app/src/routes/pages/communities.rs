@@ -34,6 +34,38 @@ macro_rules! check_permissions {
     };
 }
 
+macro_rules! community_context_bools {
+    ($data:ident, $user:ident, $community:ident) => {{
+        let is_owner = if let Some(ref ua) = $user {
+            ua.id == $community.owner
+        } else {
+            false
+        };
+
+        let is_joined = if let Some(ref ua) = $user {
+            if let Ok(membership) = $data
+                .0
+                .get_membership_by_owner_community(ua.id, $community.id)
+                .await
+            {
+                membership.role.check_member()
+            } else {
+                false
+            }
+        } else {
+            false
+        };
+
+        let can_post = if let Some(ref ua) = $user {
+            $data.0.check_can_post(&$community, ua.id).await
+        } else {
+            false
+        };
+
+        (is_owner, is_joined, can_post)
+    }};
+}
+
 /// `/communities`
 pub async fn list_request(jar: CookieJar, Extension(data): Extension<State>) -> impl IntoResponse {
     let data = data.read().await;
@@ -65,9 +97,7 @@ pub async fn list_request(jar: CookieJar, Extension(data): Extension<State>) -> 
 
     // return
     Ok(Html(
-        data.1
-            .render("communities/list.html", &mut context)
-            .unwrap(),
+        data.1.render("communities/list.html", &context).unwrap(),
     ))
 }
 
@@ -76,10 +106,12 @@ pub fn community_context(
     community: &Community,
     is_owner: bool,
     is_joined: bool,
+    can_post: bool,
 ) {
     context.insert("community", &community);
     context.insert("is_owner", &is_owner);
     context.insert("is_joined", &is_joined);
+    context.insert("can_post", &can_post);
 }
 
 /// `/community/{title}`
@@ -117,29 +149,14 @@ pub async fn feed_request(
     let lang = get_lang!(jar, data.0);
     let mut context = initial_context(&data.0.0, lang, &user).await;
 
-    let is_owner = if let Some(ref ua) = user {
-        ua.id == community.owner
-    } else {
-        false
-    };
-
-    let is_joined = if let Some(ref ua) = user {
-        data.0
-            .get_membership_by_owner_community(ua.id, community.id)
-            .await
-            .is_ok()
-    } else {
-        false
-    };
+    let (is_owner, is_joined, can_post) = community_context_bools!(data, user, community);
 
     context.insert("feed", &feed);
-    community_context(&mut context, &community, is_owner, is_joined);
+    community_context(&mut context, &community, is_owner, is_joined, can_post);
 
     // return
     Ok(Html(
-        data.1
-            .render("communities/feed.html", &mut context)
-            .unwrap(),
+        data.1.render("communities/feed.html", &context).unwrap(),
     ))
 }
 
@@ -185,7 +202,7 @@ pub async fn settings_request(
     // return
     Ok(Html(
         data.1
-            .render("communities/settings.html", &mut context)
+            .render("communities/settings.html", &context)
             .unwrap(),
     ))
 }
@@ -226,20 +243,7 @@ pub async fn post_request(
     let lang = get_lang!(jar, data.0);
     let mut context = initial_context(&data.0.0, lang, &user).await;
 
-    let is_owner = if let Some(ref ua) = user {
-        ua.id == community.owner
-    } else {
-        false
-    };
-
-    let is_joined = if let Some(ref ua) = user {
-        data.0
-            .get_membership_by_owner_community(ua.id, community.id)
-            .await
-            .is_ok()
-    } else {
-        false
-    };
+    let (is_owner, is_joined, can_post) = community_context_bools!(data, user, community);
 
     context.insert("post", &post);
     context.insert("replies", &feed);
@@ -251,12 +255,10 @@ pub async fn post_request(
             .await
             .unwrap_or(User::deleted()),
     );
-    community_context(&mut context, &community, is_owner, is_joined);
+    community_context(&mut context, &community, is_owner, is_joined, can_post);
 
     // return
     Ok(Html(
-        data.1
-            .render("communities/post.html", &mut context)
-            .unwrap(),
+        data.1.render("communities/post.html", &context).unwrap(),
     ))
 }

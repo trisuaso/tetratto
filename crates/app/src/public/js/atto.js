@@ -667,7 +667,7 @@ ${option.input_element_type === "textarea" ? `${option.value}</textarea>` : ""}
 
     self.define(
         "generate_settings_ui",
-        ({ $ }, into_element, options, settings_ref) => {
+        ({ $ }, into_element, options, settings_ref, key_map = {}) => {
             for (const option of options) {
                 $.render_settings_ui_field(into_element, {
                     key: Array.isArray(option[0]) ? option[0][0] : option[0],
@@ -678,7 +678,12 @@ ${option.input_element_type === "textarea" ? `${option.value}</textarea>` : ""}
             }
 
             window.set_setting_field = (key, value) => {
-                settings_ref[key] = value;
+                if (settings_ref) {
+                    settings_ref[key] = value;
+                } else {
+                    key_map[key](value);
+                }
+
                 console.log("update", key);
             };
         },

@@ -42,9 +42,9 @@ pub async fn render_error(
     user: &Option<User>,
 ) -> String {
     let lang = get_lang!(jar, data.0);
-    let mut context = initial_context(&data.0.0, lang, &user).await;
+    let mut context = initial_context(&data.0.0, lang, user).await;
     context.insert("error_text", &e.to_string());
-    data.1.render("misc/error.html", &mut context).unwrap()
+    data.1.render("misc/error.html", &context).unwrap()
 }
 
 #[derive(Deserialize)]

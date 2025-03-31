@@ -120,13 +120,10 @@ pub async fn upload_avatar_request(
         Err(e) => return Json(e.into()),
     };
 
-    if auth_user.id != community.owner {
-        if !auth_user
+    if auth_user.id != community.owner && !auth_user
             .permissions
-            .check(FinePermission::MANAGE_COMMUNITIES)
-        {
-            return Json(Error::NotAllowed.into());
-        }
+            .check(FinePermission::MANAGE_COMMUNITIES) {
+        return Json(Error::NotAllowed.into());
     }
 
     let path = pathd!(
@@ -176,13 +173,10 @@ pub async fn upload_banner_request(
         Err(e) => return Json(e.into()),
     };
 
-    if auth_user.id != community.owner {
-        if !auth_user
+    if auth_user.id != community.owner && !auth_user
             .permissions
-            .check(FinePermission::MANAGE_COMMUNITIES)
-        {
-            return Json(Error::NotAllowed.into());
-        }
+            .check(FinePermission::MANAGE_COMMUNITIES) {
+        return Json(Error::NotAllowed.into());
     }
 
     let path = pathd!(

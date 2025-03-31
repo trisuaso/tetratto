@@ -23,7 +23,7 @@ pub async fn delete_request(
             message: "Notification deleted".to_string(),
             payload: (),
         }),
-        Err(e) => return Json(e.into()),
+        Err(e) => Json(e.into()),
     }
 }
 
@@ -43,7 +43,7 @@ pub async fn delete_all_request(
             message: "Notifications deleted".to_string(),
             payload: (),
         }),
-        Err(e) => return Json(e.into()),
+        Err(e) => Json(e.into()),
     }
 }
 
@@ -65,6 +65,6 @@ pub async fn update_read_status_request(
             message: "Notification updated".to_string(),
             payload: (),
         }),
-        Err(e) => return Json(e.into()),
+        Err(e) => Json(e.into()),
     }
 }

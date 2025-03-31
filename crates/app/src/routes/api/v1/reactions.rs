@@ -21,7 +21,7 @@ pub async fn get_request(
             message: "Reaction exists".to_string(),
             payload: Some(r),
         }),
-        Err(e) => return Json(e.into()),
+        Err(e) => Json(e.into()),
     }
 }
 
@@ -98,6 +98,6 @@ pub async fn delete_request(
             message: "Reaction deleted".to_string(),
             payload: (),
         }),
-        Err(e) => return Json(e.into()),
+        Err(e) => Json(e.into()),
     }
 }

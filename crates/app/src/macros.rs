@@ -7,7 +7,7 @@ macro_rules! write_template {
     ($into:ident->$path:literal($as:expr) --config=$config:ident) => {
         std::fs::write(
             $into.join($path),
-            crate::assets::replace_in_html($as, &$config).await,
+            $crate::assets::replace_in_html($as, &$config).await,
         )
         .unwrap();
     };
@@ -29,7 +29,7 @@ macro_rules! write_template {
 
         std::fs::write(
             $into.join($path),
-            crate::assets::replace_in_html($as, &$config).await,
+            $crate::assets::replace_in_html($as, &$config).await,
         )
         .unwrap();
     };

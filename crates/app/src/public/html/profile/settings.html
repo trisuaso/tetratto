@@ -3,34 +3,21 @@
 {% endblock %} {% block body %} {{ macros::nav() }}
 <main class="flex flex-col gap-2">
     <div class="pillmenu">
-        <a
-            data-tab-button="account"
-            class="active"
-            href="#/account"
-            onclick="show_save_button()"
-        >
+        <a data-tab-button="account" class="active" href="#/account">
             {{ text "settings:tab.account" }}
         </a>
 
-        <a
-            data-tab-button="profile"
-            href="#/profile"
-            onclick="show_save_button()"
-        >
+        <a data-tab-button="profile" href="#/profile">
             {{ text "settings:tab.profile" }}
         </a>
 
-        <a
-            data-tab-button="sessions"
-            href="#/sessions"
-            onclick="hide_save_button()"
-        >
+        <a data-tab-button="sessions" href="#/sessions">
             {{ text "settings:tab.sessions" }}
         </a>
     </div>
 
-    <div class="card w-full tertiary" data-tab="account">
-        <div class="flex flex-col gap-2" id="account_settings">
+    <div class="w-full flex flex-col gap-2" data-tab="account">
+        <div class="card tertiary flex flex-col gap-2" id="account_settings">
             <div class="card-nest" ui_ident="change_password">
                 <div class="card small">
                     <b>{{ text "settings:label.change_password" }}</b>
@@ -107,10 +94,15 @@
                 </form>
             </div>
         </div>
+
+        <button onclick="save_settings()" id="save_button">
+            {{ icon "check" }}
+            <span>{{ text "general:action.save" }}</span>
+        </button>
     </div>
 
-    <div class="card w-full tertiary hidden" data-tab="profile">
-        <div class="flex flex-col gap-2" id="profile_settings">
+    <div class="w-full hidden flex flex-col gap-2" data-tab="profile">
+        <div class="card tertiary flex flex-col gap-2" id="profile_settings">
             <div class="card-nest" ui_ident="change_avatar">
                 <div class="card small">
                     <b>{{ text "settings:label.change_avatar" }}</b>
@@ -188,20 +180,7 @@
         {% endfor %}
     </div>
 
-    <button onclick="save_settings()" id="save_button" data-turbo-permanent>
-        {{ icon "check" }}
-        <span>{{ text "general:action.save" }}</span>
-    </button>
-
     <script>
-        function show_save_button() {
-            document.getElementById("save_button").removeAttribute("style");
-        }
-
-        function hide_save_button() {
-            document.getElementById("save_button").style.display = "none";
-        }
-
         setTimeout(() => {
             const ui = ns("ui");
             const settings = JSON.parse("{{ user_settings_serde|safe }}");
