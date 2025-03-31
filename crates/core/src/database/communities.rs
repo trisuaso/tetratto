@@ -61,7 +61,11 @@ impl DataManager {
         }
 
         // make sure community doesn't already exist with title
-        if self.get_community_by_title(&data.title).await.is_ok() {
+        if self
+            .get_community_by_title(&data.title.to_lowercase())
+            .await
+            .is_ok()
+        {
             return Err(Error::MiscError("Title already in use".to_string()));
         }
 
@@ -77,7 +81,7 @@ impl DataManager {
             &[
                 &data.id.to_string().as_str(),
                 &data.created.to_string().as_str(),
-                &data.title.as_str(),
+                &data.title.to_lowercase().as_str(),
                 &serde_json::to_string(&data.context).unwrap().as_str(),
                 &data.owner.to_string().as_str(),
                 &serde_json::to_string(&data.read_access).unwrap().as_str(),

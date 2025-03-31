@@ -101,7 +101,7 @@ pub async fn feed_request(
     let data = data.read().await;
     let user = get_user_from_token!(jar, data.0);
 
-    let community = match data.0.get_community_by_title(&title).await {
+    let community = match data.0.get_community_by_title(&title.to_lowercase()).await {
         Ok(ua) => ua,
         Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
     };

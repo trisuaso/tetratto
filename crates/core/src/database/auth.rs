@@ -84,6 +84,11 @@ impl DataManager {
             return Err(Error::DataTooShort("password".to_string()));
         }
 
+        // make sure username isn't taken
+        if self.get_user_by_username(&data.username).await.is_ok() {
+            return Err(Error::MiscError("Username in use".to_string()));
+        }
+
         // ...
         let conn = match self.connect().await {
             Ok(c) => c,
@@ -96,7 +101,7 @@ impl DataManager {
             &[
                 &data.id.to_string().as_str(),
                 &data.created.to_string().as_str(),
-                &data.username.as_str(),
+                &data.username.to_lowercase().as_str(),
                 &data.password.as_str(),
                 &data.salt.as_str(),
                 &serde_json::to_string(&data.settings).unwrap().as_str(),

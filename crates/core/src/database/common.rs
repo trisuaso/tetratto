@@ -98,6 +98,8 @@ macro_rules! auto_method {
 
     ($name:ident($selector_t:ty)@$select_fn:ident -> $query:literal --name=$name_:literal --returns=$returns_:tt --cache-key-tmpl=$cache_key_tmpl:literal) => {
         pub async fn $name(&self, selector: $selector_t) -> Result<$returns_> {
+            let selector = selector.to_string().to_lowercase();
+
             if let Some(cached) = self.2.get(format!($cache_key_tmpl, selector)).await {
                 return Ok(serde_json::from_str(&cached).unwrap());
             }
