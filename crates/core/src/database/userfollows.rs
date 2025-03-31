@@ -1,7 +1,7 @@
 use super::*;
 use crate::cache::Cache;
 use crate::model::{Error, Result, auth::User, auth::UserFollow, permissions::FinePermission};
-use crate::{auto_method, execute, get, query_row};
+use crate::{auto_method, execute, get, query_row, query_rows};
 
 #[cfg(feature = "sqlite")]
 use rusqlite::Row;
@@ -39,7 +39,7 @@ impl DataManager {
         let res = query_row!(
             &conn,
             "SELECT * FROM userfollows WHERE initiator = $1 AND receiver = $2",
-            &[&(initiator as i64), &(receiver as i64)],
+            &[&(initiator as isize), &(receiver as isize)],
             |x| { Ok(Self::get_userfollow_from_row(x)) }
         );
 
@@ -64,8 +64,78 @@ impl DataManager {
         let res = query_row!(
             &conn,
             "SELECT * FROM userfollows WHERE receiver = $1 AND initiator = $2",
-            &[&(receiver as i64), &(initiator as i64)],
+            &[&(receiver as isize), &(initiator as isize)],
             |x| { Ok(Self::get_userfollow_from_row(x)) }
+        );
+
+        if res.is_err() {
+            return Err(Error::GeneralNotFound("user follow".to_string()));
+        }
+
+        Ok(res.unwrap())
+    }
+
+    /// Get users the given user is following.
+    ///
+    /// # Arguments
+    /// * `id` - the ID of the user
+    /// * `batch` - the limit of userfollows in each page
+    /// * `page` - the page number
+    pub async fn get_userfollows_by_initiator(
+        &self,
+        id: usize,
+        batch: usize,
+        page: usize,
+    ) -> Result<Vec<UserFollow>> {
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = query_rows!(
+            &conn,
+            "SELECT * FROM userfollows WHERE initiator = $1 ORDER BY created DESC LIMIT $2 OFFSET $3",
+            &[
+                &(id as isize),
+                &(batch as isize),
+                &((page * batch) as isize)
+            ],
+            |x| { Self::get_userfollow_from_row(x) }
+        );
+
+        if res.is_err() {
+            return Err(Error::GeneralNotFound("user follow".to_string()));
+        }
+
+        Ok(res.unwrap())
+    }
+
+    /// Get users following the given user.
+    ///
+    /// # Arguments
+    /// * `id` - the ID of the user
+    /// * `batch` - the limit of userfollows in each page
+    /// * `page` - the page number
+    pub async fn get_userfollows_by_receiver(
+        &self,
+        id: usize,
+        batch: usize,
+        page: usize,
+    ) -> Result<Vec<UserFollow>> {
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = query_rows!(
+            &conn,
+            "SELECT * FROM userfollows WHERE receiver = $1 ORDER BY created DESC LIMIT $2 OFFSET $3",
+            &[
+                &(id as isize),
+                &(batch as isize),
+                &((page * batch) as isize)
+            ],
+            |x| { Self::get_userfollow_from_row(x) }
         );
 
         if res.is_err() {

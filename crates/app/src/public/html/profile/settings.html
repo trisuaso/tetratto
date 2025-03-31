@@ -149,6 +149,11 @@
                 </form>
             </div>
         </div>
+
+        <button onclick="save_settings()" id="save_button">
+            {{ icon "check" }}
+            <span>{{ text "general:action.save" }}</span>
+        </button>
     </div>
 
     <div
@@ -364,6 +369,18 @@
                         ["biography", "Biography"],
                         "{{ user.settings.biography }}",
                         "textarea",
+                    ],
+                ],
+                settings,
+            );
+
+            ui.generate_settings_ui(
+                profile_settings,
+                [
+                    [
+                        ["private_profile", "Private profile"],
+                        "{{ user.settings.private_profile }}",
+                        "checkbox",
                     ],
                 ],
                 settings,

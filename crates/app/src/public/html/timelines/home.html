@@ -1,0 +1,27 @@
+{% import "macros.html" as macros %} {% extends "root.html" %} {% block head %}
+<title>{{ config.name }}</title>
+{% endblock %} {% block body %} {{ macros::nav(selected="home") }}
+<main class="flex flex-col gap-2">
+    <!-- prettier-ignore -->
+    {{ macros::timelines_nav(selected="home") }}
+
+    {% if list|length == 0 %}
+    <div class="card-nest">
+        <div class="card">
+            <b>✨ Welcome to <i>{{ config.name }}</i>!</b>
+        </div>
+
+        <div class="card">
+            Join some communities to populate your home timeline!
+        </div>
+    </div>
+    {% else %}
+    <!-- prettier-ignore -->
+    <div class="card w-full flex flex-col gap-2">
+        {% for post in list %}
+            {{ components::post(post=post[0], owner=post[1], secondary=true, community=post[2], show_community=true) }}
+        {% endfor %}
+    </div>
+    {% endif %}
+</main>
+{% endblock %}

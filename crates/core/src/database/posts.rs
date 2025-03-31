@@ -62,7 +62,11 @@ impl DataManager {
         let res = query_rows!(
             &conn,
             "SELECT * FROM posts WHERE replying_to = $1 ORDER BY created DESC LIMIT $2 OFFSET $3",
-            &[&(id as i64), &(batch as i64), &((page * batch) as i64)],
+            &[
+                &(id as isize),
+                &(batch as isize),
+                &((page * batch) as isize)
+            ],
             |x| { Self::get_post_from_row(x) }
         );
 
@@ -125,7 +129,11 @@ impl DataManager {
         let res = query_rows!(
             &conn,
             "SELECT * FROM posts WHERE owner = $1 ORDER BY created DESC LIMIT $2 OFFSET $3",
-            &[&(id as i64), &(batch as i64), &((page * batch) as i64)],
+            &[
+                &(id as isize),
+                &(batch as isize),
+                &((page * batch) as isize)
+            ],
             |x| { Self::get_post_from_row(x) }
         );
 
@@ -156,7 +164,83 @@ impl DataManager {
         let res = query_rows!(
             &conn,
             "SELECT * FROM posts WHERE community = $1 AND replying_to IS NULL ORDER BY created DESC LIMIT $2 OFFSET $3",
-            &[&(id as i64), &(batch as i64), &((page * batch) as i64)],
+            &[
+                &(id as isize),
+                &(batch as isize),
+                &((page * batch) as isize)
+            ],
+            |x| { Self::get_post_from_row(x) }
+        );
+
+        if res.is_err() {
+            return Err(Error::GeneralNotFound("post".to_string()));
+        }
+
+        Ok(res.unwrap())
+    }
+
+    /// Get posts from all communities, sorted by likes.
+    ///
+    /// # Arguments
+    /// * `batch` - the limit of posts in each page
+    /// * `page` - the page number
+    pub async fn get_popular_posts(&self, batch: usize, page: usize) -> Result<Vec<Post>> {
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = query_rows!(
+            &conn,
+            "SELECT * FROM posts ORDER BY likes DESC, created ASC LIMIT $2 OFFSET $3",
+            &[&(batch as isize), &((page * batch) as isize)],
+            |x| { Self::get_post_from_row(x) }
+        );
+
+        if res.is_err() {
+            return Err(Error::GeneralNotFound("post".to_string()));
+        }
+
+        Ok(res.unwrap())
+    }
+
+    /// Get posts from all communities the given user is in.
+    ///
+    /// # Arguments
+    /// * `id` - the ID of the user
+    /// * `batch` - the limit of posts in each page
+    /// * `page` - the page number
+    pub async fn get_posts_from_user_communities(
+        &self,
+        id: usize,
+        batch: usize,
+        page: usize,
+    ) -> Result<Vec<Post>> {
+        let memberships = self.get_memberships_by_owner(id).await?;
+        let mut memberships = memberships.iter();
+        let first = match memberships.next() {
+            Some(f) => f,
+            None => return Ok(Vec::new()),
+        };
+
+        let mut query_string: String = String::new();
+
+        for membership in memberships {
+            query_string.push_str(&format!(" OR community = {}", membership.community));
+        }
+
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = query_rows!(
+            &conn,
+            &format!(
+                "SELECT * FROM posts WHERE community = {} {query_string} ORDER BY created DESC LIMIT $1 OFFSET $2",
+                first.community
+            ),
+            &[&(batch as isize), &((page * batch) as isize)],
             |x| { Self::get_post_from_row(x) }
         );
 

@@ -136,6 +136,16 @@ article {
 }
 
 /* typo */
+pre {
+    font-family: monospace;
+    width: 100%;
+    max-width: 100%;
+    overflow: auto;
+    background: var(--color-lowered);
+    border-radius: var(--radius);
+    padding: 1rem;
+}
+
 svg.icon {
     stroke: currentColor;
     width: 18px;
@@ -242,7 +252,7 @@ img.contain {
     object-fit: contain;
 }
 
-/* avatar */
+/* avatar/banner */
 .avatar {
     --size: 50px;
     border-radius: calc(var(--radius) / 2);
@@ -253,6 +263,11 @@ img.contain {
     min-height: var(--size);
     max-height: var(--size);
     object-fit: cover;
+}
+
+.banner {
+    border-radius: var(--radius);
+    max-height: 350px;
 }
 
 /* table */
@@ -375,12 +390,13 @@ button,
     justify-content: center;
     align-items: center;
     gap: 0.25rem;
+    font-size: 0.9rem;
+    text-decoration: none !important;
+    user-select: none;
     /* personality */
     background: var(--color-primary);
     color: var(--color-text-primary);
     font-weight: 600;
-    font-size: 0.9rem;
-    text-decoration: none !important;
 }
 
 button.small,

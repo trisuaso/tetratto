@@ -2,7 +2,9 @@
 <title>{{ community.context.display_name }} - {{ config.name }}</title>
 {% endblock %} {% block body %} {{ macros::nav() }}
 <article>
-    <div class="content_container">
+    <div class="content_container flex flex-col gap-4">
+        {{ components::community_banner(id=community.id, community=community) }}
+
         <div class="w-full flex gap-4 flex-collapse">
             <div
                 class="lhs flex flex-col gap-2 sm:w-full"
@@ -10,9 +12,8 @@
             >
                 <div class="card-nest w-full">
                     <div class="card flex gap-2" id="community_avatar_and_name">
-                        {{
-                        components::community_avatar(id=community.id,size="72px")
-                        }}
+                        {{ components::community_avatar(id=community.id,
+                        community=community, size="72px") }}
                         <div class="flex flex-col">
                             <!-- prettier-ignore -->
                             <h3 id="title" class="title">

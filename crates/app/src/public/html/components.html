@@ -11,7 +11,7 @@
 {% if community %}
 <img
     src="/api/v1/communities/{{ id }}/avatar"
-    alt="{{ community.title }}"
+    alt="{{ community.title }}'s avatar"
     class="avatar shadow"
     loading="lazy"
     style="--size: {{ size }}"
@@ -19,10 +19,33 @@
 {% else %}
 <img
     src="/api/v1/communities/{{ id }}/avatar"
-    alt="{{ id }}"
+    alt="{{ id }}'s avatar"
     class="avatar shadow"
     loading="lazy"
     style="--size: {{ size }}"
+/>
+{% endif %} {%- endmacro %} {% macro banner(username) -%}
+<img
+    title="{{ username }}'s banner"
+    src="/api/v1/auth/profile/{{ username }}/banner"
+    alt="@{{ username }}'s banner"
+    class="banner shadow"
+    loading="lazy"
+/>
+{%- endmacro %} {% macro community_banner(id, community=false) -%} {% if
+community %}
+<img
+    src="/api/v1/communities/{{ id }}/banner"
+    alt="{{ community.title }}'s banner"
+    class="banner shadow"
+    loading="lazy"
+/>
+{% else %}
+<img
+    src="/api/v1/communities/{{ id }}/banner"
+    alt="{{ id }}'s banner"
+    class="banner shadow"
+    loading="lazy"
 />
 {% endif %} {%- endmacro %} {% macro community_listing_card(community) -%}
 <a
@@ -109,6 +132,8 @@ show_community=true) -%}
             {{ components::likes(id=post.id, asset_type="Post",
             likes=post.likes, dislikes=post.dislikes) }}
         </div>
+        {% else %}
+        <div></div>
         {% endif %}
 
         <div class="flex gap-1 buttons_box">

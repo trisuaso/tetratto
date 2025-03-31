@@ -91,6 +91,26 @@ pub async fn posts_request(
         }
     }
 
+    // check for private profile
+    if other_user.settings.private_profile {
+        if let Some(ref ua) = user {
+            if data
+                .0
+                .get_userfollow_by_initiator_receiver(other_user.id, ua.id)
+                .await
+                .is_err()
+            {
+                return Err(Html(
+                    render_error(Error::NotAllowed, &jar, &data, &user).await,
+                ));
+            }
+        } else {
+            return Err(Html(
+                render_error(Error::NotAllowed, &jar, &data, &user).await,
+            ));
+        }
+    }
+
     // fetch data
     let posts = match data
         .0

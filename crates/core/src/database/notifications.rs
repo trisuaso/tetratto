@@ -37,7 +37,7 @@ impl DataManager {
         let res = query_rows!(
             &conn,
             "SELECT * FROM notifications WHERE owner = $1",
-            &[&(owner as i64)],
+            &[&(owner as isize)],
             |x| { Self::get_notification_from_row(x) }
         );
 

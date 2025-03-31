@@ -36,7 +36,7 @@ macro_rules! auto_method {
                 Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
             };
 
-            let res = query_row!(&conn, $query, &[&(id as i64)], |x| {
+            let res = query_row!(&conn, $query, &[&(id as isize)], |x| {
                 Ok(Self::$select_fn(x))
             });
 
@@ -59,7 +59,7 @@ macro_rules! auto_method {
                 Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
             };
 
-            let res = query_row!(&conn, $query, &[&(id as i64)], |x| {
+            let res = query_row!(&conn, $query, &[&(id as isize)], |x| {
                 Ok(Self::$select_fn(x))
             });
 

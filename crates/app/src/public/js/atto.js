@@ -647,6 +647,24 @@ media_theme_pref();
     });
 
     self.define("render_settings_ui_field", (_, into_element, option) => {
+        if (option.input_element_type === "checkbox") {
+            into_element.innerHTML += `<div class="card flex gap-2">
+                <input
+                    type="checkbox"
+                    onchange="window.set_setting_field('${option.key}', event.target.checked)"
+                    placeholder="${option.key}"
+                    name="${option.key}"
+                    id="${option.key}"
+                    ${option.value === "true" ? "checked" : ""}
+                    class="w-content"
+                />
+
+                <label for="${option.key}"><b>${option.label.replaceAll("_", " ")}</b></label>
+            </div>`;
+
+            return;
+        }
+
         into_element.innerHTML += `<div class="card-nest">
             <div class="card small">
                 <label for="${option.key}"><b>${option.label.replaceAll("_", " ")}</b></label>

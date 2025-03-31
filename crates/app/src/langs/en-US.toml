@@ -3,6 +3,7 @@ version = "1.0.0"
 
 [data]
 "general:link.home" = "Home"
+"general:link.popular" = "Popular"
 "general:link.communities" = "Communities"
 "general:action.save" = "Save"
 "general:action.delete" = "Delete"
@@ -14,6 +15,7 @@ version = "1.0.0"
 "dialog:action.yes" = "Yes"
 "dialog:action.no" = "No"
 "dialog:action.save_and_close" = "Save and close"
+
 
 "auth:action.login" = "Login"
 "auth:action.register" = "Register"

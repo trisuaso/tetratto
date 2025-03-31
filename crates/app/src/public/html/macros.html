@@ -16,6 +16,14 @@ show_lhs=true) -%}
                 <span class="desktop">{{ text "general:link.home" }}</span>
             </a>
 
+            <a
+                href="/popular"
+                class="button {% if selected == 'popular' %}active{% endif %}"
+            >
+                {{ icon "trending-up" }}
+                <span class="desktop">{{ text "general:link.popular" }}</span>
+            </a>
+
             {% if user %}
             <a
                 href="/communities"
@@ -72,6 +80,12 @@ show_lhs=true) -%}
                         {{ icon "log-out" }}
                         <span>{{ text "auth:action.logout" }}</span>
                     </button>
+
+                    <div class="title"></div>
+                    <a href="https://github.com/trisuaso/tetratto">
+                        {{ icon "code" }}
+                        <span>View source</span>
+                    </a>
                 </div>
             </div>
             {% else %}
@@ -93,10 +107,28 @@ show_lhs=true) -%}
                         {{ icon "user-plus" }}
                         <span>{{ text "auth:action.register" }}</span>
                     </a>
+
+                    <div class="title"></div>
+                    <a href="https://github.com/trisuaso/tetratto">
+                        {{ icon "code" }}
+                        <span>View source</span>
+                    </a>
                 </div>
             </div>
             {% endif %}
         </div>
     </div>
 </nav>
+{%- endmacro %} {% macro timelines_nav(selected="") -%}
+<div class="pillmenu w-full">
+    <a href="/" class="{% if selected == 'home' %}active{% endif %}">
+        {{ icon "newspaper" }}
+        <span>{{ text "general:link.home" }}</span>
+    </a>
+
+    <a href="/popular" class="{% if selected == 'popular' %}active{% endif %}">
+        {{ icon "trending-up" }}
+        <span>{{ text "general:link.popular" }}</span>
+    </a>
+</div>
 {%- endmacro %}

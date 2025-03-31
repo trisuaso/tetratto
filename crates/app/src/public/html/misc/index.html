@@ -1,12 +1,26 @@
-{% import "macros.html" as macros %} {% extends "root.html" %} {% block body %}
-{{ macros::nav(selected="home") }}
-<main class="flex flex-col gap-2">
-    <div class="card-nest">
-        <div class="card">
-            <b>✨ Welcome to <i>{{ config.name }}</i>!</b>
+{% import "macros.html" as macros %} {% extends "root.html" %} {% block head %}
+<title>{{ config.name }}</title>
+{% endblock %} {% block body %}
+<main class="flex justify-center" style="padding-top: 2rem">
+    <div class="flex flex-col gap-2" style="width: 20rem; max-width: 100%">
+        <h1 class="w-full text-center">{{ config.name }}</h1>
+
+        <div class="card flex flex-col gap-2">
+            <a href="/auth/login" class="button w-full">
+                {{ icon "log-in" }}
+                <span>{{ text "auth:action.login" }}</span>
+            </a>
+
+            <a href="/auth/register" class="button w-full secondary">
+                {{ icon "heart" }}
+                <span>{{ text "auth:action.register" }}</span>
+            </a>
         </div>
 
-        <div class="card">We're still working on your feed...</div>
+        <a href="/popular" class="button w-full quaternary">
+            {{ icon "trending-up" }}
+            <span>Explore popular feed</span>
+        </a>
     </div>
 </main>
 {% endblock %}

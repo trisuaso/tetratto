@@ -46,7 +46,7 @@ impl DataManager {
         let res = query_row!(
             &conn,
             "SELECT * FROM reactions WHERE owner = $1 AND asset = $2",
-            &[&(owner as i64), &(asset as i64)],
+            &[&(owner as isize), &(asset as isize)],
             |x| { Ok(Self::get_reaction_from_row(x)) }
         );
 

@@ -17,6 +17,7 @@ pub fn routes() -> Router {
     Router::new()
         // misc
         .route("/", get(misc::index_request))
+        .route("/popular", get(misc::popular_request))
         .route("/notifs", get(misc::notifications_request))
         .fallback_service(get(misc::not_found))
         // auth

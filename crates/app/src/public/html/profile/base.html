@@ -2,7 +2,9 @@
 <title>{{ profile.username }} - {{ config.name }}</title>
 {% endblock %} {% block body %} {{ macros::nav() }}
 <article>
-    <div class="content_container">
+    <div class="content_container flex flex-col gap-4">
+        {{ components::banner(username=profile.username) }}
+
         <div class="w-full flex gap-4 flex-collapse">
             <div
                 class="lhs flex flex-col gap-2 sm:w-full"

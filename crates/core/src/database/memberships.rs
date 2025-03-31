@@ -53,7 +53,7 @@ impl DataManager {
         let res = query_row!(
             &conn,
             "SELECT * FROM memberships WHERE owner = $1 AND community = $2",
-            &[&(owner as i64), &(community as i64)],
+            &[&(owner as isize), &(community as isize)],
             |x| { Ok(Self::get_membership_from_row(x)) }
         );
 
@@ -74,7 +74,7 @@ impl DataManager {
         let res = query_rows!(
             &conn,
             "SELECT * FROM memberships WHERE owner = $1 AND role IS NOT 33",
-            &[&(owner as i64)],
+            &[&(owner as isize)],
             |x| { Self::get_membership_from_row(x) }
         );
 
