@@ -128,8 +128,8 @@ pub fn routes() -> Router {
         )
         .route("/notifications/{id}", delete(notifications::delete_request))
         .route(
-            "/notifications/{id}/read",
-            delete(notifications::update_read_status_request),
+            "/notifications/{id}/read_status",
+            post(notifications::update_read_status_request),
         )
 }
 

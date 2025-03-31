@@ -402,6 +402,17 @@ button.secondary:hover,
     background: var(--color-secondary-lowered);
 }
 
+button.tertiary,
+.button.tertiary {
+    background: var(--color-raised);
+    color: var(--color-text-raised);
+}
+
+button.tertiary:hover,
+.button.tertiary:hover {
+    background: var(--color-super-raised);
+}
+
 button.camo,
 .button.camo {
     background: transparent;

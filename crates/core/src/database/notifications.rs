@@ -98,7 +98,7 @@ impl DataManager {
 
         let res = execute!(
             &conn,
-            "DELETE FROM notification WHERE id = $1",
+            "DELETE FROM notifications WHERE id = $1",
             &[&id.to_string()]
         );
 
@@ -109,9 +109,11 @@ impl DataManager {
         self.2.remove(format!("atto.notification:{}", id)).await;
 
         // decr notification count
-        self.decr_user_notifications(notification.owner)
-            .await
-            .unwrap();
+        if !notification.read {
+            self.decr_user_notifications(notification.owner)
+                .await
+                .unwrap();
+        }
 
         // return
         Ok(())

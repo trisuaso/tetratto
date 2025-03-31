@@ -32,11 +32,11 @@ show_lhs=true) -%}
         <div class="flex nav_side">
             {% if user %}
             <a href="/notifs" class="button" title="Notifications">
-                {{ icon "bell" }} {% if user.notification_count > 0 %}
+                {% if user.notification_count > 0 %} {{ icon "bell-dot" }}
                 <span class="notification tr"
                     >{{ user.notification_count }}</span
                 >
-                {% endif %}
+                {% else %} {{ icon "bell" }} {% endif %}
             </a>
 
             <div class="dropdown">

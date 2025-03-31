@@ -33,6 +33,7 @@ pub const COMPONENTS: &str = include_str!("./public/html/components.html");
 
 pub const MISC_INDEX: &str = include_str!("./public/html/misc/index.html");
 pub const MISC_ERROR: &str = include_str!("./public/html/misc/error.html");
+pub const MISC_NOTIFICATIONS: &str = include_str!("./public/html/misc/notifications.html");
 
 pub const AUTH_BASE: &str = include_str!("./public/html/auth/base.html");
 pub const AUTH_LOGIN: &str = include_str!("./public/html/auth/login.html");
@@ -144,6 +145,7 @@ pub(crate) async fn write_assets(config: &Config) -> PathBufD {
 
     write_template!(html_path->"misc/index.html"(crate::assets::MISC_INDEX) -d "misc" --config=config);
     write_template!(html_path->"misc/error.html"(crate::assets::MISC_ERROR) --config=config);
+    write_template!(html_path->"misc/notifications.html"(crate::assets::MISC_NOTIFICATIONS) --config=config);
 
     write_template!(html_path->"auth/base.html"(crate::assets::AUTH_BASE) -d "auth" --config=config);
     write_template!(html_path->"auth/login.html"(crate::assets::AUTH_LOGIN) --config=config);

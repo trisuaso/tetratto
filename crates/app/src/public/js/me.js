@@ -91,4 +91,57 @@
                 }
             });
     });
+
+    self.define("remove_notification", (_, id) => {
+        fetch(`/api/v1/notifications/${id}`, {
+            method: "DELETE",
+        })
+            .then((res) => res.json())
+            .then((res) => {
+                trigger("atto::toast", [
+                    res.ok ? "success" : "error",
+                    res.message,
+                ]);
+            });
+    });
+
+    self.define("update_notification_read_statsu", (_, id, read) => {
+        fetch(`/api/v1/notifications/${id}/read_status`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                read,
+            }),
+        })
+            .then((res) => res.json())
+            .then((res) => {
+                trigger("atto::toast", [
+                    res.ok ? "success" : "error",
+                    res.message,
+                ]);
+            });
+    });
+
+    self.define("clear_notifs", async () => {
+        if (
+            !(await trigger("atto::confirm", [
+                "Are you sure you want to do this?",
+            ]))
+        ) {
+            return;
+        }
+
+        fetch("/api/v1/notifications/my", {
+            method: "DELETE",
+        })
+            .then((res) => res.json())
+            .then((res) => {
+                trigger("atto::toast", [
+                    res.ok ? "success" : "error",
+                    res.message,
+                ]);
+            });
+    });
 })();

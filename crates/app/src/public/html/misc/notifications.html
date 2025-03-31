@@ -1,0 +1,13 @@
+{% import "macros.html" as macros %} {% extends "root.html" %} {% block head %}
+<title>Notifications - {{ config.name }}</title>
+{% endblock %} {% block body %} {{ macros::nav(selected="communities") }}
+<main class="flex flex-col gap-2">
+    <button onclick="trigger('me::clear_notifs')">
+        {{ icon "bomb" }}
+        <span>{{ text "notifs:action.clear" }}</span>
+    </button>
+
+    {% for notification in notifications %} {{
+    components::notification(notification=notification) }} {% endfor %}
+</main>
+{% endblock %}
