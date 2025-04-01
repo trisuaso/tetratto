@@ -226,6 +226,10 @@ a {
     color: var(--color-link);
 }
 
+a.flush {
+    color: inherit;
+}
+
 a:hover {
     text-decoration: underline;
 }
@@ -633,6 +637,7 @@ nav .button:not(.inner *) {
     transition:
         opacity 0.15s,
         transform 0.15s;
+    font-size: 0.95rem;
 }
 
 nav button:not(.inner *):hover,

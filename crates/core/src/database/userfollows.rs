@@ -145,6 +145,36 @@ impl DataManager {
         Ok(res.unwrap())
     }
 
+    /// Complete a vector of just userfollows with their receiver as well.
+    pub async fn fill_userfollows_with_receiver(
+        &self,
+        userfollows: Vec<UserFollow>,
+    ) -> Result<Vec<(UserFollow, User)>> {
+        let mut out: Vec<(UserFollow, User)> = Vec::new();
+
+        for userfollow in userfollows {
+            let receiver = userfollow.receiver.clone();
+            out.push((userfollow, self.get_user_by_id(receiver).await?));
+        }
+
+        Ok(out)
+    }
+
+    /// Complete a vector of just userfollows with their initiator as well.
+    pub async fn fill_userfollows_with_initiator(
+        &self,
+        userfollows: Vec<UserFollow>,
+    ) -> Result<Vec<(UserFollow, User)>> {
+        let mut out: Vec<(UserFollow, User)> = Vec::new();
+
+        for userfollow in userfollows {
+            let initiator = userfollow.initiator.clone();
+            out.push((userfollow, self.get_user_by_id(initiator).await?));
+        }
+
+        Ok(out)
+    }
+
     /// Create a new user follow in the database.
     ///
     /// # Arguments

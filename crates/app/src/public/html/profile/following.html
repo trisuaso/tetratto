@@ -1,0 +1,22 @@
+{% import "macros.html" as macros %} {% extends "profile/base.html" %} {% block
+content %}
+<div class="card-nest">
+    <div class="card small flex gap-2 items-center">
+        {{ icon "users-round" }}
+        <span>{{ text "auth:label.following" }}</span>
+    </div>
+
+    <div class="card flex flex-col gap-4">
+        <!-- prettier-ignore -->
+        {% for item in list %}
+        <div class="card-nest">
+            <div class="card small">
+                Since <span class="date">{{ item[0].created }}</span>
+            </div>
+
+            {{ components::user_card(user=item[1]) }}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -84,6 +84,10 @@ impl DataManager {
             return Err(Error::DataTooShort("password".to_string()));
         }
 
+        if self.0.banned_usernames.contains(&data.username) {
+            return Err(Error::MiscError("This username cannot be used".to_string()));
+        }
+
         // make sure username isn't taken
         if self.get_user_by_username(&data.username).await.is_ok() {
             return Err(Error::UsernameInUse);

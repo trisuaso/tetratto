@@ -34,14 +34,14 @@
                     <div class="card flex flex-col gap-2" id="social">
                         <div class="w-full flex">
                             <a
-                                href="/user/{{ profile.username }}/followers"
+                                href="/@{{ profile.username }}/followers"
                                 class="w-full flex justify-center items-center gap-2"
                             >
                                 <h4>{{ profile.follower_count }}</h4>
                                 <span>{{ text "auth:label.followers" }}</span>
                             </a>
                             <a
-                                href="/user/{{ profile.username }}/following"
+                                href="/@{{ profile.username }}/following"
                                 class="w-full flex justify-center items-center gap-2"
                             >
                                 <h4>{{ profile.following_count }}</h4>

@@ -18,14 +18,15 @@ pub async fn redirect_from_id(
     Extension(data): Extension<State>,
     Path(id): Path<String>,
 ) -> impl IntoResponse {
-    match (data.read().await).0
+    match (data.read().await)
+        .0
         .get_user_by_id(match id.parse::<usize>() {
             Ok(id) => id,
             Err(_) => return Redirect::to("/"),
         })
         .await
     {
-        Ok(u) => Redirect::to(&format!("/user/{}", u.username)),
+        Ok(u) => Redirect::to(&format!("/@{}", u.username)),
         Err(_) => Redirect::to("/"),
     }
 }

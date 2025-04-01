@@ -87,94 +87,107 @@ community %}
     {% endif %}
 </button>
 {%- endmacro %} {% macro post(post, owner, secondary=false, community=false,
-show_community=true) -%}
-<div class="card flex flex-col gap-2 {% if secondary %}secondary{% endif %}">
-    <div class="w-full flex gap-2">
-        <a href="/user/{{ owner.username }}">
-            {{ components::avatar(username=post.owner, size="52px",
-            selector_type="id") }}
-        </a>
-
-        <div class="flex flex-col w-full gap-1">
-            <div class="flex flex-wrap gap-2 items-center">
-                <a href="/user/{{ owner.username }}"
-                    >{{ components::username(user=owner) }}</a
-                >
-
-                <span class="fade date">{{ post.created }}</span>
-
-                {% if show_community %}
-                <a href="/api/v1/communities/find/{{ post.community }}">
-                    <!-- prettier-ignore -->
-                    {% if community %}
-                        {{ components::community_avatar(id=post.community,
-                        community=community) }}
-                    {% else %}
-                        {{ components::community_avatar(id=post.community) }}
-                    {% endif %}
-                </a>
-                {% endif %}
-            </div>
-
-            <span id="post-content:{{ post.id }}"
-                >{{ post.content|markdown|safe }}</span
-            >
-        </div>
-    </div>
-
-    <div class="flex justify-between items-center gap-2 w-full">
-        {% if user %}
-        <div
-            class="flex gap-1 reactions_box"
-            hook="check_reactions"
-            hook-arg:id="{{ post.id }}"
+show_community=true) -%} {% if community and show_community %}
+<div class="card-nest">
+    <div class="card small">
+        <a
+            href="/api/v1/communities/find/{{ post.community }}"
+            class="flush flex gap-1 items-center"
         >
-            {{ components::likes(id=post.id, asset_type="Post",
-            likes=post.likes, dislikes=post.dislikes) }}
-        </div>
-        {% else %}
-        <div></div>
-        {% endif %}
-
-        <div class="flex gap-1 buttons_box">
-            <a href="/post/{{ post.id }}" class="button camo small">
-                {{ icon "message-circle" }}
-                <span>{{ post.comment_count }}</span>
+            {{ components::community_avatar(id=post.community,
+            community=community) }}
+            <b>{{ community.title }}</b>
+        </a>
+    </div>
+    {% endif %}
+    <div
+        class="card flex flex-col gap-2 {% if secondary %}secondary{% endif %}"
+    >
+        <div class="w-full flex gap-2">
+            <a href="/@{{ owner.username }}">
+                {{ components::avatar(username=post.owner, size="52px",
+                selector_type="id") }}
             </a>
 
-            <a
-                href="/post/{{ post.id }}"
-                class="button camo small"
-                target="_blank"
-            >
-                {{ icon "external-link" }}
-            </a>
-
-            {% if user %} {% if (user.id == post.owner) or is_helper %}
-            <div class="dropdown">
-                <button
-                    class="camo small"
-                    onclick="trigger('atto::hooks::dropdown', [event])"
-                    exclude="dropdown"
-                >
-                    {{ icon "ellipsis" }}
-                </button>
-
-                <div class="inner">
-                    <button
-                        class="red"
-                        onclick="trigger('me::remove_post', ['{{ post.id }}'])"
+            <div class="flex flex-col w-full gap-1">
+                <div class="flex flex-wrap gap-2 items-center">
+                    <a href="/@{{ owner.username }}"
+                        >{{ components::username(user=owner) }}</a
                     >
-                        {{ icon "trash" }}
-                        <span>{{ text "general:action.delete" }}</span>
-                    </button>
+
+                    <span class="fade date">{{ post.created }}</span>
+
+                    {% if show_community %}
+                    <a href="/api/v1/communities/find/{{ post.community }}">
+                        <!-- prettier-ignore -->
+                        {% if not community %}
+                            {{ components::community_avatar(id=post.community) }}
+                        {% endif %}
+                    </a>
+                    {% endif %}
                 </div>
+
+                <span id="post-content:{{ post.id }}"
+                    >{{ post.content|markdown|safe }}</span
+                >
             </div>
-            {% endif %} {% endif %}
+        </div>
+
+        <div class="flex justify-between items-center gap-2 w-full">
+            {% if user %}
+            <div
+                class="flex gap-1 reactions_box"
+                hook="check_reactions"
+                hook-arg:id="{{ post.id }}"
+            >
+                {{ components::likes(id=post.id, asset_type="Post",
+                likes=post.likes, dislikes=post.dislikes) }}
+            </div>
+            {% else %}
+            <div></div>
+            {% endif %}
+
+            <div class="flex gap-1 buttons_box">
+                <a href="/post/{{ post.id }}" class="button camo small">
+                    {{ icon "message-circle" }}
+                    <span>{{ post.comment_count }}</span>
+                </a>
+
+                <a
+                    href="/post/{{ post.id }}"
+                    class="button camo small"
+                    target="_blank"
+                >
+                    {{ icon "external-link" }}
+                </a>
+
+                {% if user %} {% if (user.id == post.owner) or is_helper %}
+                <div class="dropdown">
+                    <button
+                        class="camo small"
+                        onclick="trigger('atto::hooks::dropdown', [event])"
+                        exclude="dropdown"
+                    >
+                        {{ icon "ellipsis" }}
+                    </button>
+
+                    <div class="inner">
+                        <button
+                            class="red"
+                            onclick="trigger('me::remove_post', ['{{ post.id }}'])"
+                        >
+                            {{ icon "trash" }}
+                            <span>{{ text "general:action.delete" }}</span>
+                        </button>
+                    </div>
+                </div>
+                {% endif %} {% endif %}
+            </div>
         </div>
     </div>
+    {% if community and show_community %}
 </div>
-{%- endmacro %} {% macro notification(notification) -%}
+{% endif %} {%- endmacro %} {% macro notification(notification) -%}
 <div class="w-full card-nest">
     <div class="card small notif_title flex items-center">
         {% if not notification.read %}
@@ -222,4 +235,15 @@ show_community=true) -%}
         </div>
     </div>
 </div>
+{%- endmacro %} {% macro user_card(user) -%}
+<a
+    class="card secondary w-full flex items-center gap-4"
+    href="/@{{ user.username }}"
+>
+    {{ components::avatar(username=user.username, size="48px") }}
+    <div class="flex flex-col">
+        <h3>{{ components::username(user=user) }}</h3>
+        <span class="fade">{{ user.username }}</span>
+    </div>
+</a>
 {%- endmacro %}

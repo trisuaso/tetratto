@@ -137,6 +137,9 @@ pub struct Config {
     /// version built with the server binary.
     #[serde(default = "default_no_track")]
     pub no_track: Vec<String>,
+    /// A list of usernames which cannot be used.
+    #[serde(default = "default_banned_usernames")]
+    pub banned_usernames: Vec<String>,
 }
 
 fn default_name() -> String {
@@ -170,6 +173,19 @@ fn default_no_track() -> Vec<String> {
     Vec::new()
 }
 
+fn default_banned_usernames() -> Vec<String> {
+    vec![
+        "admin".to_string(),
+        "owner".to_string(),
+        "moderator".to_string(),
+        "api".to_string(),
+        "communities".to_string(),
+        "notifs".to_string(),
+        "notification".to_string(),
+        "post".to_string(),
+    ]
+}
+
 impl Default for Config {
     fn default() -> Self {
         Self {
@@ -181,6 +197,7 @@ impl Default for Config {
             security: default_security(),
             dirs: default_dirs(),
             no_track: default_no_track(),
+            banned_usernames: default_banned_usernames(),
         }
     }
 }

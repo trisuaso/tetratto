@@ -25,7 +25,9 @@ pub fn routes() -> Router {
         .route("/auth/login", get(auth::login_request))
         // profile
         .route("/settings", get(profile::settings_request))
-        .route("/user/{username}", get(profile::posts_request))
+        .route("/@{username}", get(profile::posts_request))
+        .route("/@{username}/following", get(profile::following_request))
+        .route("/@{username}/followers", get(profile::followers_request))
         // communities
         .route("/communities", get(communities::list_request))
         .route("/community/{title}", get(communities::feed_request))
