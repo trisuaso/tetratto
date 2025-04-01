@@ -32,16 +32,39 @@
                             Everybody
                         </option>
                         <option
-                            value="Unlisted"
-                            selected="{% if community.read_access == 'Unlisted' %}true{% else %}false{% endif %}"
+                            value="Joined"
+                            selected="{% if community.read_access == 'Joined' %}true{% else %}false{% endif %}"
                         >
-                            Unlisted
+                            Joined
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="card-nest" ui_ident="join_access">
+                <div class="card small">
+                    <b>Join access</b>
+                </div>
+
+                <div class="card">
+                    <select onchange="save_access(event, 'join')">
+                        <option
+                            value="Everybody"
+                            selected="{% if community.join_access == 'Everybody' %}true{% else %}false{% endif %}"
+                        >
+                            Everybody
                         </option>
                         <option
-                            value="Private"
-                            selected="{% if community.read_access == 'Private' %}true{% else %}false{% endif %}"
+                            value="Request"
+                            selected="{% if community.join_access == 'Request' %}true{% else %}false{% endif %}"
                         >
-                            Private
+                            Request
+                        </option>
+                        <option
+                            value="Nobody"
+                            selected="{% if community.join_access == 'Nobody' %}true{% else %}false{% endif %}"
+                        >
+                            Nobody
                         </option>
                     </select>
                 </div>
@@ -74,6 +97,20 @@
                         </option>
                     </select>
                 </div>
+            </div>
+        </div>
+
+        <div class="card-nest" ui_ident="danger_zone">
+            <div class="card small flex gap-1 items-center red">
+                {{ icon "skull" }}
+                <b> {{ text "communities:label.danger_zone" }} </b>
+            </div>
+
+            <div class="card flex flex-wrap gap-2">
+                <button class="red quaternary" onclick="delete_community()">
+                    {{ icon "trash" }}
+                    <span>{{ text "communities:label.delete_community" }}</span>
+                </button>
             </div>
         </div>
 
@@ -185,6 +222,11 @@
         const element = document.getElementById("membership_info");
         const ui = ns("ui");
 
+        const uid = new URLSearchParams(window.location.search).get("uid");
+        if (uid) {
+            document.getElementById("uid").value = uid;
+        }
+
         globalThis.ban_user = async (uid) => {
             if (
                 !(await trigger("atto::confirm", [
@@ -245,6 +287,57 @@
                 });
         };
 
+        globalThis.update_user_role = async (uid, new_role) => {
+            if (
+                !(await trigger("atto::confirm", [
+                    "Are you sure you would like to do this?",
+                ]))
+            ) {
+                return;
+            }
+
+            fetch(
+                `/api/v1/communities/{{ community.id }}/memberships/${uid}/role`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        role: Number.parseInt(new_role),
+                    }),
+                },
+            )
+                .then((res) => res.json())
+                .then((res) => {
+                    trigger("atto::toast", [
+                        res.ok ? "success" : "error",
+                        res.message,
+                    ]);
+                });
+        };
+
+        globalThis.kick_user = async (uid, new_role) => {
+            if (
+                !(await trigger("atto::confirm", [
+                    "Are you sure you would like to do this?",
+                ]))
+            ) {
+                return;
+            }
+
+            fetch(`/api/v1/communities/{{ community.id }}/memberships/${uid}`, {
+                method: "DELETE",
+            })
+                .then((res) => res.json())
+                .then((res) => {
+                    trigger("atto::toast", [
+                        res.ok ? "success" : "error",
+                        res.message,
+                    ]);
+                });
+        };
+
         globalThis.select_user_from_form = (e) => {
             e.preventDefault();
             fetch(
@@ -261,9 +354,11 @@
                         return;
                     }
 
-                    element.innerHTML = `<div class="flex gap-2" ui_ident="actions">
+                    element.innerHTML = `<div class="flex gap-2 flex-wrap" ui_ident="actions">
                         <a target="_blank" class="button" href="/api/v1/auth/profile/find/${e.target.uid.value}">Open user profile</a>
                         ${res.payload.role !== 33 ? `<button class="red quaternary" onclick="ban_user('${e.target.uid.value}')">Ban</button>` : `<button class="quaternary" onclick="unban_user('${e.target.uid.value}')">Unban</button>`}
+                        ${res.payload.role !== 65 ? `<button class="red quaternary" onclick="update_user_role('${e.target.uid.value}', 65)">Send to review</button>` : `<button class="green quaternary" onclick="update_user_role('${e.target.uid.value}', 5)">Accept join request</button>`}
+                        <button class="red quaternary" onclick="kick_user('${e.target.uid.value}')">Kick</button>
                     </div>`;
 
                     ui.refresh_container(element, ["actions"]);
@@ -278,34 +373,11 @@
                         ],
                         null,
                         {
-                            role: async (new_role) => {
-                                if (
-                                    !(await trigger("atto::confirm", [
-                                        "Are you sure you would like to do this?",
-                                    ]))
-                                ) {
-                                    return;
-                                }
-
-                                fetch(
-                                    `/api/v1/communities/{{ community.id }}/memberships/${e.target.uid.value}/role`,
-                                    {
-                                        method: "POST",
-                                        headers: {
-                                            "Content-Type": "application/json",
-                                        },
-                                        body: JSON.stringify({
-                                            role: Number.parseInt(new_role),
-                                        }),
-                                    },
-                                )
-                                    .then((res) => res.json())
-                                    .then((res) => {
-                                        trigger("atto::toast", [
-                                            res.ok ? "success" : "error",
-                                            res.message,
-                                        ]);
-                                    });
+                            role: (new_role) => {
+                                return update_user_role(
+                                    e.target.uid.value,
+                                    user_role,
+                                );
                             },
                         },
                     );
@@ -400,8 +472,30 @@
                 });
         };
 
+        globalThis.delete_community = async () => {
+            if (
+                !(await trigger("atto::confirm", [
+                    "Are you sure you would like to do this? This action is permanent.",
+                ]))
+            ) {
+                return;
+            }
+
+            fetch(`/api/v1/communities/{{ community.id }}`, {
+                method: "DELETE",
+            })
+                .then((res) => res.json())
+                .then((res) => {
+                    trigger("atto::toast", [
+                        res.ok ? "success" : "error",
+                        res.message,
+                    ]);
+                });
+        };
+
         ui.refresh_container(document.getElementById("manage_fields"), [
             "read_access",
+            "join_access",
             "write_access",
             "change_avatar",
             "change_banner",

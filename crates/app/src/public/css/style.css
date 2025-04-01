@@ -880,6 +880,7 @@ dialog::backdrop {
 .toast {
     box-shadow: 0 0 8px var(--color-shadow);
     width: max-content;
+    max-width: calc(100dvw - 1rem);
     border-radius: var(--radius);
     padding: 0.75rem 1rem;
     animation: popin ease-in-out 1 0.15s running;

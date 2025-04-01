@@ -14,8 +14,9 @@ use tetratto_core::model::{
 use crate::{
     State, get_user_from_token,
     routes::api::v1::{
-        CreateCommunity, UpdateCommunityContext, UpdateCommunityReadAccess, UpdateCommunityTitle,
-        UpdateCommunityWriteAccess, UpdateMembershipRole,
+        CreateCommunity, UpdateCommunityContext, UpdateCommunityJoinAccess,
+        UpdateCommunityReadAccess, UpdateCommunityTitle, UpdateCommunityWriteAccess,
+        UpdateMembershipRole,
     },
 };
 
@@ -175,6 +176,31 @@ pub async fn update_write_access_request(
     }
 }
 
+pub async fn update_join_access_request(
+    jar: CookieJar,
+    Extension(data): Extension<State>,
+    Path(id): Path<usize>,
+    Json(req): Json<UpdateCommunityJoinAccess>,
+) -> impl IntoResponse {
+    let data = &(data.read().await).0;
+    let user = match get_user_from_token!(jar, data) {
+        Some(ua) => ua,
+        None => return Json(Error::NotAllowed.into()),
+    };
+
+    match data
+        .update_community_join_access(id, user, req.access)
+        .await
+    {
+        Ok(_) => Json(ApiReturn {
+            ok: true,
+            message: "Community updated".to_string(),
+            payload: (),
+        }),
+        Err(e) => Json(e.into()),
+    }
+}
+
 pub async fn get_membership(
     jar: CookieJar,
     Extension(data): Extension<State>,
@@ -225,9 +251,9 @@ pub async fn create_membership(
         ))
         .await
     {
-        Ok(_) => Json(ApiReturn {
+        Ok(m) => Json(ApiReturn {
             ok: true,
-            message: "Community joined".to_string(),
+            message: m,
             payload: (),
         }),
         Err(e) => Json(e.into()),
@@ -320,6 +346,31 @@ pub async fn update_membership_role(
                         "You have been unbanned from a community.".to_string(),
                         format!(
                             "You have been unbanned from [{}](/community/{}).",
+                            community.title, community.title
+                        ),
+                        membership.owner,
+                    ))
+                    .await
+                {
+                    return Json(e.into());
+                };
+
+                if let Err(e) = data.incr_community_member_count(community.id).await {
+                    return Json(e.into());
+                }
+            } else if req.role.check(CommunityPermission::REQUESTED) {
+                // user was demoted to a request again
+                if let Err(e) = data.decr_community_member_count(community.id).await {
+                    return Json(e.into());
+                }
+            } else if membership.role.check(CommunityPermission::REQUESTED) {
+                // user was accepted to community
+                if let Err(e) = data
+                    .create_notification(Notification::new(
+                        "You have been accepted into a community you requested to join!"
+                            .to_string(),
+                        format!(
+                            "You have been accepted into [{}](/community/{}).",
                             community.title, community.title
                         ),
                         membership.owner,

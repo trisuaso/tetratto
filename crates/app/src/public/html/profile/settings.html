@@ -378,8 +378,19 @@
                 profile_settings,
                 [
                     [
-                        ["private_profile", "Private profile"],
+                        [
+                            "private_profile",
+                            "Only allow users I'm following to view my profile",
+                        ],
                         "{{ user.settings.private_profile }}",
+                        "checkbox",
+                    ],
+                    [
+                        [
+                            "private_communities",
+                            "Keep my joined communities private",
+                        ],
+                        "{{ user.settings.private_communities }}",
                         "checkbox",
                     ],
                 ],

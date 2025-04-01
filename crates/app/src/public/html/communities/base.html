@@ -20,7 +20,7 @@
                                 {% if community.context.display_name %}
                                     {{ community.context.display_name }}
                                 {% else %}
-                                    {{ community.username }}
+                                    {{ community.title }}
                                 {% endif %}
                             </h3>
 
@@ -30,7 +30,8 @@
 
                     {% if user %}
                     <div class="card flex" id="join_or_leave">
-                        {% if not is_owner %} {% if not is_joined %}
+                        {% if not is_owner %} {% if not is_joined %} {% if not
+                        is_pending %}
                         <button class="primary" onclick="join_community()">
                             {{ icon "circle-plus" }}
                             <span>{{ text "communities:action.join" }}</span>
@@ -50,10 +51,55 @@
                                             res.ok ? "success" : "error",
                                             res.message,
                                         ]);
+
+                                        setTimeout(() => {
+                                            window.location.reload();
+                                        }, 150);
                                     });
                             };
                         </script>
                         {% else %}
+                        <button
+                            class="quaternary red"
+                            onclick="cancel_request()"
+                        >
+                            {{ icon "x" }}
+                            <span
+                                >{{ text "communities:action.cancel_request"
+                                }}</span
+                            >
+                        </button>
+
+                        <script>
+                            globalThis.cancel_request = async () => {
+                                if (
+                                    !(await trigger("atto::confirm", [
+                                        "Are you sure you would like to do this?",
+                                    ]))
+                                ) {
+                                    return;
+                                }
+
+                                fetch(
+                                    "/api/v1/communities/{{ community.id }}/memberships/{{ user.id }}",
+                                    {
+                                        method: "DELETE",
+                                    },
+                                )
+                                    .then((res) => res.json())
+                                    .then((res) => {
+                                        trigger("atto::toast", [
+                                            res.ok ? "success" : "error",
+                                            res.message,
+                                        ]);
+
+                                        setTimeout(() => {
+                                            window.location.reload();
+                                        }, 150);
+                                    });
+                            };
+                        </script>
+                        {% endif %} {% else %}
                         <button
                             class="quaternary red"
                             onclick="leave_community()"
@@ -84,6 +130,10 @@
                                             res.ok ? "success" : "error",
                                             res.message,
                                         ]);
+
+                                        setTimeout(() => {
+                                            window.location.reload();
+                                        }, 150);
                                     });
                             };
                         </script>
@@ -154,7 +204,25 @@
                 </div>
             </div>
 
-            <div class="rhs w-full">{% block content %}{% endblock %}</div>
+            <div class="rhs w-full">
+                {% if can_read %} {% block content %}{% endblock %} {% else %}
+                <div class="card-nest">
+                    <div class="card small flex items-center gap-2">
+                        {{ icon "frown" }}
+                        <b
+                            >{{ text "communities:label.not_allowed_to_read"
+                            }}</b
+                        >
+                    </div>
+
+                    <div class="card">
+                        <span>
+                            {{ text "communities:label.might_need_to_join" }}
+                        </span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 </article>

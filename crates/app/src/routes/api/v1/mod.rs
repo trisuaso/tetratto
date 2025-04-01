@@ -10,7 +10,10 @@ use axum::{
 };
 use serde::Deserialize;
 use tetratto_core::model::{
-    communities::{CommunityContext, CommunityReadAccess, CommunityWriteAccess, PostContext},
+    communities::{
+        CommunityContext, CommunityJoinAccess, CommunityReadAccess, CommunityWriteAccess,
+        PostContext,
+    },
     communities_permissions::CommunityPermission,
     reactions::AssetType,
 };
@@ -52,6 +55,10 @@ pub fn routes() -> Router {
         .route(
             "/communities/{id}/access/write",
             post(communities::communities::update_write_access_request),
+        )
+        .route(
+            "/communities/{id}/access/join",
+            post(communities::communities::update_join_access_request),
         )
         .route(
             "/communities/{id}/upload/avatar",
@@ -192,6 +199,11 @@ pub struct UpdateCommunityReadAccess {
 #[derive(Deserialize)]
 pub struct UpdateCommunityWriteAccess {
     pub access: CommunityWriteAccess,
+}
+
+#[derive(Deserialize)]
+pub struct UpdateCommunityJoinAccess {
+    pub access: CommunityJoinAccess,
 }
 
 #[derive(Deserialize)]

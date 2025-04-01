@@ -145,7 +145,7 @@ pub struct Config {
     /// version built with the server binary.
     #[serde(default = "default_no_track")]
     pub no_track: Vec<String>,
-    /// A list of usernames which cannot be used.
+    /// A list of usernames which cannot be used. This also includes community names.
     #[serde(default = "default_banned_usernames")]
     pub banned_usernames: Vec<String>,
 }
@@ -195,6 +195,7 @@ fn default_banned_usernames() -> Vec<String> {
         "notifs".to_string(),
         "notification".to_string(),
         "post".to_string(),
+        "void".to_string(),
     ]
 }
 

@@ -33,6 +33,8 @@ pub struct UserSettings {
     pub biography: String,
     #[serde(default)]
     pub private_profile: bool,
+    #[serde(default)]
+    pub private_communities: bool,
 }
 
 impl Default for UserSettings {
@@ -41,6 +43,7 @@ impl Default for UserSettings {
             display_name: String::new(),
             biography: String::new(),
             private_profile: false,
+            private_communities: false,
         }
     }
 }

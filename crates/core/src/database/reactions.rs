@@ -96,7 +96,7 @@ impl DataManager {
                 } {
                     return Err(e);
                 } else if data.is_like {
-                    let community = self.get_community_by_id(data.asset).await.unwrap();
+                    let community = self.get_community_by_id_no_void(data.asset).await.unwrap();
 
                     if community.owner != user.id {
                         if let Err(e) = self

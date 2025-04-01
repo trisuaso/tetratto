@@ -1,9 +1,13 @@
 use super::*;
 use crate::cache::Cache;
+use crate::model::auth::Notification;
 use crate::model::communities::Community;
 use crate::model::{
-    Error, Result, auth::User, communities::CommunityMembership,
-    communities_permissions::CommunityPermission, permissions::FinePermission,
+    Error, Result,
+    auth::User,
+    communities::{CommunityJoinAccess, CommunityMembership},
+    communities_permissions::CommunityPermission,
+    permissions::FinePermission,
 };
 use crate::{auto_method, execute, get, query_row, query_rows};
 
@@ -73,7 +77,8 @@ impl DataManager {
 
         let res = query_rows!(
             &conn,
-            "SELECT * FROM memberships WHERE owner = $1 AND role IS NOT 33",
+            // 33 = banned, 65 = pending membership
+            "SELECT * FROM memberships WHERE owner = $1 AND role IS NOT 33 AND role IS NOT 65 ORDER BY created DESC",
             &[&(owner as isize)],
             |x| { Self::get_membership_from_row(x) }
         );
@@ -89,7 +94,8 @@ impl DataManager {
     ///
     /// # Arguments
     /// * `data` - a mock [`CommunityMembership`] object to insert
-    pub async fn create_membership(&self, data: CommunityMembership) -> Result<()> {
+    #[async_recursion::async_recursion]
+    pub async fn create_membership(&self, data: CommunityMembership) -> Result<String> {
         // make sure membership doesn't already exist
         if self
             .get_membership_by_owner_community(data.owner, data.community)
@@ -97,6 +103,34 @@ impl DataManager {
             .is_ok()
         {
             return Err(Error::MiscError("Already joined community".to_string()));
+        }
+
+        // check permission
+        let community = self.get_community_by_id(data.community).await?;
+
+        match community.join_access {
+            CommunityJoinAccess::Nobody => return Err(Error::NotAllowed),
+            CommunityJoinAccess::Request => {
+                if !data.role.check(CommunityPermission::REQUESTED) {
+                    let mut data = data.clone();
+                    data.role = CommunityPermission::DEFAULT | CommunityPermission::REQUESTED;
+
+                    // send notification to the owner
+                    self.create_notification(Notification::new(
+                        "You've received a community join request!".to_string(),
+                        format!(
+                            "[Somebody](/api/v1/auth/profile/find/{}) is asking to join your [community](/community/{}).\n\n[Click here to review their request](/community/{}/manage?uid={}#/members).",
+                            data.owner, data.community, data.community, data.owner
+                        ),
+                        community.owner,
+                    ))
+                    .await?;
+
+                    // ...
+                    return self.create_membership(data).await;
+                }
+            }
+            _ => (),
         }
 
         // ...
@@ -121,11 +155,18 @@ impl DataManager {
             return Err(Error::DatabaseError(e.to_string()));
         }
 
-        self.incr_community_member_count(data.community)
-            .await
-            .unwrap();
+        if !data.role.check(CommunityPermission::REQUESTED) {
+            // users who are just a requesting to join do not count towards the member count
+            self.incr_community_member_count(data.community)
+                .await
+                .unwrap();
+        }
 
-        Ok(())
+        Ok(if data.role.check(CommunityPermission::REQUESTED) {
+            "Join request sent".to_string()
+        } else {
+            "Community joined".to_string()
+        })
     }
 
     /// Delete a membership given its `id`
@@ -134,7 +175,10 @@ impl DataManager {
 
         if user.id != y.owner {
             // pull other user's membership status
-            if let Ok(z) = self.get_membership_by_id(user.id).await {
+            if let Ok(z) = self
+                .get_membership_by_owner_community(user.id, y.community)
+                .await
+            {
                 // somebody with MANAGE_ROLES _and_ a higher role number can remove us
                 if (!z.role.check(CommunityPermission::MANAGE_ROLES) | (z.role < y.role))
                     && !z.role.check(CommunityPermission::ADMINISTRATOR)

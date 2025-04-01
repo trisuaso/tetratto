@@ -11,13 +11,15 @@ pub struct Community {
     pub context: CommunityContext,
     /// The ID of the owner of the community.
     pub owner: usize,
-    /// Who can read the community page.
+    /// Who can read the community.
     pub read_access: CommunityReadAccess,
-    /// Who can write to the community page (create posts belonging to it).
+    /// Who can write to the community (create posts belonging to it).
     ///
-    /// The owner of the community page (and moderators) are the ***only*** people
+    /// The owner of the community (and moderators) are the ***only*** people
     /// capable of removing posts.
     pub write_access: CommunityWriteAccess,
+    /// Who can join the community.
+    pub join_access: CommunityJoinAccess,
     // likes
     pub likes: isize,
     pub dislikes: isize,
@@ -42,6 +44,25 @@ impl Community {
             owner,
             read_access: CommunityReadAccess::default(),
             write_access: CommunityWriteAccess::default(),
+            join_access: CommunityJoinAccess::default(),
+            likes: 0,
+            dislikes: 0,
+            member_count: 0,
+        }
+    }
+
+    /// Create the "void" community. This is where all posts with a deleted community
+    /// resolve to.
+    pub fn void() -> Self {
+        Self {
+            id: 0,
+            created: 0,
+            title: "void".to_string(),
+            context: CommunityContext::default(),
+            owner: 0,
+            read_access: CommunityReadAccess::Joined,
+            write_access: CommunityWriteAccess::Owner,
+            join_access: CommunityJoinAccess::Nobody,
             likes: 0,
             dislikes: 0,
             member_count: 0,
@@ -69,10 +90,8 @@ impl Default for CommunityContext {
 pub enum CommunityReadAccess {
     /// Everybody can view the community.
     Everybody,
-    /// Only people with the link to the community.
-    Unlisted,
-    /// Only the owner of the community.
-    Private,
+    /// Only people in the community can view the community.
+    Joined,
 }
 
 impl Default for CommunityReadAccess {
@@ -100,7 +119,24 @@ impl Default for CommunityWriteAccess {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+/// Who can join a [`Community`].
+#[derive(Serialize, Deserialize, PartialEq, Eq)]
+pub enum CommunityJoinAccess {
+    /// Joins are closed. Nobody can join the community.
+    Nobody,
+    /// All authenticated users can join the community.
+    Everybody,
+    /// People must send a request to join.
+    Request,
+}
+
+impl Default for CommunityJoinAccess {
+    fn default() -> Self {
+        Self::Everybody
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
 pub struct CommunityMembership {
     pub id: usize,
     pub created: usize,

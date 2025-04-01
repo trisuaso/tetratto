@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS communities (
     owner INTEGER NOT NULL,
     read_access TEXT NOT NULL,
     write_access TEXT NOT NULL,
+    join_access TEXT NOT NULL,
     -- likes
     likes INTEGER NOT NULL,
     dislikes INTEGER NOT NULL,
