@@ -31,21 +31,23 @@
                         </div>
                     </div>
 
-                    <div class="card flex" id="social">
-                        <a
-                            href="/user/{{ profile.username }}/followers"
-                            class="w-full flex justify-center items-center gap-2"
-                        >
-                            <h4>{{ profile.follower_count }}</h4>
-                            <span>{{ text "auth:label.followers" }}</span>
-                        </a>
-                        <a
-                            href="/user/{{ profile.username }}/following"
-                            class="w-full flex justify-center items-center gap-2"
-                        >
-                            <h4>{{ profile.following_count }}</h4>
-                            <span>{{ text "auth:label.following" }}</span>
-                        </a>
+                    <div class="card flex flex-col gap-2" id="social">
+                        <div class="w-full flex">
+                            <a
+                                href="/user/{{ profile.username }}/followers"
+                                class="w-full flex justify-center items-center gap-2"
+                            >
+                                <h4>{{ profile.follower_count }}</h4>
+                                <span>{{ text "auth:label.followers" }}</span>
+                            </a>
+                            <a
+                                href="/user/{{ profile.username }}/following"
+                                class="w-full flex justify-center items-center gap-2"
+                            >
+                                <h4>{{ profile.following_count }}</h4>
+                                <span>{{ text "auth:label.following" }}</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
 
@@ -72,6 +74,90 @@
                         </div>
                     </div>
                 </div>
+
+                {% if not is_self %}
+                <div class="card-nest">
+                    <div class="card small">
+                        <b>{{ text "auth:label.relationship" }}</b>
+                    </div>
+
+                    <div class="card flex gap-2 flex-wrap">
+                        {% if not is_blocking %} {% if not is_following %}
+                        <button onclick="toggle_follow_user()">
+                            {{ icon "user-plus" }}
+                            <span>{{ text "auto:action.follow" }}</span>
+                        </button>
+                        {% else %}
+                        <button
+                            onclick="toggle_follow_user()"
+                            class="quaternary red"
+                        >
+                            {{ icon "user-minus" }}
+                            <span>{{ text "auto:action.unfollow" }}</span>
+                        </button>
+                        {% endif %}
+
+                        <button
+                            onclick="toggle_block_user()"
+                            class="quaternary red"
+                        >
+                            {{ icon "shield" }}
+                            <span>{{ text "auto:action.block" }}</span>
+                        </button>
+                        {% else %}
+                        <button
+                            onclick="toggle_block_user()"
+                            class="quaternary red"
+                        >
+                            {{ icon "shield-off" }}
+                            <span>{{ text "auto:action.unblock" }}</span>
+                        </button>
+                        {% endif %}
+
+                        <script>
+                            globalThis.toggle_follow_user = () => {
+                                fetch(
+                                    "/api/v1/auth/profile/{{ profile.id }}/follow",
+                                    {
+                                        method: "POST",
+                                    },
+                                )
+                                    .then((res) => res.json())
+                                    .then((res) => {
+                                        trigger("atto::toast", [
+                                            res.ok ? "success" : "error",
+                                            res.message,
+                                        ]);
+                                    });
+                            };
+
+                            globalThis.toggle_block_user = async () => {
+                                if (
+                                    !(await trigger("atto::confirm", [
+                                        "Are you sure you would like to do this?",
+                                    ]))
+                                ) {
+                                    return;
+                                }
+
+                                fetch(
+                                    "/api/v1/auth/profile/{{ profile.id }}/block",
+                                    {
+                                        method: "POST",
+                                    },
+                                )
+                                    .then((res) => res.json())
+                                    .then((res) => {
+                                        trigger("atto::toast", [
+                                            res.ok ? "success" : "error",
+                                            res.message,
+                                        ]);
+                                    });
+                            };
+                        </script>
+                    </div>
+                </div>
+                {% endif %}
 
                 <div class="card-nest">
                     <div class="card small flex gap-2 items-center">

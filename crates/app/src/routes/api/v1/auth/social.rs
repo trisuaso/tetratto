@@ -4,7 +4,7 @@ use crate::{
 };
 use axum::{Extension, Json, extract::Path, response::IntoResponse};
 use axum_extra::extract::CookieJar;
-use tetratto_core::model::auth::{UserBlock, UserFollow};
+use tetratto_core::model::auth::{Notification, UserBlock, UserFollow};
 
 /// Toggle following on the given user.
 pub async fn follow_request(
@@ -20,7 +20,7 @@ pub async fn follow_request(
 
     if let Ok(userfollow) = data.get_userfollow_by_initiator_receiver(user.id, id).await {
         // delete
-        match data.delete_userfollow(userfollow.id, user).await {
+        match data.delete_userfollow(userfollow.id, &user).await {
             Ok(_) => Json(ApiReturn {
                 ok: true,
                 message: "User unfollowed".to_string(),
@@ -31,11 +31,27 @@ pub async fn follow_request(
     } else {
         // create
         match data.create_userfollow(UserFollow::new(user.id, id)).await {
-            Ok(_) => Json(ApiReturn {
-                ok: true,
-                message: "User followed".to_string(),
-                payload: (),
-            }),
+            Ok(_) => {
+                if let Err(e) = data
+                    .create_notification(Notification::new(
+                        "Somebody has followed you!".to_string(),
+                        format!(
+                            "You have been followed by [@{}](/api/v1/auth/profile/find/{}).",
+                            user.username, user.id
+                        ),
+                        id,
+                    ))
+                    .await
+                {
+                    return Json(e.into());
+                };
+
+                Json(ApiReturn {
+                    ok: true,
+                    message: "User followed".to_string(),
+                    payload: (),
+                })
+            }
             Err(e) => Json(e.into()),
         }
     }
@@ -70,10 +86,22 @@ pub async fn block_request(
                 if let Ok(userfollow) = data.get_userfollow_by_initiator_receiver(user.id, id).await
                 {
                     // automatically unfollow
-                    match data.delete_userfollow(userfollow.id, user).await {
+                    match data.delete_userfollow(userfollow.id, &user).await {
                         Ok(_) => Json(ApiReturn {
                             ok: true,
-                            message: "User unfollowed".to_string(),
+                            message: "User blocked".to_string(),
+                            payload: (),
+                        }),
+                        Err(e) => Json(e.into()),
+                    }
+                } else if let Ok(userfollow) =
+                    data.get_userfollow_by_receiver_initiator(user.id, id).await
+                {
+                    // automatically unfollow
+                    match data.delete_userfollow(userfollow.id, &user).await {
+                        Ok(_) => Json(ApiReturn {
+                            ok: true,
+                            message: "User blocked".to_string(),
                             payload: (),
                         }),
                         Err(e) => Json(e.into()),

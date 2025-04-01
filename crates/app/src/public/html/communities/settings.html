@@ -25,9 +25,24 @@
 
                 <div class="card">
                     <select onchange="save_access(event, 'read')">
-                        <option value="Everybody">Everybody</option>
-                        <option value="Unlisted">Unlisted</option>
-                        <option value="Private">Private</option>
+                        <option
+                            value="Everybody"
+                            selected="{% if community.read_access == 'Everybody' %}true{% else %}false{% endif %}"
+                        >
+                            Everybody
+                        </option>
+                        <option
+                            value="Unlisted"
+                            selected="{% if community.read_access == 'Unlisted' %}true{% else %}false{% endif %}"
+                        >
+                            Unlisted
+                        </option>
+                        <option
+                            value="Private"
+                            selected="{% if community.read_access == 'Private' %}true{% else %}false{% endif %}"
+                        >
+                            Private
+                        </option>
                     </select>
                 </div>
             </div>
@@ -39,9 +54,24 @@
 
                 <div class="card">
                     <select onchange="save_access(event, 'write')">
-                        <option value="Everybody">Everybody</option>
-                        <option value="Joined">Joined</option>
-                        <option value="Owner">Owner only</option>
+                        <option
+                            value="Everybody"
+                            selected="{% if community.write_access == 'Everybody' %}true{% else %}false{% endif %}"
+                        >
+                            Everybody
+                        </option>
+                        <option
+                            value="Joined"
+                            selected="{% if community.write_access == 'Joined' %}true{% else %}false{% endif %}"
+                        >
+                            Joined
+                        </option>
+                        <option
+                            value="Owner"
+                            selected="{% if community.write_access == 'Owner' %}true{% else %}false{% endif %}"
+                        >
+                            Owner only
+                        </option>
                     </select>
                 </div>
             </div>

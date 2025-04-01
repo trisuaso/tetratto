@@ -85,7 +85,7 @@ main {
 }
 
 article {
-    margin-top: 1rem;
+    margin: 1rem 0;
 }
 
 @media screen and (max-width: 900px) {

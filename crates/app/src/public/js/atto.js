@@ -34,6 +34,10 @@ media_theme_pref();
 (() => {
     const self = reg_ns("atto");
 
+    for (const element of document.querySelectorAll('[selected="false"]')) {
+        element.removeAttribute("selected");
+    }
+
     // init
     use("me", () => {});
 

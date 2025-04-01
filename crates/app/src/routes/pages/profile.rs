@@ -55,11 +55,15 @@ pub fn profile_context(
     communities: &Vec<Community>,
     is_self: bool,
     is_following: bool,
+    is_following_you: bool,
+    is_blocking: bool,
 ) {
     context.insert("profile", &profile);
     context.insert("communities", &communities);
     context.insert("is_self", &is_self);
     context.insert("is_following", &is_following);
+    context.insert("is_following_you", &is_following_you);
+    context.insert("is_blocking", &is_blocking);
 }
 
 /// `/user/{username}`
@@ -94,15 +98,17 @@ pub async fn posts_request(
     // check for private profile
     if other_user.settings.private_profile {
         if let Some(ref ua) = user {
-            if data
-                .0
-                .get_userfollow_by_initiator_receiver(other_user.id, ua.id)
-                .await
-                .is_err()
-            {
-                return Err(Html(
-                    render_error(Error::NotAllowed, &jar, &data, &user).await,
-                ));
+            if ua.id != other_user.id {
+                if data
+                    .0
+                    .get_userfollow_by_initiator_receiver(other_user.id, ua.id)
+                    .await
+                    .is_err()
+                {
+                    return Err(Html(
+                        render_error(Error::NotAllowed, &jar, &data, &user).await,
+                    ));
+                }
             }
         } else {
             return Err(Html(
@@ -151,6 +157,24 @@ pub async fn posts_request(
         false
     };
 
+    let is_following_you = if let Some(ref ua) = user {
+        data.0
+            .get_userfollow_by_receiver_initiator(ua.id, other_user.id)
+            .await
+            .is_ok()
+    } else {
+        false
+    };
+
+    let is_blocking = if let Some(ref ua) = user {
+        data.0
+            .get_userblock_by_initiator_receiver(ua.id, other_user.id)
+            .await
+            .is_ok()
+    } else {
+        false
+    };
+
     context.insert("posts", &posts);
     profile_context(
         &mut context,
@@ -158,6 +182,8 @@ pub async fn posts_request(
         &communities,
         is_self,
         is_following,
+        is_following_you,
+        is_blocking,
     );
 
     // return

@@ -181,7 +181,7 @@ impl DataManager {
         Ok(())
     }
 
-    pub async fn delete_userfollow(&self, id: usize, user: User) -> Result<()> {
+    pub async fn delete_userfollow(&self, id: usize, user: &User) -> Result<()> {
         let follow = self.get_userfollow_by_id(id).await?;
 
         if (user.id != follow.initiator) && (user.id != follow.receiver) {
@@ -208,11 +208,11 @@ impl DataManager {
         self.2.remove(format!("atto.userfollow:{}", id)).await;
 
         // decr counts
-        self.incr_user_following_count(follow.initiator)
+        self.decr_user_following_count(follow.initiator)
             .await
             .unwrap();
 
-        self.incr_user_follower_count(follow.receiver)
+        self.decr_user_follower_count(follow.receiver)
             .await
             .unwrap();
 
