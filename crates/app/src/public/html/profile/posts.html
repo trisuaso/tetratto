@@ -11,6 +11,8 @@ content %}
         {% for post in posts %}
             {{ components::post(post=post[0], owner=post[1], secondary=true, community=post[2], show_community=true) }}
         {% endfor %}
+
+        {{ components::pagination(page=page, items=posts|length) }}
     </div>
 </div>
 {% endblock %}

@@ -119,23 +119,27 @@ pub fn routes() -> Router {
         )
         .route(
             "/auth/profile/{id}/settings",
-            post(auth::profile::update_profile_settings_request),
+            post(auth::profile::update_user_settings_request),
+        )
+        .route(
+            "/auth/profile/{id}",
+            delete(auth::profile::delete_user_request),
         )
         .route(
             "/auth/profile/{id}/password",
-            post(auth::profile::update_profile_password_request),
+            post(auth::profile::update_user_password_request),
         )
         .route(
             "/auth/profile/{id}/username",
-            post(auth::profile::update_profile_username_request),
+            post(auth::profile::update_user_username_request),
         )
         .route(
             "/auth/profile/{id}/tokens",
-            post(auth::profile::update_profile_tokens_request),
+            post(auth::profile::update_user_tokens_request),
         )
         .route(
             "/auth/profile/{id}/verified",
-            post(auth::profile::update_profile_is_verified_request),
+            post(auth::profile::update_user_is_verified_request),
         )
         .route(
             "/auth/profile/find/{id}",
@@ -255,4 +259,9 @@ pub struct UpdateNotificationRead {
 #[derive(Deserialize)]
 pub struct UpdateMembershipRole {
     pub role: CommunityPermission,
+}
+
+#[derive(Deserialize)]
+pub struct DeleteUser {
+    pub password: String,
 }

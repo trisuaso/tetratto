@@ -1,7 +1,7 @@
 use crate::{
     State, get_user_from_token,
     model::{ApiReturn, Error},
-    routes::api::v1::{UpdateUserIsVerified, UpdateUserPassword, UpdateUserUsername},
+    routes::api::v1::{DeleteUser, UpdateUserIsVerified, UpdateUserPassword, UpdateUserUsername},
 };
 use axum::{
     Extension, Json,
@@ -32,7 +32,7 @@ pub async fn redirect_from_id(
 }
 
 /// Update the settings of the given user.
-pub async fn update_profile_settings_request(
+pub async fn update_user_settings_request(
     jar: CookieJar,
     Path(id): Path<usize>,
     Extension(data): Extension<State>,
@@ -59,7 +59,7 @@ pub async fn update_profile_settings_request(
 }
 
 /// Update the password of the given user.
-pub async fn update_profile_password_request(
+pub async fn update_user_password_request(
     jar: CookieJar,
     Path(id): Path<usize>,
     Extension(data): Extension<State>,
@@ -88,7 +88,7 @@ pub async fn update_profile_password_request(
     }
 }
 
-pub async fn update_profile_username_request(
+pub async fn update_user_username_request(
     jar: CookieJar,
     Path(id): Path<usize>,
     Extension(data): Extension<State>,
@@ -119,7 +119,7 @@ pub async fn update_profile_username_request(
 }
 
 /// Update the tokens of the given user.
-pub async fn update_profile_tokens_request(
+pub async fn update_user_tokens_request(
     jar: CookieJar,
     Path(id): Path<usize>,
     Extension(data): Extension<State>,
@@ -146,7 +146,7 @@ pub async fn update_profile_tokens_request(
 }
 
 /// Update the verification status of the given user.
-pub async fn update_profile_is_verified_request(
+pub async fn update_user_is_verified_request(
     jar: CookieJar,
     Path(id): Path<usize>,
     Extension(data): Extension<State>,
@@ -165,6 +165,36 @@ pub async fn update_profile_is_verified_request(
         Ok(_) => Json(ApiReturn {
             ok: true,
             message: "Verified status updated".to_string(),
+            payload: (),
+        }),
+        Err(e) => Json(e.into()),
+    }
+}
+
+/// Delete the given user.
+pub async fn delete_user_request(
+    jar: CookieJar,
+    Path(id): Path<usize>,
+    Extension(data): Extension<State>,
+    Json(req): Json<DeleteUser>,
+) -> impl IntoResponse {
+    let data = &(data.read().await).0;
+    let user = match get_user_from_token!(jar, data) {
+        Some(ua) => ua,
+        None => return Json(Error::NotAllowed.into()),
+    };
+
+    if user.id != id && !user.permissions.check(FinePermission::MANAGE_USERS) {
+        return Json(Error::NotAllowed.into());
+    }
+
+    match data
+        .delete_user(id, &req.password, user.permissions.check_manager())
+        .await
+    {
+        Ok(_) => Json(ApiReturn {
+            ok: true,
+            message: "User deleted".to_string(),
             payload: (),
         }),
         Err(e) => Json(e.into()),

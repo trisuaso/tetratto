@@ -246,4 +246,20 @@ show_community=true) -%} {% if community and show_community %}
         <span class="fade">{{ user.username }}</span>
     </div>
 </a>
+{%- endmacro %} {% macro pagination(page=0, items=0) -%}
+<div class="flex justify-between gap-2 w-full">
+    {% if page > 0 %}
+    <a class="button quaternary" href="?page={{ page - 1 }}">
+        {{ icon "arrow-left" }}
+        <span>{{ text "general:link.previous" }}</span>
+    </a>
+    {% else %}
+    <div></div>
+    {% endif %} {% if items != 0 %}
+    <a class="button quaternary" href="?page={{ page + 1 }}">
+        <span>{{ text "general:link.next" }}</span>
+        {{ icon "arrow-right"}}
+    </a>
+    {% endif %}
+</div>
 {%- endmacro %}

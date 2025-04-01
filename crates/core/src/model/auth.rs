@@ -9,7 +9,7 @@ use tetratto_shared::{
 /// `(ip, token, creation timestamp)`
 pub type Token = (String, String, usize);
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct User {
     pub id: usize,
     pub created: usize,

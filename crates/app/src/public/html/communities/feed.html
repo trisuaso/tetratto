@@ -44,6 +44,8 @@
             {% for post in feed %}
                 {{ components::post(post=post[0], owner=post[1], secondary=true, show_community=false) }}
             {% endfor %}
+
+            {{ components::pagination(page=page, items=feed|length) }}
         </div>
     </div>
 </div>

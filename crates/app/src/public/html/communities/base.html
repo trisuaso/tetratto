@@ -137,7 +137,7 @@
                                     });
                             };
                         </script>
-                        {% endif %} {% else %}
+                        {% endif %} {% endif %} {% if is_owner or is_manager %}
                         <a
                             href="/community/{{ community.title }}/manage"
                             class="button primary"

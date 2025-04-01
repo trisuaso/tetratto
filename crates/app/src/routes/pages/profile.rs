@@ -6,13 +6,23 @@ use axum::{
     response::{Html, IntoResponse},
 };
 use axum_extra::extract::CookieJar;
+use serde::Deserialize;
 use tera::Context;
-use tetratto_core::model::{Error, auth::User, communities::Community};
+use tetratto_core::model::{
+    Error, auth::User, communities::Community, permissions::FinePermission,
+};
+
+#[derive(Deserialize)]
+pub struct SettingsProps {
+    #[serde(default)]
+    pub username: String,
+}
 
 /// `/settings`
 pub async fn settings_request(
     jar: CookieJar,
     Extension(data): Extension<State>,
+    Query(req): Query<SettingsProps>,
 ) -> impl IntoResponse {
     let data = data.read().await;
     let user = match get_user_from_token!(jar, data.0) {
@@ -24,12 +34,25 @@ pub async fn settings_request(
         }
     };
 
-    let settings = user.settings.clone();
-    let tokens = user.tokens.clone();
+    let profile = if req.username.is_empty() | !user.permissions.check(FinePermission::MANAGE_USERS)
+    {
+        user.clone()
+    } else {
+        match data.0.get_user_by_username(&req.username).await {
+            Ok(ua) => ua,
+            Err(e) => {
+                return Err(Html(render_error(e, &jar, &data, &None).await));
+            }
+        }
+    };
+
+    let settings = profile.settings.clone();
+    let tokens = profile.tokens.clone();
 
     let lang = get_lang!(jar, data.0);
     let mut context = initial_context(&data.0.0, lang, &Some(user)).await;
 
+    context.insert("profile", &profile);
     context.insert(
         "user_settings_serde",
         &serde_json::to_string(&settings)
@@ -98,7 +121,7 @@ pub async fn posts_request(
     // check for private profile
     if other_user.settings.private_profile {
         if let Some(ref ua) = user {
-            if ua.id != other_user.id {
+            if (ua.id != other_user.id) && !ua.permissions.check(FinePermission::MANAGE_USERS) {
                 if data
                     .0
                     .get_userfollow_by_initiator_receiver(other_user.id, ua.id)
@@ -176,6 +199,7 @@ pub async fn posts_request(
     };
 
     context.insert("posts", &posts);
+    context.insert("page", &props.page);
     profile_context(
         &mut context,
         &other_user,

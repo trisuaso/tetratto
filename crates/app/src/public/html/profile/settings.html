@@ -2,6 +2,13 @@
 <title>Settings - {{ config.name }}</title>
 {% endblock %} {% block body %} {{ macros::nav() }}
 <main class="flex flex-col gap-2">
+    {% if profile.id != user.id %}
+    <div class="card w-full red flex gap-2 items-center">
+        {{ icon "skull" }}
+        <b>Editing other user's settings! Please be careful.</b>
+    </div>
+    {% endif %}
+
     <div class="pillmenu">
         <a data-tab-button="account" class="active" href="#/account">
             {{ text "settings:tab.account" }}
@@ -95,6 +102,38 @@
             </div>
         </div>
 
+        <div class="card-nest" ui_ident="change_password">
+            <div class="card small flex items-center gap-2 red">
+                {{ icon "skull" }}
+                <b>{{ text "settings:label.delete_account" }}</b>
+            </div>
+
+            <form
+                class="card flex flex-col gap-2"
+                onsubmit="delete_account(event)"
+            >
+                <div class="flex flex-col gap-1">
+                    <label for="current_password"
+                        >{{ text "settings:label.current_password" }}</label
+                    >
+                    <input
+                        type="password"
+                        name="current_password"
+                        id="current_password"
+                        placeholder="current_password"
+                        required
+                        minlength="6"
+                        autocomplete="off"
+                    />
+                </div>
+
+                <button class="primary">
+                    {{ icon "trash" }}
+                    <span>{{ text "general:action.delete" }}</span>
+                </button>
+            </form>
+        </div>
+
         <button onclick="save_settings()" id="save_button">
             {{ icon "check" }}
             <span>{{ text "general:action.save" }}</span>
@@ -160,7 +199,7 @@
         class="card w-full tertiary hidden flex flex-col gap-2"
         data-tab="sessions"
     >
-        {% for token in user.tokens %}
+        {% for token in profile.tokens %}
         <div class="card w-full flex justify-between flex-collapse gap-2">
             <div class="flex flex-col gap-1">
                 <b
@@ -214,7 +253,7 @@
                 tokens = new_tokens;
 
                 // send request to save
-                fetch("/api/v1/auth/profile/{{ user.id }}/tokens", {
+                fetch("/api/v1/auth/profile/{{ profile.id }}/tokens", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -231,7 +270,7 @@
             };
 
             globalThis.save_settings = () => {
-                fetch("/api/v1/auth/profile/{{ user.id }}/settings", {
+                fetch("/api/v1/auth/profile/{{ profile.id }}/settings", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -249,7 +288,7 @@
 
             globalThis.change_password = (e) => {
                 e.preventDefault();
-                fetch("/api/v1/auth/profile/{{ user.id }}/password", {
+                fetch("/api/v1/auth/profile/{{ profile.id }}/password", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -279,13 +318,42 @@
                     return;
                 }
 
-                fetch("/api/v1/auth/profile/{{ user.id }}/username", {
+                fetch("/api/v1/auth/profile/{{ profile.id }}/username", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
                         to: e.target.new_username.value,
+                    }),
+                })
+                    .then((res) => res.json())
+                    .then((res) => {
+                        trigger("atto::toast", [
+                            res.ok ? "success" : "error",
+                            res.message,
+                        ]);
+                    });
+            };
+
+            globalThis.delete_account = async (e) => {
+                e.preventDefault();
+
+                if (
+                    !(await trigger("atto::confirm", [
+                        "Are you sure you would like to do this?",
+                    ]))
+                ) {
+                    return;
+                }
+
+                fetch("/api/v1/auth/profile/{{ profile.id }}", {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        password: e.target.current_password.value,
                     }),
                 })
                     .then((res) => res.json())
@@ -362,12 +430,12 @@
                 [
                     [
                         ["display_name", "Display name"],
-                        "{{ user.settings.display_name }}",
+                        "{{ profile.settings.display_name }}",
                         "input",
                     ],
                     [
                         ["biography", "Biography"],
-                        "{{ user.settings.biography }}",
+                        "{{ profile.settings.biography }}",
                         "textarea",
                     ],
                 ],
@@ -382,7 +450,7 @@
                             "private_profile",
                             "Only allow users I'm following to view my profile",
                         ],
-                        "{{ user.settings.private_profile }}",
+                        "{{ profile.settings.private_profile }}",
                         "checkbox",
                     ],
                     [
@@ -390,7 +458,7 @@
                             "private_communities",
                             "Keep my joined communities private",
                         ],
-                        "{{ user.settings.private_communities }}",
+                        "{{ profile.settings.private_communities }}",
                         "checkbox",
                     ],
                 ],

@@ -12,6 +12,7 @@ use tetratto_core::model::{
     auth::User,
     communities::{Community, CommunityReadAccess},
     communities_permissions::CommunityPermission,
+    permissions::FinePermission,
 };
 
 macro_rules! check_permissions {
@@ -194,6 +195,7 @@ pub async fn feed_request(
         community_context_bools!(data, user, community);
 
     context.insert("feed", &feed);
+    context.insert("page", &props.page);
     community_context(
         &mut context,
         &community,
@@ -232,9 +234,11 @@ pub async fn settings_request(
     };
 
     if user.id != community.owner {
-        return Err(Html(
-            render_error(Error::NotAllowed, &jar, &data, &None).await,
-        ));
+        if !user.permissions.check(FinePermission::MANAGE_COMMUNITIES) {
+            return Err(Html(
+                render_error(Error::NotAllowed, &jar, &data, &None).await,
+            ));
+        }
     }
 
     // init context
@@ -298,6 +302,7 @@ pub async fn post_request(
 
     context.insert("post", &post);
     context.insert("replies", &feed);
+    context.insert("page", &props.page);
     context.insert(
         "owner",
         &data

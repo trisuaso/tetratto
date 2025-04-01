@@ -17,11 +17,11 @@
                         }}
                         <div class="flex flex-col">
                             <!-- prettier-ignore -->
-                            <h3 id="username" class="username">
+                            <h3 id="username" class="username flex items-center gap-2">
                                 {{ components::username(user=profile) }}
 
                                 {% if profile.is_verified %}
-                                <span title="Verified">
+                                <span title="Verified" style="color: var(--color-primary);" class="flex items-center">
                                     {{ icon "badge-check" }}
                                 </span>
                                 {% endif %}
@@ -158,7 +158,7 @@
                     </div>
                 </div>
                 {% endif %} {% if not profile.settings.private_communities or
-                is_self %}
+                is_self or is_helper %}
                 <div class="card-nest">
                     <div class="card small flex gap-2 items-center">
                         {{ icon "users-round" }}
@@ -177,7 +177,140 @@
                 {% endif %}
             </div>
 
-            <div class="rhs w-full">{% block content %}{% endblock %}</div>
+            <div class="rhs w-full flex flex-col gap-4">
+                {% if is_helper %}
+                <div class="card-nest">
+                    <div class="card small flex items-center gap-2">
+                        {{ icon "shield" }}
+                        <span>{{ text "auth:label.moderation" }}</span>
+                    </div>
+
+                    <div class="card tertiary">
+                        <div class="flex flex-col gap-2" id="mod_options">
+                            <div
+                                class="card w-full flex flex-wrap gap-2"
+                                ui_ident="actions"
+                            >
+                                <a
+                                    href="/settings?username={{ profile.username }}"
+                                    class="button quaternary"
+                                >
+                                    {{ icon "settings" }}
+                                    <span>View settings</span>
+                                </a>
+
+                                <button
+                                    class="red quaternary"
+                                    onclick="delete_account(event)"
+                                >
+                                    {{ icon "trash" }}
+                                    <span
+                                        >{{ text "settings:label.delete_account"
+                                        }}</span
+                                    >
+                                </button>
+                            </div>
+                        </div>
+
+                        <script>
+                            setTimeout(() => {
+                                const ui = ns("ui");
+                                const element =
+                                    document.getElementById("mod_options");
+
+                                async function profile_request(
+                                    do_confirm,
+                                    path,
+                                    body,
+                                ) {
+                                    if (do_confirm) {
+                                        if (
+                                            !(await trigger("atto::confirm", [
+                                                "Are you sure you would like to do this?",
+                                            ]))
+                                        ) {
+                                            return;
+                                        }
+                                    }
+
+                                    fetch(
+                                        `/api/v1/auth/profile/{{ profile.id }}/${path}`,
+                                        {
+                                            method: "POST",
+                                            headers: {
+                                                "Content-Type":
+                                                    "application/json",
+                                            },
+                                            body: JSON.stringify(body),
+                                        },
+                                    )
+                                        .then((res) => res.json())
+                                        .then((res) => {
+                                            trigger("atto::toast", [
+                                                res.ok ? "success" : "error",
+                                                res.message,
+                                            ]);
+                                        });
+                                }
+
+                                globalThis.delete_account = async (e) => {
+                                    e.preventDefault();
+
+                                    if (
+                                        !(await trigger("atto::confirm", [
+                                            "Are you sure you would like to do this?",
+                                        ]))
+                                    ) {
+                                        return;
+                                    }
+
+                                    fetch(
+                                        "/api/v1/auth/profile/{{ profile.id }}",
+                                        {
+                                            method: "DELETE",
+                                            headers: {
+                                                "Content-Type":
+                                                    "application/json",
+                                            },
+                                            body: JSON.stringify({
+                                                password: "",
+                                            }),
+                                        },
+                                    )
+                                        .then((res) => res.json())
+                                        .then((res) => {
+                                            trigger("atto::toast", [
+                                                res.ok ? "success" : "error",
+                                                res.message,
+                                            ]);
+                                        });
+                                };
+
+                                ui.refresh_container(element, ["actions"]);
+                                ui.generate_settings_ui(
+                                    element,
+                                    [
+                                        [
+                                            ["is_verified", "Is verified"],
+                                            "{{ profile.is_verified }}",
+                                            "checkbox",
+                                        ],
+                                    ],
+                                    null,
+                                    {
+                                        is_verified: (value) => {
+                                            profile_request(false, "verified", {
+                                                is_verified: value,
+                                            });
+                                        },
+                                    },
+                                );
+                            }, 150);
+                        </script>
+                    </div>
+                </div>
+                {% endif %} {% block content %}{% endblock %}
+            </div>
         </div>
     </div>
 </article>

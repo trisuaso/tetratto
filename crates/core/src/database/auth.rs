@@ -6,6 +6,8 @@ use crate::model::{
     permissions::FinePermission,
 };
 use crate::{auto_method, execute, get, query_row};
+use pathbufd::PathBufD;
+use std::fs::{exists, remove_file};
 use tetratto_shared::hash::{hash_salted, salt};
 
 #[cfg(feature = "sqlite")]
@@ -151,6 +153,85 @@ impl DataManager {
 
         self.cache_clear_user(&user).await;
 
+        // delete communities
+        let res = execute!(
+            &conn,
+            "DELETE FROM communities WHERE owner = $1",
+            &[&(id as isize)]
+        );
+
+        if let Err(e) = res {
+            return Err(Error::DatabaseError(e.to_string()));
+        }
+
+        // delete memberships
+        // member counts will remain the same... but that should probably be changed
+        let res = execute!(
+            &conn,
+            "DELETE FROM memberships WHERE owner = $1",
+            &[&(id as isize)]
+        );
+
+        if let Err(e) = res {
+            return Err(Error::DatabaseError(e.to_string()));
+        }
+
+        // delete notifications
+        let res = execute!(
+            &conn,
+            "DELETE FROM notifications WHERE owner = $1",
+            &[&(id as isize)]
+        );
+
+        if let Err(e) = res {
+            return Err(Error::DatabaseError(e.to_string()));
+        }
+
+        // delete reactions
+        // reactions counts will remain the same :)
+        let res = execute!(
+            &conn,
+            "DELETE FROM reactions WHERE owner = $1",
+            &[&(id as isize)]
+        );
+
+        if let Err(e) = res {
+            return Err(Error::DatabaseError(e.to_string()));
+        }
+
+        // delete posts
+        let res = execute!(
+            &conn,
+            "DELETE FROM posts WHERE owner = $1",
+            &[&(id as isize)]
+        );
+
+        if let Err(e) = res {
+            return Err(Error::DatabaseError(e.to_string()));
+        }
+
+        // remove images
+        let avatar = PathBufD::current().extend(&[
+            self.0.dirs.media.as_str(),
+            "avatars",
+            &format!("{}.avif", &user.id),
+        ]);
+
+        let banner = PathBufD::current().extend(&[
+            self.0.dirs.media.as_str(),
+            "banners",
+            &format!("{}.avif", &user.id),
+        ]);
+
+        if exists(&avatar).unwrap() {
+            remove_file(avatar).unwrap();
+        }
+
+        if exists(&banner).unwrap() {
+            remove_file(banner).unwrap();
+        }
+
+        // ...
         Ok(())
     }
 
@@ -159,6 +240,8 @@ impl DataManager {
             return Err(Error::NotAllowed);
         }
 
+        let other_user = self.get_user_by_id(id).await?;
+
         let conn = match self.connect().await {
             Ok(c) => c,
             Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
@@ -166,10 +249,9 @@ impl DataManager {
 
         let res = execute!(
             &conn,
-            "UPDATE users SET is_verified = $1 WHERE id = $2",
+            "UPDATE users SET verified = $1 WHERE id = $2",
             &[
                 &(if x { 1 } else { 0 }).to_string().as_str(),
-                &serde_json::to_string(&x).unwrap().as_str(),
                 &id.to_string().as_str()
             ]
         );
@@ -178,7 +260,7 @@ impl DataManager {
             return Err(Error::DatabaseError(e.to_string()));
         }
 
-        self.cache_clear_user(&user).await;
+        self.cache_clear_user(&other_user).await;
 
         Ok(())
     }
