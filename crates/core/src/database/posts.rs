@@ -1,5 +1,6 @@
 use super::*;
 use crate::cache::Cache;
+use crate::model::auth::Notification;
 use crate::model::{
     Error, Result,
     auth::User,
@@ -284,7 +285,7 @@ impl DataManager {
     ///
     /// # Arguments
     /// * `data` - a mock [`JournalEntry`] object to insert
-    pub async fn create_post(&self, data: Post) -> Result<usize> {
+    pub async fn create_post(&self, mut data: Post) -> Result<usize> {
         // check values
         if data.content.len() < 2 {
             return Err(Error::DataTooShort("content".to_string()));
@@ -312,30 +313,50 @@ impl DataManager {
             }
         }
 
+        // send mention notifications
+        for username in User::parse_mentions(&data.content) {
+            let user = self.get_user_by_username(&username).await?;
+            self.create_notification(Notification::new(
+                "You've been mentioned in a post!".to_string(),
+                format!(
+                    "[Somebody](/api/v1/auth/profile/find/{}) mentioned you in their [post](/post/{}).",
+                    data.owner, data.id
+                ),
+                user.id,
+            ))
+            .await?;
+            data.content = data.content.replace(
+                &format!("@{username}"),
+                &format!("[@{username}](/api/v1/auth/profile/find/{})", user.id),
+            );
+        }
+
         // ...
         let conn = match self.connect().await {
             Ok(c) => c,
             Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
         };
 
+        let replying_to_id = data.replying_to.unwrap_or(0).to_string();
+
         let res = execute!(
             &conn,
             "INSERT INTO posts VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
             &[
-                &Some(data.id.to_string()),
-                &Some(data.created.to_string()),
-                &Some(data.content),
-                &Some(data.owner.to_string()),
-                &Some(data.community.to_string()),
-                &Some(serde_json::to_string(&data.context).unwrap()),
-                &if let Some(id) = data.replying_to {
-                    Some(id.to_string())
+                &Some(data.id.to_string().as_str()),
+                &Some(data.created.to_string().as_str()),
+                &Some(&data.content),
+                &Some(data.owner.to_string().as_str()),
+                &Some(data.community.to_string().as_str()),
+                &Some(&serde_json::to_string(&data.context).unwrap()),
+                &if replying_to_id != "0" {
+                    Some(replying_to_id.as_str())
                 } else {
                     None
                 },
-                &Some(0.to_string()),
-                &Some(0.to_string()),
-                &Some(0.to_string())
+                &Some(0.to_string().as_str()),
+                &Some(0.to_string().as_str()),
+                &Some(0.to_string().as_str())
             ]
         );
 
@@ -346,6 +367,22 @@ impl DataManager {
         // incr comment count
         if let Some(id) = data.replying_to {
             self.incr_post_comments(id).await.unwrap();
+
+            // send notification
+            let rt = self.get_post_by_id(id).await?;
+
+            if data.owner != rt.owner {
+                let owner = self.get_user_by_id(rt.owner).await?;
+                self.create_notification(Notification::new(
+                    "Your post has received a new comment!".to_string(),
+                    format!(
+                        "[@{}](/api/v1/auth/profile/find/{}) has commented on your [post](/post/{}).",
+                        owner.username, owner.id, rt.id
+                    ),
+                    rt.owner,
+                ))
+                .await?;
+            }
         }
 
         // return

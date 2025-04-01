@@ -293,7 +293,7 @@ pub async fn update_membership_role(
     match data.update_membership_role(membership.id, req.role).await {
         Ok(_) => {
             // check if the user was just banned/unbanned (and send notifs)
-            if (req.role & CommunityPermission::BANNED) == CommunityPermission::BANNED {
+            if req.role.check_banned() {
                 // user was banned
                 if let Err(e) = data
                     .create_notification(Notification::new(
@@ -313,8 +313,7 @@ pub async fn update_membership_role(
                     // banned members do not count towards member count
                     return Json(e.into());
                 }
-            } else if (membership.role & CommunityPermission::BANNED) == CommunityPermission::BANNED
-            {
+            } else if membership.role.check_banned() {
                 // user was unbanned
                 if let Err(e) = data
                     .create_notification(Notification::new(

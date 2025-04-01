@@ -105,6 +105,49 @@ impl User {
     pub fn check_password(&self, against: String) -> bool {
         self.password == hash_salted(against, self.salt.clone())
     }
+
+    /// Parse user mentions in a given `input`.
+    pub fn parse_mentions(input: &str) -> Vec<String> {
+        // state
+        let mut escape: bool = false;
+        let mut at: bool = false;
+        let mut buffer: String = String::new();
+        let mut out = Vec::new();
+
+        // parse
+        for char in input.chars() {
+            if (char == '\\') && !escape {
+                escape = true;
+            }
+
+            if (char == '@') && !escape {
+                at = true;
+                continue; // don't push @
+            }
+
+            if at {
+                if (char == ' ') && !escape {
+                    // reached space, end @
+                    at = false;
+
+                    if !out.contains(&buffer) {
+                        out.push(buffer);
+                    }
+
+                    buffer = String::new();
+                    continue;
+                }
+
+                // push mention text
+                buffer.push(char);
+            }
+
+            escape = false;
+        }
+
+        // return
+        out
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]

@@ -40,7 +40,7 @@ pub async fn delete_all_request(
     match data.delete_all_notifications(&user).await {
         Ok(_) => Json(ApiReturn {
             ok: true,
-            message: "Notifications deleted".to_string(),
+            message: "Notifications cleared".to_string(),
             payload: (),
         }),
         Err(e) => Json(e.into()),

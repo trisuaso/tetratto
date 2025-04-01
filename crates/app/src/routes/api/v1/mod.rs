@@ -2,6 +2,7 @@ pub mod auth;
 pub mod communities;
 pub mod notifications;
 pub mod reactions;
+pub mod util;
 
 use axum::{
     Router,
@@ -16,6 +17,9 @@ use tetratto_core::model::{
 
 pub fn routes() -> Router {
     Router::new()
+        // misc
+        .route("/util/proxy", get(util::proxy_request))
+        .route("/util/lang", get(util::set_langfile_request))
         // reactions
         .route("/reactions", post(reactions::create_request))
         .route("/reactions/{id}", get(reactions::get_request))

@@ -31,6 +31,20 @@ macro_rules! check_permissions {
             }
             _ => (),
         };
+
+        if let Some(ref ua) = $user {
+            if let Ok(membership) = $data
+                .0
+                .get_membership_by_owner_community(ua.id, $community.id)
+                .await
+            {
+                if membership.role.check_banned() {
+                    return Err(Html(
+                        render_error(Error::NotAllowed, &$jar, &$data, &$user).await,
+                    ));
+                }
+            }
+        }
     };
 }
 

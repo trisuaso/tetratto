@@ -41,7 +41,7 @@ pub fn routes() -> Router {
 pub async fn render_error(
     e: Error,
     jar: &CookieJar,
-    data: &(DataManager, tera::Tera),
+    data: &(DataManager, tera::Tera, reqwest::Client),
     user: &Option<User>,
 ) -> String {
     let lang = get_lang!(jar, data.0);

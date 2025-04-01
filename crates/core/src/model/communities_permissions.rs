@@ -28,8 +28,8 @@ impl Serialize for CommunityPermission {
     }
 }
 
-struct JournalPermissionVisitor;
-impl<'de> Visitor<'de> for JournalPermissionVisitor {
+struct CommunityPermissionVisitor;
+impl<'de> Visitor<'de> for CommunityPermissionVisitor {
     type Value = CommunityPermission;
 
     fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -75,22 +75,22 @@ impl<'de> Deserialize<'de> for CommunityPermission {
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_any(JournalPermissionVisitor)
+        deserializer.deserialize_any(CommunityPermissionVisitor)
     }
 }
 
 impl CommunityPermission {
-    /// Join two [`JournalPermission`]s into a single `u32`.
+    /// Join two [`CommunityPermission`]s into a single `u32`.
     pub fn join(lhs: CommunityPermission, rhs: CommunityPermission) -> CommunityPermission {
         lhs | rhs
     }
 
-    /// Check if the given `input` contains the given [`JournalPermission`].
+    /// Check if the given `input` contains the given [`CommunityPermission`].
     pub fn check(self, permission: CommunityPermission) -> bool {
         if (self & CommunityPermission::ADMINISTRATOR) == CommunityPermission::ADMINISTRATOR {
             // has administrator permission, meaning everything else is automatically true
             return true;
-        } else if (self & CommunityPermission::BANNED) == CommunityPermission::BANNED {
+        } else if self.check_banned() {
             // has banned permission, meaning everything else is automatically false
             return false;
         }
@@ -98,14 +98,19 @@ impl CommunityPermission {
         (self & permission) == permission
     }
 
-    /// Check if the given [`JournalPermission`] qualifies as "Member" status.
+    /// Check if the given [`CommunityPermission`] qualifies as "Member" status.
     pub fn check_member(self) -> bool {
         self.check(CommunityPermission::MEMBER)
     }
 
-    /// Check if the given [`JournalPermission`] qualifies as "Moderator" status.
+    /// Check if the given [`CommunityPermission`] qualifies as "Moderator" status.
     pub fn check_moderator(self) -> bool {
         self.check(CommunityPermission::MANAGE_POSTS)
+    }
+
+    /// Check if the given [`CommunityPermission`] qualifies as "Banned" status.
+    pub fn check_banned(self) -> bool {
+        (self & CommunityPermission::BANNED) == CommunityPermission::BANNED
     }
 }
 

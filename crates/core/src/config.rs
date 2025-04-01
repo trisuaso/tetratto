@@ -124,6 +124,14 @@ pub struct Config {
     /// The port to serve the server on.
     #[serde(default = "default_port")]
     pub port: u16,
+    /// A list of hosts which cannot be proxied through the image proxy.
+    ///
+    /// They will return the default banner image instead of proxying.
+    ///
+    /// It is recommended to put the host of your own public server in this list in
+    /// order to prevent a way too easy DOS.
+    #[serde(default = "default_banned_hosts")]
+    pub banned_hosts: Vec<String>,
     /// Database security.
     #[serde(default = "default_security")]
     pub security: SecurityConfig,
@@ -155,6 +163,10 @@ fn default_color() -> String {
 }
 fn default_port() -> u16 {
     4118
+}
+
+fn default_banned_hosts() -> Vec<String> {
+    Vec::new()
 }
 
 fn default_security() -> SecurityConfig {
@@ -193,6 +205,7 @@ impl Default for Config {
             description: default_description(),
             color: default_color(),
             port: default_port(),
+            banned_hosts: default_banned_hosts(),
             database: default_database(),
             security: default_security(),
             dirs: default_dirs(),
