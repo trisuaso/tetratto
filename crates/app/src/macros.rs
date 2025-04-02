@@ -63,7 +63,13 @@ macro_rules! get_user_from_token {
                 ))
                 .await
             {
-                Ok(ua) => Some(ua),
+                Ok(ua) => {
+                    if ua.permissions.check_banned() {
+                        Some(tetratto_core::model::auth::User::banned())
+                    } else {
+                        Some(ua)
+                    }
+                }
                 Err(_) => None,
             }
         } else {

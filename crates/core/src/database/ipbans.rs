@@ -1,5 +1,6 @@
 use super::*;
 use crate::cache::Cache;
+use crate::model::moderation::AuditLogEntry;
 use crate::model::{Error, Result, auth::IpBan, auth::User, permissions::FinePermission};
 use crate::{auto_method, execute, get, query_row};
 
@@ -57,11 +58,18 @@ impl DataManager {
             return Err(Error::DatabaseError(e.to_string()));
         }
 
+        // create audit log entry
+        self.create_audit_log_entry(AuditLogEntry::new(
+            user.id,
+            format!("invoked `create_ipban` with x value `{}`", data.ip),
+        ))
+        .await?;
+
         // return
         Ok(())
     }
 
-    pub async fn delete_ipban(&self, id: usize, user: User) -> Result<()> {
+    pub async fn delete_ipban(&self, ip: &str, user: User) -> Result<()> {
         // ONLY moderators can manage ip bans
         if !user.permissions.check(FinePermission::MANAGE_BANS) {
             return Err(Error::NotAllowed);
@@ -72,17 +80,20 @@ impl DataManager {
             Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
         };
 
-        let res = execute!(
-            &conn,
-            "DELETE FROM ipbans WHERE id = $1",
-            &[&id.to_string()]
-        );
+        let res = execute!(&conn, "DELETE FROM ipbans WHERE ip = $1", &[ip]);
 
         if let Err(e) = res {
             return Err(Error::DatabaseError(e.to_string()));
         }
 
-        self.2.remove(format!("atto.ipban:{}", id)).await;
+        self.2.remove(format!("atto.ipban:{}", ip)).await;
+
+        // create audit log entry
+        self.create_audit_log_entry(AuditLogEntry::new(
+            user.id,
+            format!("invoked `delete_ipban` with x value `{ip}`"),
+        ))
+        .await?;
 
         // return
         Ok(())

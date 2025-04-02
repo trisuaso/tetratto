@@ -3,7 +3,7 @@ use crate::cache::Cache;
 use crate::model::{
     Error, Result, auth::User, moderation::AuditLogEntry, permissions::FinePermission,
 };
-use crate::{auto_method, execute, get, query_row};
+use crate::{auto_method, execute, get, query_row, query_rows};
 
 #[cfg(feature = "sqlite")]
 use rusqlite::Row;
@@ -13,7 +13,7 @@ use tokio_postgres::Row;
 
 impl DataManager {
     /// Get an [`AuditLogEntry`] from an SQL row.
-    pub(crate) fn get_auditlog_entry_from_row(
+    pub(crate) fn get_audit_log_entry_from_row(
         #[cfg(feature = "sqlite")] x: &Row<'_>,
         #[cfg(feature = "postgres")] x: &Row,
     ) -> AuditLogEntry {
@@ -25,13 +25,42 @@ impl DataManager {
         }
     }
 
-    auto_method!(get_auditlog_entry_by_id(usize)@get_auditlog_entry_from_row -> "SELECT * FROM auditlog WHERE id = $1" --name="audit log entry" --returns=AuditLogEntry --cache-key-tmpl="atto.auditlog:{}");
+    auto_method!(get_audit_log_entry_by_id(usize)@get_audit_log_entry_from_row -> "SELECT * FROM audit_log WHERE id = $1" --name="audit log entry" --returns=AuditLogEntry --cache-key-tmpl="atto.audit_log:{}");
+
+    /// Get all audit log entries (paginated).
+    ///
+    /// # Arguments
+    /// * `batch` - the limit of items in each page
+    /// * `page` - the page number
+    pub async fn get_audit_log_entries(
+        &self,
+        batch: usize,
+        page: usize,
+    ) -> Result<Vec<AuditLogEntry>> {
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = query_rows!(
+            &conn,
+            "SELECT * FROM audit_log ORDER BY created DESC LIMIT $1 OFFSET $2",
+            &[&(batch as isize), &((page * batch) as isize)],
+            |x| { Self::get_audit_log_entry_from_row(x) }
+        );
+
+        if res.is_err() {
+            return Err(Error::GeneralNotFound("audit log entry".to_string()));
+        }
+
+        Ok(res.unwrap())
+    }
 
     /// Create a new audit log entry in the database.
     ///
     /// # Arguments
     /// * `data` - a mock [`AuditLogEntry`] object to insert
-    pub async fn create_auditlog_entry(&self, data: AuditLogEntry) -> Result<()> {
+    pub async fn create_audit_log_entry(&self, data: AuditLogEntry) -> Result<()> {
         let conn = match self.connect().await {
             Ok(c) => c,
             Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
@@ -39,7 +68,7 @@ impl DataManager {
 
         let res = execute!(
             &conn,
-            "INSERT INTO auditlog VALUES ($1, $2, $3, $4)",
+            "INSERT INTO audit_log VALUES ($1, $2, $3, $4)",
             &[
                 &data.id.to_string().as_str(),
                 &data.created.to_string().as_str(),
@@ -56,7 +85,7 @@ impl DataManager {
         Ok(())
     }
 
-    pub async fn delete_auditlog_entry(&self, id: usize, user: User) -> Result<()> {
+    pub async fn delete_audit_log_entry(&self, id: usize, user: User) -> Result<()> {
         if !user.permissions.check(FinePermission::MANAGE_AUDITLOG) {
             return Err(Error::NotAllowed);
         }
@@ -68,7 +97,7 @@ impl DataManager {
 
         let res = execute!(
             &conn,
-            "DELETE FROM auditlog WHERE id = $1",
+            "DELETE FROM audit_log WHERE id = $1",
             &[&id.to_string()]
         );
 
@@ -76,7 +105,7 @@ impl DataManager {
             return Err(Error::DatabaseError(e.to_string()));
         }
 
-        self.2.remove(format!("atto.auditlog:{}", id)).await;
+        self.2.remove(format!("atto.audit_log:{}", id)).await;
 
         // return
         Ok(())

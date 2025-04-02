@@ -331,6 +331,31 @@ impl DataManager {
             );
         }
 
+        // incr comment count
+        if let Some(id) = data.replying_to {
+            self.incr_post_comments(id).await.unwrap();
+
+            // send notification
+            let rt = self.get_post_by_id(id).await?;
+
+            if data.owner != rt.owner {
+                let owner = self.get_user_by_id(rt.owner).await?;
+                self.create_notification(Notification::new(
+                    "Your post has received a new comment!".to_string(),
+                    format!(
+                        "[@{}](/api/v1/auth/profile/find/{}) has commented on your [post](/post/{}).",
+                        owner.username, owner.id, rt.id
+                    ),
+                    rt.owner,
+                ))
+                .await?;
+
+                if rt.context.comments_enabled == false {
+                    return Err(Error::NotAllowed);
+                }
+            }
+        }
+
         // ...
         let conn = match self.connect().await {
             Ok(c) => c,
@@ -364,27 +389,6 @@ impl DataManager {
             return Err(Error::DatabaseError(e.to_string()));
         }
 
-        // incr comment count
-        if let Some(id) = data.replying_to {
-            self.incr_post_comments(id).await.unwrap();
-
-            // send notification
-            let rt = self.get_post_by_id(id).await?;
-
-            if data.owner != rt.owner {
-                let owner = self.get_user_by_id(rt.owner).await?;
-                self.create_notification(Notification::new(
-                    "Your post has received a new comment!".to_string(),
-                    format!(
-                        "[@{}](/api/v1/auth/profile/find/{}) has commented on your [post](/post/{}).",
-                        owner.username, owner.id, rt.id
-                    ),
-                    rt.owner,
-                ))
-                .await?;
-            }
-        }
-
         // return
         Ok(data.id)
     }
@@ -396,7 +400,7 @@ impl DataManager {
             if !user.permissions.check(FinePermission::MANAGE_POSTS) {
                 return Err(Error::NotAllowed);
             } else {
-                self.create_auditlog_entry(crate::model::moderation::AuditLogEntry::new(
+                self.create_audit_log_entry(crate::model::moderation::AuditLogEntry::new(
                     user.id,
                     format!("invoked `delete_post` with x value `{id}`"),
                 ))

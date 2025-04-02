@@ -26,6 +26,19 @@ pub struct User {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum ThemePreference {
+    Auto,
+    Dark,
+    Light,
+}
+
+impl Default for ThemePreference {
+    fn default() -> Self {
+        Self::Auto
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct UserSettings {
     #[serde(default)]
     pub display_name: String,
@@ -35,6 +48,8 @@ pub struct UserSettings {
     pub private_profile: bool,
     #[serde(default)]
     pub private_communities: bool,
+    #[serde(default)]
+    pub theme_preference: ThemePreference,
 }
 
 impl Default for UserSettings {
@@ -44,6 +59,7 @@ impl Default for UserSettings {
             biography: String::new(),
             private_profile: false,
             private_communities: false,
+            theme_preference: ThemePreference::default(),
         }
     }
 }
@@ -83,6 +99,15 @@ impl User {
     pub fn deleted() -> Self {
         Self {
             username: "<deleted>".to_string(),
+            id: 0,
+            ..Default::default()
+        }
+    }
+
+    /// Banned user profile.
+    pub fn banned() -> Self {
+        Self {
+            username: "<banned>".to_string(),
             id: 0,
             ..Default::default()
         }

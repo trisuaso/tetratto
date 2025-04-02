@@ -1,8 +1,7 @@
+use crate::{State, get_user_from_token, routes::api::v1::CreateReaction};
 use axum::{Extension, Json, extract::Path, response::IntoResponse};
 use axum_extra::extract::CookieJar;
 use tetratto_core::model::{ApiReturn, Error, reactions::Reaction};
-
-use crate::{State, get_user_from_token, routes::api::v1::CreateReaction};
 
 pub async fn get_request(
     jar: CookieJar,

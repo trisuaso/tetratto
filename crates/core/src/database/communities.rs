@@ -224,7 +224,7 @@ impl DataManager {
             if !user.permissions.check(FinePermission::MANAGE_COMMUNITIES) {
                 return Err(Error::NotAllowed);
             } else {
-                self.create_auditlog_entry(crate::model::moderation::AuditLogEntry::new(
+                self.create_audit_log_entry(crate::model::moderation::AuditLogEntry::new(
                     user.id,
                     format!("invoked `delete_community` with x value `{id}`"),
                 ))

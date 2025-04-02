@@ -1,7 +1,9 @@
 use crate::{
     State, get_user_from_token,
     model::{ApiReturn, Error},
-    routes::api::v1::{DeleteUser, UpdateUserIsVerified, UpdateUserPassword, UpdateUserUsername},
+    routes::api::v1::{
+        DeleteUser, UpdateUserIsVerified, UpdateUserPassword, UpdateUserRole, UpdateUserUsername,
+    },
 };
 use axum::{
     Extension, Json,
@@ -165,6 +167,29 @@ pub async fn update_user_is_verified_request(
         Ok(_) => Json(ApiReturn {
             ok: true,
             message: "Verified status updated".to_string(),
+            payload: (),
+        }),
+        Err(e) => Json(e.into()),
+    }
+}
+
+/// Update the role of the given user.
+pub async fn update_user_role_request(
+    jar: CookieJar,
+    Path(id): Path<usize>,
+    Extension(data): Extension<State>,
+    Json(req): Json<UpdateUserRole>,
+) -> impl IntoResponse {
+    let data = &(data.read().await).0;
+    let user = match get_user_from_token!(jar, data) {
+        Some(ua) => ua,
+        None => return Json(Error::NotAllowed.into()),
+    };
+
+    match data.update_user_role(id, req.role, user).await {
+        Ok(_) => Json(ApiReturn {
+            ok: true,
+            message: "User updated".to_string(),
             payload: (),
         }),
         Err(e) => Json(e.into()),

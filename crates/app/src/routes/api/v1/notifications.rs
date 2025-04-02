@@ -1,10 +1,8 @@
+use super::UpdateNotificationRead;
+use crate::{State, get_user_from_token};
 use axum::{Extension, Json, extract::Path, response::IntoResponse};
 use axum_extra::extract::CookieJar;
 use tetratto_core::model::{ApiReturn, Error};
-
-use crate::{State, get_user_from_token};
-
-use super::UpdateNotificationRead;
 
 pub async fn delete_request(
     jar: CookieJar,

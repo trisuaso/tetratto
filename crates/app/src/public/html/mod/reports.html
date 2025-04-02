@@ -1,0 +1,79 @@
+{% import "macros.html" as macros %} {% extends "root.html" %} {% block head %}
+<title>Reports - {{ config.name }}</title>
+{% endblock %} {% block body %} {{ macros::nav(selected="notifications") }}
+<main class="flex flex-col gap-2">
+    <div class="card-nest w-full">
+        <div class="card small flex items-center gap-2">
+            {{ icon "flag" }}
+            <span>{{ text "general:link.reports" }}</span>
+        </div>
+
+        <div class="card flex flex-col gap-2">
+            <!-- prettier-ignore -->
+            {% for item in items %}
+            <div class="card-nest">
+                <a
+                    class="card small flex items-center gap-2 flush"
+                    href="/api/v1/auth/profile/find/{{ item.owner }}"
+                >
+                    <!-- prettier-ignore -->
+                    {{ components::avatar(username=item.owner, selector_type="id") }}
+                    <span>{{ item.owner }}</span>
+                    <span class="fade date">{{ item.created }}</span>
+                </a>
+
+                <div class="card secondary flex flex-col gap-2">
+                    <span>{{ item.content|markdown|safe }}</span>
+
+                    <div class="card w-full flex flex-wrap gap-2">
+                        <button
+                            onclick="open_reported_content('{{ item.asset }}', '{{ item.asset_type }}')"
+                        >
+                            {{ icon "external-link" }}
+                            <span
+                                >{{ text "mod_panel:label.open_reported_content"
+                                }}</span
+                            >
+                        </button>
+
+                        <button
+                            onclick="remove_report('{{ item.id }}')"
+                            class="red quaternary"
+                        >
+                            {{ icon "trash" }}
+                            <span>{{ text "general:action.delete" }}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- prettier-ignore -->
+            {{ components::pagination(page=page, items=items|length) }}
+        </div>
+    </div>
+</main>
+
+<script>
+    function open_reported_content(asset, asset_type) {
+        if (asset_type === "Post") {
+            window.open(`/post/${asset}`);
+        } else if (asset_type === "Community") {
+            window.open(`/community/${asset}`);
+        }
+    }
+
+    function remove_report(id) {
+        fetch(`/api/v1/reports/${id}`, {
+            method: "DELETE",
+        })
+            .then((res) => res.json())
+            .then((res) => {
+                trigger("atto::toast", [
+                    res.ok ? "success" : "error",
+                    res.message,
+                ]);
+            });
+    }
+</script>
+{% endblock %}

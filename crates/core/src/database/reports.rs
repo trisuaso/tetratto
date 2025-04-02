@@ -1,7 +1,8 @@
 use super::*;
 use crate::cache::Cache;
+use crate::model::moderation::AuditLogEntry;
 use crate::model::{Error, Result, auth::User, moderation::Report, permissions::FinePermission};
-use crate::{auto_method, execute, get, query_row};
+use crate::{auto_method, execute, get, query_row, query_rows};
 
 #[cfg(feature = "sqlite")]
 use rusqlite::Row;
@@ -26,6 +27,31 @@ impl DataManager {
     }
 
     auto_method!(get_report_by_id(usize)@get_report_from_row -> "SELECT * FROM reports WHERE id = $1" --name="report" --returns=Report --cache-key-tmpl="atto.reports:{}");
+
+    /// Get all reports (paginated).
+    ///
+    /// # Arguments
+    /// * `batch` - the limit of items in each page
+    /// * `page` - the page number
+    pub async fn get_reports(&self, batch: usize, page: usize) -> Result<Vec<Report>> {
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = query_rows!(
+            &conn,
+            "SELECT * FROM reports ORDER BY created DESC LIMIT $1 OFFSET $2",
+            &[&(batch as isize), &((page * batch) as isize)],
+            |x| { Self::get_report_from_row(x) }
+        );
+
+        if res.is_err() {
+            return Err(Error::GeneralNotFound("report".to_string()));
+        }
+
+        Ok(res.unwrap())
+    }
 
     /// Create a new report in the database.
     ///
@@ -79,6 +105,13 @@ impl DataManager {
         }
 
         self.2.remove(format!("atto.report:{}", id)).await;
+
+        // create audit log entry
+        self.create_audit_log_entry(AuditLogEntry::new(
+            user.id,
+            format!("invoked `delete_report` with x value `{id}`"),
+        ))
+        .await?;
 
         // return
         Ok(())

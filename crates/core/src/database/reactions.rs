@@ -144,6 +144,9 @@ impl DataManager {
                     }
                 }
             }
+            AssetType::User => {
+                return Err(Error::NotAllowed);
+            }
         };
 
         // return
@@ -199,6 +202,9 @@ impl DataManager {
                 } {
                     return Err(e);
                 }
+            }
+            AssetType::User => {
+                return Err(Error::NotAllowed);
             }
         };
 

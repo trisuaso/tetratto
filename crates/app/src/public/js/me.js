@@ -144,4 +144,10 @@
                 ]);
             });
     });
+
+    self.define("report", (_, asset, asset_type) => {
+        window.open(
+            `/mod_panel/file_report?asset=${asset}&asset_type=${asset_type}`,
+        );
+    });
 })();

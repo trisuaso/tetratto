@@ -25,6 +25,7 @@ bitflags! {
         const MANAGE_VERIFIED = 1 << 14;
         const MANAGE_AUDITLOG = 1 << 15;
         const MANAGE_REPORTS = 1 << 16;
+        const BANNED = 1 << 17;
 
         const _ = !0;
     }
@@ -101,6 +102,9 @@ impl FinePermission {
         if (self & FinePermission::ADMINISTRATOR) == FinePermission::ADMINISTRATOR {
             // has administrator permission, meaning everything else is automatically true
             return true;
+        } else if self.check_banned() {
+            // has banned permission, meaning everything else is automatically false
+            return false;
         }
 
         (self & permission) == permission
@@ -118,7 +122,17 @@ impl FinePermission {
 
     /// Check if the given [`FinePermission`] qualifies as "Manager" status.
     pub fn check_manager(self) -> bool {
-        self.check_helper() && self.check(FinePermission::ADMINISTRATOR)
+        self.check_helper() && self.check(FinePermission::MANAGE_USERS)
+    }
+
+    /// Check if the given [`FinePermission`] qualifies as "Administrator" status.
+    pub fn check_admin(self) -> bool {
+        self.check_manager() && self.check(FinePermission::ADMINISTRATOR)
+    }
+
+    /// Check if the given [`FinePermission`] qualifies as "Banned" status.
+    pub fn check_banned(self) -> bool {
+        (self & FinePermission::BANNED) == FinePermission::BANNED
     }
 }
 

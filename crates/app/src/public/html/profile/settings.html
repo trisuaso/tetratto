@@ -142,6 +142,37 @@
 
     <div class="w-full hidden flex flex-col gap-2" data-tab="profile">
         <div class="card tertiary flex flex-col gap-2" id="profile_settings">
+            <div class="card-nest" ui_ident="theme_preference">
+                <div class="card small">
+                    <b>Theme preference</b>
+                </div>
+
+                <div class="card">
+                    <select
+                        onchange="set_setting_field('theme_preference', event.target.selectedOptions[0].value)"
+                    >
+                        <option
+                            value="Auto"
+                            selected="{% if user.settings.theme_preference == 'Auto' %}true{% else %}false{% endif %}"
+                        >
+                            Auto
+                        </option>
+                        <option
+                            value="Light"
+                            selected="{% if user.settings.theme_preference == 'Light' %}true{% else %}false{% endif %}"
+                        >
+                            Light
+                        </option>
+                        <option
+                            value="Dark"
+                            selected="{% if user.settings.theme_preference == 'Dark' %}true{% else %}false{% endif %}"
+                        >
+                            Dark
+                        </option>
+                    </select>
+                </div>
+            </div>
+
             <div class="card-nest" ui_ident="change_avatar">
                 <div class="card small">
                     <b>{{ text "settings:label.change_avatar" }}</b>
@@ -421,6 +452,7 @@
                 "change_username",
             ]);
             ui.refresh_container(profile_settings, [
+                "theme_preference",
                 "change_avatar",
                 "change_banner",
             ]);

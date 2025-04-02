@@ -161,7 +161,7 @@ show_community=true) -%} {% if community and show_community %}
                     {{ icon "external-link" }}
                 </a>
 
-                {% if user %} {% if (user.id == post.owner) or is_helper %}
+                {% if user %}
                 <div class="dropdown">
                     <button
                         class="camo small"
@@ -172,6 +172,17 @@ show_community=true) -%} {% if community and show_community %}
                     </button>
 
                     <div class="inner">
+                        {% if user.id != post.owner %}
+                        <button
+                            class="red"
+                            onclick="trigger('me::report', ['{{ post.id }}', 'post'])"
+                        >
+                            {{ icon "flag" }}
+                            <span>{{ text "general:action.report" }}</span>
+                        </button>
+                        {% endif %} {% if (user.id == post.owner) or is_helper
+                        %}
+                        <b class="title">{{ text "general:action.manage" }}</b>
                         <button
                             class="red"
                             onclick="trigger('me::remove_post', ['{{ post.id }}'])"
@@ -179,9 +190,10 @@ show_community=true) -%} {% if community and show_community %}
                             {{ icon "trash" }}
                             <span>{{ text "general:action.delete" }}</span>
                         </button>
+                        {% endif %}
                     </div>
                 </div>
-                {% endif %} {% endif %}
+                {% endif %}
             </div>
         </div>
     </div>

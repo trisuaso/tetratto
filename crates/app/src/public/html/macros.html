@@ -75,17 +75,30 @@ show_lhs=true) -%}
                         <span>{{ text "auth:link.settings" }}</span>
                     </a>
 
+                    <a href="https://github.com/trisuaso/tetratto">
+                        {{ icon "code" }}
+                        <span>{{ text "general:link.source_code" }}</span>
+                    </a>
+
+                    {% if is_helper %}
+                    <b class="title">{{ text "general:label.mod" }}</b>
+
+                    <a href="/mod_panel/audit_log">
+                        {{ icon "scroll-text" }}
+                        <span>{{ text "general:link.audit_log" }}</span>
+                    </a>
+
+                    <a href="/mod_panel/reports">
+                        {{ icon "flag" }}
+                        <span>{{ text "general:link.reports" }}</span>
+                    </a>
+                    {% endif %}
+
                     <div class="title"></div>
                     <button class="red" onclick="trigger('me::logout')">
                         {{ icon "log-out" }}
                         <span>{{ text "auth:action.logout" }}</span>
                     </button>
-
-                    <div class="title"></div>
-                    <a href="https://github.com/trisuaso/tetratto">
-                        {{ icon "code" }}
-                        <span>View source</span>
-                    </a>
                 </div>
             </div>
             {% else %}

@@ -1,0 +1,36 @@
+{% import "macros.html" as macros %} {% extends "root.html" %} {% block head %}
+<title>Audit log - {{ config.name }}</title>
+{% endblock %} {% block body %} {{ macros::nav(selected="notifications") }}
+<main class="flex flex-col gap-2">
+    <div class="card-nest w-full">
+        <div class="card small flex items-center gap-2">
+            {{ icon "scroll" }}
+            <span>{{ text "general:link.audit_log" }}</span>
+        </div>
+
+        <div class="card flex flex-col gap-2">
+            <!-- prettier-ignore -->
+            {% for item in items %}
+            <div class="card-nest">
+                <a
+                    class="card small flex items-center gap-2 flush"
+                    href="/api/v1/auth/profile/find/{{ item.moderator }}"
+                >
+                    <!-- prettier-ignore -->
+                    {{ components::avatar(username=item.moderator, selector_type="id") }}
+                    <span>{{ item.moderator }}</span>
+                    <span class="fade date">{{ item.created }}</span>
+                </a>
+
+                <div class="card secondary">
+                    <span>{{ item.content|markdown|safe }}</span>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- prettier-ignore -->
+            {{ components::pagination(page=page, items=items|length) }}
+        </div>
+    </div>
+</main>
+{% endblock %}

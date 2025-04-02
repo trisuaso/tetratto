@@ -14,6 +14,15 @@
 
         <link rel="stylesheet" href="/css/style.css" />
 
+        {% if user %}
+        <script>
+            window.localStorage.setItem(
+                "tetratto:theme",
+                "{{ user.settings.theme_preference }}",
+            );
+        </script>
+        {% endif %}
+
         <script src="/js/loader.js"></script>
         <script defer async src="/js/atto.js"></script>
 
@@ -57,7 +66,28 @@
         <div id="toast_zone"></div>
 
         <div id="page" style="display: contents">
-            {% block body %}{% endblock %}
+            <!-- prettier-ignore -->
+            {% if user and user.id == 0 %}
+            <article>
+                <main>
+                    <div class="card-nest">
+                        <div class="card small flex items-center gap-2 red">
+                            {{ icon "frown" }}
+                            <span
+                                >{{ text "general:label.account_banned" }}</span
+                            >
+                        </div>
+
+                        <div class="card">
+                            <span
+                                >{{ text "general:label.account_banned_body"
+                                }}</span
+                            >
+                        </div>
+                    </div>
+                </main>
+            </article>
+            {% else %} {% block body %}{% endblock %} {% endif %}
         </div>
 
         <script data-turbo-permanent="true" id="init-script">

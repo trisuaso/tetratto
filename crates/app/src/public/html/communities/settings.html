@@ -227,66 +227,6 @@
             document.getElementById("uid").value = uid;
         }
 
-        globalThis.ban_user = async (uid) => {
-            if (
-                !(await trigger("atto::confirm", [
-                    "Are you sure you would like to do this?",
-                ]))
-            ) {
-                return;
-            }
-
-            fetch(
-                `/api/v1/communities/{{ community.id }}/memberships/${uid}/role`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        role: 33,
-                    }),
-                },
-            )
-                .then((res) => res.json())
-                .then((res) => {
-                    trigger("atto::toast", [
-                        res.ok ? "success" : "error",
-                        res.message,
-                    ]);
-                });
-        };
-
-        globalThis.unban_user = async (uid) => {
-            if (
-                !(await trigger("atto::confirm", [
-                    "Are you sure you would like to do this?",
-                ]))
-            ) {
-                return;
-            }
-
-            fetch(
-                `/api/v1/communities/{{ community.id }}/memberships/${uid}/role`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        role: 5,
-                    }),
-                },
-            )
-                .then((res) => res.json())
-                .then((res) => {
-                    trigger("atto::toast", [
-                        res.ok ? "success" : "error",
-                        res.message,
-                    ]);
-                });
-        };
-
         globalThis.update_user_role = async (uid, new_role) => {
             if (
                 !(await trigger("atto::confirm", [
@@ -356,7 +296,7 @@
 
                     element.innerHTML = `<div class="flex gap-2 flex-wrap" ui_ident="actions">
                         <a target="_blank" class="button" href="/api/v1/auth/profile/find/${e.target.uid.value}">Open user profile</a>
-                        ${res.payload.role !== 33 ? `<button class="red quaternary" onclick="ban_user('${e.target.uid.value}')">Ban</button>` : `<button class="quaternary" onclick="unban_user('${e.target.uid.value}')">Unban</button>`}
+                        ${res.payload.role !== 33 ? `<button class="red quaternary" onclick="update_user_role('${e.target.uid.value}', 33)">Ban</button>` : `<button class="quaternary" onclick="update_user_role('${e.target.uid.value}', 5)">Unban</button>`}
                         ${res.payload.role !== 65 ? `<button class="red quaternary" onclick="update_user_role('${e.target.uid.value}', 65)">Send to review</button>` : `<button class="green quaternary" onclick="update_user_role('${e.target.uid.value}', 5)">Accept join request</button>`}
                         <button class="red quaternary" onclick="kick_user('${e.target.uid.value}')">Kick</button>
                     </div>`;

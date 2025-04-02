@@ -22,7 +22,7 @@ impl DataManager {
         execute!(&conn, common::CREATE_TABLE_USERFOLLOWS).unwrap();
         execute!(&conn, common::CREATE_TABLE_USERBLOCKS).unwrap();
         execute!(&conn, common::CREATE_TABLE_IPBANS).unwrap();
-        execute!(&conn, common::CREATE_TABLE_AUDITLOG).unwrap();
+        execute!(&conn, common::CREATE_TABLE_AUDIT_LOG).unwrap();
         execute!(&conn, common::CREATE_TABLE_REPORTS).unwrap();
 
         Ok(())
@@ -139,7 +139,7 @@ macro_rules! auto_method {
                 if !user.permissions.check(FinePermission::$permission) {
                     return Err(Error::NotAllowed);
                 } else {
-                    self.create_auditlog_entry(crate::model::moderation::AuditLogEntry::new(
+                    self.create_audit_log_entry(crate::model::moderation::AuditLogEntry::new(
                         user.id,
                         format!("invoked `{}` with x value `{id}`", stringify!($name)),
                     ))
@@ -169,7 +169,7 @@ macro_rules! auto_method {
                 if !user.permissions.check(FinePermission::$permission) {
                     return Err(Error::NotAllowed);
                 } else {
-                    self.create_auditlog_entry(crate::model::moderation::AuditLogEntry::new(
+                    self.create_audit_log_entry(crate::model::moderation::AuditLogEntry::new(
                         user.id,
                         format!("invoked `{}` with x value `{id}`", stringify!($name)),
                     ))
@@ -201,7 +201,7 @@ macro_rules! auto_method {
                 if !user.permissions.check(FinePermission::$permission) {
                     return Err(Error::NotAllowed);
                 } else {
-                    self.create_auditlog_entry(crate::model::moderation::AuditLogEntry::new(
+                    self.create_audit_log_entry(crate::model::moderation::AuditLogEntry::new(
                         user.id,
                         format!("invoked `{}` with x value `{id}`", stringify!($name)),
                     ))
@@ -232,7 +232,7 @@ macro_rules! auto_method {
                 if !user.permissions.check(FinePermission::$permission) {
                     return Err(Error::NotAllowed);
                 } else {
-                    self.create_auditlog_entry(crate::model::moderation::AuditLogEntry::new(
+                    self.create_audit_log_entry(crate::model::moderation::AuditLogEntry::new(
                         user.id,
                         format!("invoked `{}` with x value `{x}`", stringify!($name)),
                     ))
@@ -265,7 +265,7 @@ macro_rules! auto_method {
                 if !user.permissions.check(FinePermission::$permission) {
                     return Err(Error::NotAllowed);
                 } else {
-                    self.create_auditlog_entry(crate::model::moderation::AuditLogEntry::new(
+                    self.create_audit_log_entry(crate::model::moderation::AuditLogEntry::new(
                         user.id,
                         format!("invoked `{}` with x value `{id}`", stringify!($name), id),
                     ))
@@ -300,7 +300,7 @@ macro_rules! auto_method {
                 if !user.permissions.check(FinePermission::$permission) {
                     return Err(Error::NotAllowed);
                 } else {
-                    self.create_auditlog_entry(crate::model::moderation::AuditLogEntry::new(
+                    self.create_audit_log_entry(crate::model::moderation::AuditLogEntry::new(
                         user.id,
                         format!("invoked `{}` with x value `{x:?}`", stringify!($name)),
                     ))
@@ -455,7 +455,7 @@ macro_rules! auto_method {
                 if !user.permissions.check(FinePermission::$permission) {
                     return Err(Error::NotAllowed);
                 } else {
-                    self.create_auditlog_entry(crate::model::moderation::AuditLogEntry::new(
+                    self.create_audit_log_entry(crate::model::moderation::AuditLogEntry::new(
                         user.id,
                         format!("invoked `{}` with x value `{id}`", stringify!($name)),
                     ))
@@ -488,7 +488,7 @@ macro_rules! auto_method {
                 if !user.permissions.check(FinePermission::$permission) {
                     return Err(Error::NotAllowed);
                 } else {
-                    self.create_auditlog_entry(crate::model::moderation::AuditLogEntry::new(
+                    self.create_audit_log_entry(crate::model::moderation::AuditLogEntry::new(
                         user.id,
                         format!("invoked `{}` with x value `{x}`", stringify!($name)),
                     ))
@@ -546,7 +546,7 @@ macro_rules! auto_method {
                 if !user.permissions.check(FinePermission::$permission) {
                     return Err(Error::NotAllowed);
                 } else {
-                    self.create_auditlog_entry(crate::model::moderation::AuditLogEntry::new(
+                    self.create_audit_log_entry(crate::model::moderation::AuditLogEntry::new(
                         user.id,
                         format!("invoked `{}` with x value `{x:?}`", stringify!($name)),
                     ))

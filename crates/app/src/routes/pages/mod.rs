@@ -1,6 +1,7 @@
 pub mod auth;
 pub mod communities;
 pub mod misc;
+pub mod mod_panel;
 pub mod profile;
 
 use axum::{Router, routing::get};
@@ -20,6 +21,13 @@ pub fn routes() -> Router {
         .route("/popular", get(misc::popular_request))
         .route("/notifs", get(misc::notifications_request))
         .fallback_service(get(misc::not_found))
+        // mod
+        .route("/mod_panel/audit_log", get(mod_panel::audit_log_request))
+        .route("/mod_panel/reports", get(mod_panel::reports_request))
+        .route(
+            "/mod_panel/file_report",
+            get(mod_panel::file_report_request),
+        )
         // auth
         .route("/auth/register", get(auth::register_request))
         .route("/auth/login", get(auth::login_request))

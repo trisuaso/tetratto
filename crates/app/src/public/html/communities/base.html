@@ -15,14 +15,42 @@
                         {{ components::community_avatar(id=community.id,
                         community=community, size="72px") }}
                         <div class="flex flex-col">
-                            <!-- prettier-ignore -->
-                            <h3 id="title" class="title">
-                                {% if community.context.display_name %}
-                                    {{ community.context.display_name }}
-                                {% else %}
-                                    {{ community.title }}
-                                {% endif %}
-                            </h3>
+                            <div class="flex gap-2 items-center">
+                                <h3 id="title" class="title">
+                                    <!-- prettier-ignore -->
+                                    {% if community.context.display_name %}
+                                        {{ community.context.display_name }}
+                                    {% else %}
+                                        {{ community.title }}
+                                    {% endif %}
+                                </h3>
+
+                                {% if user %} {% if user.id != community.owner
+                                %}
+                                <div class="dropdown">
+                                    <button
+                                        class="camo small"
+                                        onclick="trigger('atto::hooks::dropdown', [event])"
+                                        exclude="dropdown"
+                                    >
+                                        {{ icon "ellipsis" }}
+                                    </button>
+
+                                    <div class="inner left">
+                                        <button
+                                            class="red"
+                                            onclick="trigger('me::report', ['{{ community.id }}', 'community'])"
+                                        >
+                                            {{ icon "flag" }}
+                                            <span
+                                                >{{ text "general:action.report"
+                                                }}</span
+                                            >
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endif %} {% endif %}
+                            </div>
 
                             <span class="fade">{{ community.title }}</span>
                         </div>

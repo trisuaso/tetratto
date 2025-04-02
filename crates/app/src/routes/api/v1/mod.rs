@@ -2,6 +2,7 @@ pub mod auth;
 pub mod communities;
 pub mod notifications;
 pub mod reactions;
+pub mod reports;
 pub mod util;
 
 use axum::{
@@ -15,6 +16,7 @@ use tetratto_core::model::{
         PostContext,
     },
     communities_permissions::CommunityPermission,
+    permissions::FinePermission,
     reactions::AssetType,
 };
 
@@ -122,6 +124,10 @@ pub fn routes() -> Router {
             post(auth::profile::update_user_settings_request),
         )
         .route(
+            "/auth/profile/{id}/role",
+            post(auth::profile::update_user_role_request),
+        )
+        .route(
             "/auth/profile/{id}",
             delete(auth::profile::delete_user_request),
         )
@@ -175,6 +181,9 @@ pub fn routes() -> Router {
         // ipbans
         .route("/bans/{ip}", post(auth::ipbans::create_request))
         .route("/bans/id/{id}", delete(auth::ipbans::delete_request))
+        // reports
+        .route("/reports", post(reports::create_request))
+        .route("/reports/{id}", delete(reports::delete_request))
 }
 
 #[derive(Deserialize)]
@@ -239,6 +248,13 @@ pub struct CreateReaction {
 }
 
 #[derive(Deserialize)]
+pub struct CreateReport {
+    pub content: String,
+    pub asset: String,
+    pub asset_type: AssetType,
+}
+
+#[derive(Deserialize)]
 pub struct UpdateUserPassword {
     pub from: String,
     pub to: String,
@@ -262,6 +278,11 @@ pub struct UpdateNotificationRead {
 #[derive(Deserialize)]
 pub struct UpdateMembershipRole {
     pub role: CommunityPermission,
+}
+
+#[derive(Deserialize)]
+pub struct UpdateUserRole {
+    pub role: FinePermission,
 }
 
 #[derive(Deserialize)]

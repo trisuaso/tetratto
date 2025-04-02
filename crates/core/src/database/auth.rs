@@ -1,5 +1,6 @@
 use super::*;
 use crate::cache::Cache;
+use crate::model::moderation::AuditLogEntry;
 use crate::model::{
     Error, Result,
     auth::{Token, User, UserSettings},
@@ -262,6 +263,17 @@ impl DataManager {
 
         self.cache_clear_user(&other_user).await;
 
+        // create audit log entry
+        self.create_audit_log_entry(AuditLogEntry::new(
+            user.id,
+            format!(
+                "invoked `update_user_verified_status` with x value `{}` and y value `{}`",
+                other_user.id, x
+            ),
+        ))
+        .await?;
+
+        // ...
         Ok(())
     }
 
@@ -323,6 +335,67 @@ impl DataManager {
 
         self.cache_clear_user(&user).await;
 
+        Ok(())
+    }
+
+    pub async fn update_user_role(
+        &self,
+        id: usize,
+        role: FinePermission,
+        user: User,
+    ) -> Result<()> {
+        // check permission
+        if !user.permissions.check(FinePermission::MANAGE_USERS) {
+            return Err(Error::NotAllowed);
+        }
+
+        let other_user = self.get_user_by_id(id).await?;
+
+        if other_user.permissions.check_manager() && !user.permissions.check_admin() {
+            return Err(Error::MiscError(
+                "Cannot manage the role of other managers".to_string(),
+            ));
+        }
+
+        if other_user.permissions == user.permissions {
+            return Err(Error::MiscError(
+                "Cannot manage users of equal level to you".to_string(),
+            ));
+        }
+
+        // ...
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = execute!(
+            &conn,
+            "UPDATE users SET permissions = $1 WHERE id = $2",
+            &[
+                &(role.bits()).to_string().as_str(),
+                &id.to_string().as_str()
+            ]
+        );
+
+        if let Err(e) = res {
+            return Err(Error::DatabaseError(e.to_string()));
+        }
+
+        self.cache_clear_user(&other_user).await;
+
+        // create audit log entry
+        self.create_audit_log_entry(AuditLogEntry::new(
+            user.id,
+            format!(
+                "invoked `update_user_role` with x value `{}` and y value `{}`",
+                other_user.id,
+                role.bits()
+            ),
+        ))
+        .await?;
+
+        // ...
         Ok(())
     }
 

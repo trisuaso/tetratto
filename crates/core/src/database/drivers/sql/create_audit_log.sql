@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS audit_log (
+    id INTEGER NOT NULL PRIMARY KEY,
+    created INTEGER NOT NULL,
+    owner INTEGER NOT NULL,
+    content TEXT NOT NULL
+)
