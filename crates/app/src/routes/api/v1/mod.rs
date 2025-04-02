@@ -147,6 +147,7 @@ pub fn routes() -> Router {
             "/auth/profile/{id}/verified",
             post(auth::profile::update_user_is_verified_request),
         )
+        .route("/auth/profile/me/seen", post(auth::profile::seen_request))
         .route(
             "/auth/profile/find/{id}",
             get(auth::profile::redirect_from_id),

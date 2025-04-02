@@ -371,6 +371,43 @@ media_theme_pref();
         }
     });
 
+    self.define("last_seen_just_now", (_, last_seen) => {
+        const now = new Date().getTime();
+        const maximum_time_to_be_considered_online = 60000 * 2; // 2 minutes
+        return now - last_seen <= maximum_time_to_be_considered_online;
+    });
+
+    self.define("last_seen_recently", (_, last_seen) => {
+        const now = new Date().getTime();
+        const maximum_time_to_be_considered_idle = 60000 * 5; // 5 minutes
+        return now - last_seen <= maximum_time_to_be_considered_idle;
+    });
+
+    self.define("hooks::online_indicator", ({ $ }) => {
+        for (const element of Array.from(
+            document.querySelectorAll("[hook=online_indicator]") || [],
+        )) {
+            const last_seen = Number.parseInt(
+                element.getAttribute("hook-arg:last_seen"),
+            );
+
+            const is_online = $.last_seen_just_now(last_seen);
+            const is_idle = $.last_seen_recently(last_seen);
+
+            const offline = element.querySelector("[hook_ui_ident=offline]");
+            const online = element.querySelector("[hook_ui_ident=online]");
+            const idle = element.querySelector("[hook_ui_ident=idle]");
+
+            if (is_online) {
+                online.style.display = "contents";
+            } else if (is_idle) {
+                idle.style.display = "contents";
+            } else {
+                offline.style.display = "contents";
+            }
+        }
+    });
+
     self.define(
         "hooks::attach_to_partial",
         ({ $ }, partial, full, attach, wrapper, page, run_on_load) => {

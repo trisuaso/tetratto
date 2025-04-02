@@ -103,12 +103,21 @@
                 atto["hooks::character_counter.init"]();
                 atto["hooks::long_text.init"]();
                 atto["hooks::alt"]();
+                atto["hooks::online_indicator"]();
                 // atto["hooks::ips"]();
                 atto["hooks::check_reactions"]();
                 atto["hooks::tabs"]();
                 atto["hooks::partial_embeds"]();
             });
         </script>
+
+        {% if user %}
+        <script data-turbo-permanent="true" id="update-seen-script">
+            document.documentElement.addEventListener("turbo:load", () => {
+                trigger("me::seen");
+            });
+        </script>
+        {% endif %}
 
         <!-- dialogs -->
         <dialog id="link_filter">

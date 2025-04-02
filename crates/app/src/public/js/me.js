@@ -150,4 +150,16 @@
             `/mod_panel/file_report?asset=${asset}&asset_type=${asset_type}`,
         );
     });
+
+    self.define("seen", () => {
+        fetch("/api/v1/auth/profile/me/seen", {
+            method: "POST",
+        })
+            .then((res) => res.json())
+            .then((res) => {
+                if (!res.ok) {
+                    trigger("atto::toast", ["error", res.message]);
+                }
+            });
+    });
 })();

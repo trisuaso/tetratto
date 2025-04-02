@@ -111,9 +111,13 @@ show_community=true) -%} {% if community and show_community %}
 
             <div class="flex flex-col w-full gap-1">
                 <div class="flex flex-wrap gap-2 items-center">
-                    <a href="/@{{ owner.username }}"
-                        >{{ components::username(user=owner) }}</a
-                    >
+                    <div class="flex">
+                        <a href="/@{{ owner.username }}"
+                            >{{ components::username(user=owner) }}</a
+                        >
+
+                        {{ components::online_indicator(user=owner) }}
+                    </div>
 
                     <span class="fade date">{{ post.created }}</span>
 
@@ -274,4 +278,45 @@ show_community=true) -%} {% if community and show_community %}
     </a>
     {% endif %}
 </div>
-{%- endmacro %}
+{%- endmacro %} {% macro online_indicator(user) -%} {% if not
+user.settings.private_last_online or is_helper %}
+<div
+    class="online_indicator"
+    style="display: contents"
+    hook="online_indicator"
+    hook-arg:last_seen="{{ user.last_seen }}"
+>
+    <div style="display: none" hook_ui_ident="online" title="Online">
+        <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            style="fill: var(--color-green)"
+        >
+            <circle cx="12" cy="12" r="6"></circle>
+        </svg>
+    </div>
+
+    <div style="display: none" hook_ui_ident="idle" title="Idle">
+        <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            style="fill: var(--color-yellow)"
+        >
+            <circle cx="12" cy="12" r="6"></circle>
+        </svg>
+    </div>
+
+    <div style="display: none" hook_ui_ident="offline" title="Offline">
+        <svg
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            style="fill: hsl(0, 0%, 50%)"
+        >
+            <circle cx="12" cy="12" r="6"></circle>
+        </svg>
+    </div>
+</div>
+{% endif %} {%- endmacro %}

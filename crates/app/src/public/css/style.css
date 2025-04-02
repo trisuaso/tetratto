@@ -24,6 +24,7 @@
     --color-shadow: rgba(0, 0, 0, 0.08);
     --color-red: hsl(0, 84%, 40%);
     --color-green: hsl(100, 84%, 20%);
+    --color-yellow: hsl(41, 63%, 75%);
     --radius: 6px;
     --circle: 360px;
     --shadow-x-offset: 0;
@@ -54,6 +55,7 @@
     --color-link: #93c5fd;
     --color-red: hsl(0, 94%, 82%);
     --color-green: hsl(100, 94%, 82%);
+    --color-yellow: hsl(41, 63%, 65%);
 }
 
 * {

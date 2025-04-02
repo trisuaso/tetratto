@@ -10,6 +10,7 @@ use crate::{auto_method, execute, get, query_row};
 use pathbufd::PathBufD;
 use std::fs::{exists, remove_file};
 use tetratto_shared::hash::{hash_salted, salt};
+use tetratto_shared::unix_epoch_timestamp;
 
 #[cfg(feature = "sqlite")]
 use rusqlite::Row;
@@ -33,10 +34,10 @@ impl DataManager {
             tokens: serde_json::from_str(&get!(x->6(String)).to_string()).unwrap(),
             permissions: FinePermission::from_bits(get!(x->7(u32))).unwrap(),
             is_verified: if get!(x->8(i8)) == 1 { true } else { false },
-            // counts
             notification_count: get!(x->9(isize)) as usize,
             follower_count: get!(x->10(isize)) as usize,
             following_count: get!(x->11(isize)) as usize,
+            last_seen: get!(x->12(isize)) as usize,
         }
     }
 
@@ -104,7 +105,7 @@ impl DataManager {
 
         let res = execute!(
             &conn,
-            "INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
+            "INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
             &[
                 &data.id.to_string().as_str(),
                 &data.created.to_string().as_str(),
@@ -117,7 +118,8 @@ impl DataManager {
                 &(if data.is_verified { 1 } else { 0 }).to_string().as_str(),
                 &0.to_string().as_str(),
                 &0.to_string().as_str(),
-                &0.to_string().as_str()
+                &0.to_string().as_str(),
+                &data.last_seen.to_string().as_str(),
             ]
         );
 
@@ -396,6 +398,30 @@ impl DataManager {
         .await?;
 
         // ...
+        Ok(())
+    }
+
+    pub async fn seen_user(&self, user: &User) -> Result<()> {
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = execute!(
+            &conn,
+            "UPDATE users SET last_seen = $1 WHERE id = $2",
+            &[
+                &unix_epoch_timestamp().to_string().as_str(),
+                &user.id.to_string().as_str()
+            ]
+        );
+
+        if let Err(e) = res {
+            return Err(Error::DatabaseError(e.to_string()));
+        }
+
+        self.cache_clear_user(&user).await;
+
         Ok(())
     }
 

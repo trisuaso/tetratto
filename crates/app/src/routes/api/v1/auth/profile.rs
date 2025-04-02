@@ -196,6 +196,24 @@ pub async fn update_user_role_request(
     }
 }
 
+/// Update the current user's last seen value.
+pub async fn seen_request(jar: CookieJar, Extension(data): Extension<State>) -> impl IntoResponse {
+    let data = &(data.read().await).0;
+    let user = match get_user_from_token!(jar, data) {
+        Some(ua) => ua,
+        None => return Json(Error::NotAllowed.into()),
+    };
+
+    match data.seen_user(&user).await {
+        Ok(_) => Json(ApiReturn {
+            ok: true,
+            message: "User updated".to_string(),
+            payload: (),
+        }),
+        Err(e) => Json(e.into()),
+    }
+}
+
 /// Delete the given user.
 pub async fn delete_user_request(
     jar: CookieJar,

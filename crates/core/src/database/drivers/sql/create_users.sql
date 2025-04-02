@@ -8,8 +8,8 @@ CREATE TABLE IF NOT EXISTS users (
     tokens TEXT NOT NULL,
     permissions INTEGER NOT NULL,
     verified INTEGER NOT NULL,
-    -- counts
     notification_count INTEGER NOT NULL,
     follower_count INTEGER NOT NULL,
-    following_count INTEGER NOT NULL
+    following_count INTEGER NOT NULL,
+    last_seen INTEGER NOT NULL
 )

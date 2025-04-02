@@ -23,6 +23,7 @@ pub struct User {
     pub notification_count: usize,
     pub follower_count: usize,
     pub following_count: usize,
+    pub last_seen: usize,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -50,6 +51,8 @@ pub struct UserSettings {
     pub private_communities: bool,
     #[serde(default)]
     pub theme_preference: ThemePreference,
+    #[serde(default)]
+    pub private_last_seen: bool,
 }
 
 impl Default for UserSettings {
@@ -60,6 +63,7 @@ impl Default for UserSettings {
             private_profile: false,
             private_communities: false,
             theme_preference: ThemePreference::default(),
+            private_last_seen: false,
         }
     }
 }
@@ -92,6 +96,7 @@ impl User {
             notification_count: 0,
             follower_count: 0,
             following_count: 0,
+            last_seen: unix_epoch_timestamp() as usize,
         }
     }
 

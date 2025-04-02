@@ -72,6 +72,14 @@
                             <span class="notification chip">Joined</span>
                             <span class="date">{{ profile.created }}</span>
                         </div>
+
+                        {% if not profile.settings.private_last_seen or is_self
+                        or is_helper %}
+                        <div class="w-full flex justify-between items-center">
+                            <span class="notification chip">Last seen</span>
+                            <span class="date">{{ profile.last_seen }}</span>
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
 
