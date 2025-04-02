@@ -233,12 +233,10 @@ pub async fn settings_request(
         Err(e) => return Err(Html(render_error(e, &jar, &data, &Some(user)).await)),
     };
 
-    if user.id != community.owner {
-        if !user.permissions.check(FinePermission::MANAGE_COMMUNITIES) {
-            return Err(Html(
-                render_error(Error::NotAllowed, &jar, &data, &None).await,
-            ));
-        }
+    if user.id != community.owner && !user.permissions.check(FinePermission::MANAGE_COMMUNITIES) {
+        return Err(Html(
+            render_error(Error::NotAllowed, &jar, &data, &None).await,
+        ));
     }
 
     // init context

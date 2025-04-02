@@ -121,7 +121,7 @@
 
         <!-- dialogs -->
         <dialog id="link_filter">
-            <div class="inner">
+            <div class="inner flex flex-col gap-2">
                 <p>Pressing continue will bring you to the following URL:</p>
                 <pre><code id="link_filter_url"></code></pre>
                 <p>Are sure you want to go there?</p>
@@ -135,14 +135,16 @@
                         target="_blank"
                         onclick="document.getElementById('link_filter').close()"
                     >
-                        {{ text "dialog:action.continue" }}
+                        {{ icon "external-link" }}
+                        <span>{{ text "dialog:action.continue" }}</span>
                     </a>
                     <button
                         class="secondary"
                         type="button"
                         onclick="document.getElementById('link_filter').close()"
                     >
-                        {{ text "dialog:action.cancel" }}
+                        {{ icon "x" }}
+                        <span>{{ text "dialog:action.cancel" }}</span>
                     </button>
                 </div>
             </div>

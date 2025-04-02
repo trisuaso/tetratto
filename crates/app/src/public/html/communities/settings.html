@@ -98,6 +98,36 @@
                     </select>
                 </div>
             </div>
+
+            <div class="card-nest" ui_ident="change_title">
+                <div class="card small">
+                    <b>{{ text "communities:label.change_title" }}</b>
+                </div>
+
+                <form
+                    class="card flex flex-col gap-2"
+                    onsubmit="change_title(event)"
+                >
+                    <div class="flex flex-col gap-1">
+                        <label for="new_title"
+                            >{{ text "communities:label.new_title" }}</label
+                        >
+                        <input
+                            type="text"
+                            name="new_title"
+                            id="new_title"
+                            placeholder="new_title"
+                            required
+                            minlength="2"
+                        />
+                    </div>
+
+                    <button class="primary">
+                        {{ icon "check" }}
+                        <span>{{ text "general:action.save" }}</span>
+                    </button>
+                </form>
+            </div>
         </div>
 
         <div class="card-nest" ui_ident="danger_zone">
@@ -412,6 +442,35 @@
                 });
         };
 
+        globalThis.change_title = async (e) => {
+            e.preventDefault();
+
+            if (
+                !(await trigger("atto::confirm", [
+                    "Are you sure you would like to do this?",
+                ]))
+            ) {
+                return;
+            }
+
+            fetch("/api/v1/communities/{{ community.id }}/title", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    title: e.target.new_title.value,
+                }),
+            })
+                .then((res) => res.json())
+                .then((res) => {
+                    trigger("atto::toast", [
+                        res.ok ? "success" : "error",
+                        res.message,
+                    ]);
+                });
+        };
+
         globalThis.delete_community = async () => {
             if (
                 !(await trigger("atto::confirm", [
@@ -437,6 +496,7 @@
             "read_access",
             "join_access",
             "write_access",
+            "change_title",
             "change_avatar",
             "change_banner",
         ]);

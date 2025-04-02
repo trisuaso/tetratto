@@ -75,11 +75,6 @@ show_lhs=true) -%}
                         <span>{{ text "auth:link.settings" }}</span>
                     </a>
 
-                    <a href="https://github.com/trisuaso/tetratto">
-                        {{ icon "code" }}
-                        <span>{{ text "general:link.source_code" }}</span>
-                    </a>
-
                     {% if is_helper %}
                     <b class="title">{{ text "general:label.mod" }}</b>
 
@@ -93,6 +88,18 @@ show_lhs=true) -%}
                         <span>{{ text "general:link.reports" }}</span>
                     </a>
                     {% endif %}
+
+                    <b class="title">{{ config.name }}</b>
+
+                    <a href="https://github.com/trisuaso/tetratto">
+                        {{ icon "code" }}
+                        <span>{{ text "general:link.source_code" }}</span>
+                    </a>
+
+                    <a href="https://trisuaso.github.io/tetratto">
+                        {{ icon "book" }}
+                        <span>{{ text "general:link.reference" }}</span>
+                    </a>
 
                     <div class="title"></div>
                     <button class="red" onclick="trigger('me::logout')">

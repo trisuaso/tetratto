@@ -121,17 +121,14 @@ pub async fn posts_request(
     // check for private profile
     if other_user.settings.private_profile {
         if let Some(ref ua) = user {
-            if (ua.id != other_user.id) && !ua.permissions.check(FinePermission::MANAGE_USERS) {
-                if data
+            if (ua.id != other_user.id) && !ua.permissions.check(FinePermission::MANAGE_USERS) && data
                     .0
                     .get_userfollow_by_initiator_receiver(other_user.id, ua.id)
                     .await
-                    .is_err()
-                {
-                    return Err(Html(
-                        render_error(Error::NotAllowed, &jar, &data, &user).await,
-                    ));
-                }
+                    .is_err() {
+                return Err(Html(
+                    render_error(Error::NotAllowed, &jar, &data, &user).await,
+                ));
             }
         } else {
             return Err(Html(
@@ -246,17 +243,14 @@ pub async fn following_request(
     // check for private profile
     if other_user.settings.private_profile {
         if let Some(ref ua) = user {
-            if ua.id != other_user.id {
-                if data
+            if ua.id != other_user.id && data
                     .0
                     .get_userfollow_by_initiator_receiver(other_user.id, ua.id)
                     .await
-                    .is_err()
-                {
-                    return Err(Html(
-                        render_error(Error::NotAllowed, &jar, &data, &user).await,
-                    ));
-                }
+                    .is_err() {
+                return Err(Html(
+                    render_error(Error::NotAllowed, &jar, &data, &user).await,
+                ));
             }
         } else {
             return Err(Html(
@@ -373,17 +367,14 @@ pub async fn followers_request(
     // check for private profile
     if other_user.settings.private_profile {
         if let Some(ref ua) = user {
-            if ua.id != other_user.id {
-                if data
+            if ua.id != other_user.id && data
                     .0
                     .get_userfollow_by_initiator_receiver(other_user.id, ua.id)
                     .await
-                    .is_err()
-                {
-                    return Err(Html(
-                        render_error(Error::NotAllowed, &jar, &data, &user).await,
-                    ));
-                }
+                    .is_err() {
+                return Err(Html(
+                    render_error(Error::NotAllowed, &jar, &data, &user).await,
+                ));
             }
         } else {
             return Err(Html(

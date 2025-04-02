@@ -88,6 +88,22 @@ community %}
     <span>{{ dislikes }}</span>
     {% endif %}
 </button>
+{%- endmacro %} {% macro full_username(user) -%}
+<div class="flex">
+    <a href="/@{{ user.username }}" class="flush" style="font-weight: 600">
+        {{ components::username(user=user) }}
+    </a>
+
+    {{ components::online_indicator(user=user) }} {% if user.is_verified %}
+    <span
+        title="Verified"
+        style="color: var(--color-primary)"
+        class="flex items-center"
+    >
+        {{ icon "badge-check" }}
+    </span>
+    {% endif %}
+</div>
 {%- endmacro %} {% macro post(post, owner, secondary=false, community=false,
 show_community=true) -%} {% if community and show_community %}
 <div class="card-nest">
@@ -113,13 +129,7 @@ show_community=true) -%} {% if community and show_community %}
 
             <div class="flex flex-col w-full gap-1">
                 <div class="flex flex-wrap gap-2 items-center">
-                    <div class="flex">
-                        <a href="/@{{ owner.username }}"
-                            >{{ components::username(user=owner) }}</a
-                        >
-
-                        {{ components::online_indicator(user=owner) }}
-                    </div>
+                    {{ components::full_username(user=owner) }}
 
                     <span class="fade date">{{ post.created }}</span>
 

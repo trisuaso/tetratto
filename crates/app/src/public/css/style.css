@@ -102,6 +102,17 @@ article {
     article {
         margin-top: 0;
     }
+
+    main {
+        padding: 0;
+    }
+
+    body .card:not(.card *),
+    body .pillmenu:not(.card *) > a,
+    body .card-nest:not(.card *) > .card,
+    body .banner {
+        border-radius: 0 !important;
+    }
 }
 
 .content_container {
@@ -138,13 +149,19 @@ article {
 }
 
 /* typo */
-pre {
-    font-family: monospace;
+pre,
+code {
+    font-family: "Jetbrains Mono", "Fire Code", monospace;
     width: 100%;
     max-width: 100%;
     overflow: auto;
     background: var(--color-lowered);
     border-radius: var(--radius);
+    padding: 0.25rem;
+    font-size: 0.8rem;
+}
+
+pre {
     padding: 1rem;
 }
 
@@ -765,6 +782,7 @@ dialog::backdrop {
     display: none;
     position: absolute;
     background: var(--color-raised);
+    border: solid 1px var(--color-super-lowered);
     z-index: 2;
     border-radius: var(--radius);
     top: calc(100% + 5px);
