@@ -77,7 +77,13 @@
                         or is_helper %}
                         <div class="w-full flex justify-between items-center">
                             <span class="notification chip">Last seen</span>
-                            <span class="date">{{ profile.last_seen }}</span>
+
+                            <div class="flex">
+                                {{ components::online_indicator(user=profile) }}
+                                <span class="date">
+                                    {{ profile.last_seen }}
+                                </span>
+                            </div>
                         </div>
                         {% endif %}
                     </div>

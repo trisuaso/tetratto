@@ -324,6 +324,7 @@ pub async fn following_request(
     };
 
     context.insert("list", &list);
+    context.insert("page", &props.page);
     profile_context(
         &mut context,
         &other_user,
@@ -450,6 +451,7 @@ pub async fn followers_request(
     };
 
     context.insert("list", &list);
+    context.insert("page", &props.page);
     profile_context(
         &mut context,
         &other_user,

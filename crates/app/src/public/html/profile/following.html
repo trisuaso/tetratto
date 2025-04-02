@@ -16,7 +16,7 @@ content %}
 
             {{ components::user_card(user=item[1]) }}
         </div>
-        {% endfor %}
+        {% endfor %} {{ components::pagination(page=page, items=list|length) }}
     </div>
 </div>
 {% endblock %}
