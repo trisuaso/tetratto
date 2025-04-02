@@ -172,6 +172,9 @@ pub fn routes() -> Router {
             "/communities/{cid}/memberships/{uid}/role",
             post(communities::communities::update_membership_role),
         )
+        // ipbans
+        .route("/bans/{ip}", post(auth::ipbans::create_request))
+        .route("/bans/id/{id}", delete(auth::ipbans::delete_request))
 }
 
 #[derive(Deserialize)]
@@ -264,4 +267,9 @@ pub struct UpdateMembershipRole {
 #[derive(Deserialize)]
 pub struct DeleteUser {
     pub password: String,
+}
+
+#[derive(Deserialize)]
+pub struct CreateIpBan {
+    pub reason: String,
 }

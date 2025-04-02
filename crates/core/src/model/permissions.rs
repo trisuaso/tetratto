@@ -23,6 +23,8 @@ bitflags! {
         const MANAGE_REACTIONS = 1 << 12;
         const MANAGE_FOLLOWS = 1 << 13;
         const MANAGE_VERIFIED = 1 << 14;
+        const MANAGE_AUDITLOG = 1 << 15;
+        const MANAGE_REPORTS = 1 << 16;
 
         const _ = !0;
     }

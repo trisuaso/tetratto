@@ -1,6 +1,7 @@
 pub mod auth;
 pub mod communities;
 pub mod communities_permissions;
+pub mod moderation;
 pub mod permissions;
 pub mod reactions;
 

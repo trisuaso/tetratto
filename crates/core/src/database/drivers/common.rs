@@ -7,3 +7,5 @@ pub const CREATE_TABLE_NOTIFICATIONS: &str = include_str!("./sql/create_notifica
 pub const CREATE_TABLE_USERFOLLOWS: &str = include_str!("./sql/create_userfollows.sql");
 pub const CREATE_TABLE_USERBLOCKS: &str = include_str!("./sql/create_userblocks.sql");
 pub const CREATE_TABLE_IPBANS: &str = include_str!("./sql/create_ipbans.sql");
+pub const CREATE_TABLE_AUDITLOG: &str = include_str!("./sql/create_auditlog.sql");
+pub const CREATE_TABLE_REPORTS: &str = include_str!("./sql/create_reports.sql");

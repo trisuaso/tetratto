@@ -1,3 +1,4 @@
+mod audit_log;
 mod auth;
 mod common;
 mod communities;
@@ -7,6 +8,7 @@ mod memberships;
 mod notifications;
 mod posts;
 mod reactions;
+mod reports;
 mod userblocks;
 mod userfollows;
 

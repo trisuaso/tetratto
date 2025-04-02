@@ -70,7 +70,7 @@ impl Community {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct CommunityContext {
     pub display_name: String,
     pub description: String,
@@ -86,7 +86,7 @@ impl Default for CommunityContext {
 }
 
 /// Who can read a [`Community`].
-#[derive(Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum CommunityReadAccess {
     /// Everybody can view the community.
     Everybody,
@@ -101,7 +101,7 @@ impl Default for CommunityReadAccess {
 }
 
 /// Who can write to a [`Community`].
-#[derive(Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum CommunityWriteAccess {
     /// Everybody.
     Everybody,
@@ -120,7 +120,7 @@ impl Default for CommunityWriteAccess {
 }
 
 /// Who can join a [`Community`].
-#[derive(Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum CommunityJoinAccess {
     /// Joins are closed. Nobody can join the community.
     Nobody,
@@ -136,7 +136,7 @@ impl Default for CommunityJoinAccess {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CommunityMembership {
     pub id: usize,
     pub created: usize,
@@ -161,7 +161,7 @@ impl CommunityMembership {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct PostContext {
     pub comments_enabled: bool,
 }

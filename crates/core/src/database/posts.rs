@@ -395,6 +395,12 @@ impl DataManager {
         if user.id != y.owner {
             if !user.permissions.check(FinePermission::MANAGE_POSTS) {
                 return Err(Error::NotAllowed);
+            } else {
+                self.create_auditlog_entry(crate::model::moderation::AuditLogEntry::new(
+                    user.id,
+                    format!("invoked `delete_post` with x value `{id}`"),
+                ))
+                .await?
             }
         }
 
