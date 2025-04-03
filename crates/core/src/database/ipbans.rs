@@ -2,7 +2,7 @@ use super::*;
 use crate::cache::Cache;
 use crate::model::moderation::AuditLogEntry;
 use crate::model::{Error, Result, auth::IpBan, auth::User, permissions::FinePermission};
-use crate::{auto_method, execute, get, query_row, query_rows};
+use crate::{auto_method, execute, get, query_row, query_rows, params};
 
 #[cfg(feature = "sqlite")]
 use rusqlite::Row;
@@ -71,11 +71,11 @@ impl DataManager {
         let res = execute!(
             &conn,
             "INSERT INTO ipbans VALUES ($1, $2, $3, $4)",
-            &[
+            params![
                 &data.ip.as_str(),
-                &data.created.to_string().as_str(),
+                &(data.created as i64),
                 &data.reason.as_str(),
-                &data.moderator.to_string().as_str()
+                &(data.moderator as i64)
             ]
         );
 

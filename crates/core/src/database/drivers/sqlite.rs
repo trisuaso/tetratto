@@ -86,3 +86,13 @@ macro_rules! execute {
         $conn.prepare($sql).unwrap().execute(())
     };
 }
+
+#[macro_export]
+macro_rules! params {
+    () => {
+        rusqlite::params![]
+    };
+    ($($params:expr),+ $(,)?) => {
+        rusqlite::params![$($params),+]
+    };
+}

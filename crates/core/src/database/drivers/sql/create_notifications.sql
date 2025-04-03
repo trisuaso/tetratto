@@ -1,8 +1,8 @@
 CREATE TABLE IF NOT EXISTS notifications (
-    id INTEGER NOT NULL PRIMARY KEY,
-    created INTEGER NOT NULL,
+    id BIGINT NOT NULL PRIMARY KEY,
+    created BIGINT NOT NULL,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
-    owner INTEGER NOT NULL,
-    read INTEGER NOT NULL
+    owner BIGINT NOT NULL,
+    read BIGINT NOT NULL
 )

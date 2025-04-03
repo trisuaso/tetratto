@@ -13,6 +13,7 @@ use bb8_postgres::{
 use std::collections::HashMap;
 use tetratto_l10n::{LangFile, read_langs};
 use tokio_postgres::{Config as PgConfig, NoTls, Row, types::ToSql};
+use std::str::FromStr;
 
 pub type Result<T> = std::result::Result<T, tokio_postgres::Error>;
 pub type Connection<'a> = PooledConnection<'a, PostgresConnectionManager<NoTls>>;
@@ -35,13 +36,14 @@ impl DataManager {
     /// Create a new [`DataManager`] (and init database).
     pub async fn new(config: Config) -> Result<Self> {
         let manager = PostgresConnectionManager::new(
-            {
-                let mut c = PgConfig::new();
-                c.user(&config.database.user);
-                c.password(&config.database.password);
-                c.dbname(&config.database.name);
-                c
-            },
+            PgConfig::from_str(&format!(
+                "postgresql://{}:{}@{}/{}?target_session_attrs=read-write",
+                config.database.user,
+                config.database.password,
+                config.database.url,
+                config.database.name
+            ))
+            .unwrap(),
             NoTls,
         );
 
@@ -142,5 +144,15 @@ macro_rules! execute {
 
     ($conn:expr, $sql:expr) => {
         crate::database::execute_helper($conn, $sql, &[]).await
+    };
+}
+
+#[macro_export]
+macro_rules! params {
+    () => {
+        &[]
+    };
+    ($($x:expr),+ $(,)?) => {
+        &[$(&$x),+]
     };
 }

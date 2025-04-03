@@ -188,6 +188,8 @@ pub(crate) async fn write_assets(config: &Config) -> PathBufD {
 
 /// Set up extra directories.
 pub(crate) async fn init_dirs(config: &Config) {
+    create_dir_if_not_exists!(&config.dirs.templates);
+
     // images
     create_dir_if_not_exists!(&config.dirs.media);
     let images_path = PathBufD::current().extend(&[config.dirs.media.as_str(), "images"]);

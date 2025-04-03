@@ -6,7 +6,7 @@ use crate::model::{
     permissions::FinePermission,
     reactions::{AssetType, Reaction},
 };
-use crate::{auto_method, execute, get, query_row};
+use crate::{auto_method, execute, get, query_row, params};
 
 #[cfg(feature = "sqlite")]
 use rusqlite::Row;
@@ -26,7 +26,11 @@ impl DataManager {
             owner: get!(x->2(i64)) as usize,
             asset: get!(x->3(i64)) as usize,
             asset_type: serde_json::from_str(&get!(x->4(String))).unwrap(),
-            is_like: if get!(x->5(i8)) == 1 { true } else { false },
+            is_like: if get!(x->5(i64)) as i8 == 1 {
+                true
+            } else {
+                false
+            },
         }
     }
 
@@ -70,13 +74,13 @@ impl DataManager {
         let res = execute!(
             &conn,
             "INSERT INTO reactions VALUES ($1, $2, $3, $4, $5, $6)",
-            &[
-                &data.id.to_string().as_str(),
-                &data.created.to_string().as_str(),
-                &data.owner.to_string().as_str(),
-                &data.asset.to_string().as_str(),
+            params![
+                &(data.id as i64),
+                &(data.created as i64),
+                &(data.owner as i64),
+                &(data.asset as i64),
                 &serde_json::to_string(&data.asset_type).unwrap().as_str(),
-                &(if data.is_like { 1 } else { 0 }).to_string().as_str()
+                &(if data.is_like { 1 } else { 0 } as i64)
             ]
         );
 
@@ -170,7 +174,7 @@ impl DataManager {
         let res = execute!(
             &conn,
             "DELETE FROM reactions WHERE id = $1",
-            &[&id.to_string()]
+            &[&(id as i64)]
         );
 
         if let Err(e) = res {

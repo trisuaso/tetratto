@@ -2,7 +2,7 @@ use super::*;
 use crate::cache::Cache;
 use crate::model::moderation::AuditLogEntry;
 use crate::model::{Error, Result, auth::User, moderation::Report, permissions::FinePermission};
-use crate::{auto_method, execute, get, query_row, query_rows};
+use crate::{auto_method, execute, get, query_row, query_rows, params};
 
 #[cfg(feature = "sqlite")]
 use rusqlite::Row;
@@ -26,7 +26,7 @@ impl DataManager {
         }
     }
 
-    auto_method!(get_report_by_id(usize)@get_report_from_row -> "SELECT * FROM reports WHERE id = $1" --name="report" --returns=Report --cache-key-tmpl="atto.reports:{}");
+    auto_method!(get_report_by_id(usize as i64)@get_report_from_row -> "SELECT * FROM reports WHERE id = $1" --name="report" --returns=Report --cache-key-tmpl="atto.reports:{}");
 
     /// Get all reports (paginated).
     ///
@@ -66,12 +66,12 @@ impl DataManager {
         let res = execute!(
             &conn,
             "INSERT INTO reports VALUES ($1, $2, $3, $4, $5, $6)",
-            &[
-                &data.id.to_string().as_str(),
-                &data.created.to_string().as_str(),
-                &data.owner.to_string().as_str(),
+            params![
+                &(data.id as i64),
+                &(data.created as i64),
+                &(data.owner as i64),
                 &data.content.as_str(),
-                &data.asset.to_string().as_str(),
+                &(data.asset as i64),
                 &serde_json::to_string(&data.asset_type).unwrap().as_str(),
             ]
         );
@@ -94,11 +94,7 @@ impl DataManager {
             Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
         };
 
-        let res = execute!(
-            &conn,
-            "DELETE FROM reports WHERE id = $1",
-            &[&id.to_string()]
-        );
+        let res = execute!(&conn, "DELETE FROM reports WHERE id = $1", &[&(id as i64)]);
 
         if let Err(e) = res {
             return Err(Error::DatabaseError(e.to_string()));

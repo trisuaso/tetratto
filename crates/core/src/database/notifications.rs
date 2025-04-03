@@ -1,7 +1,7 @@
 use super::*;
 use crate::cache::Cache;
 use crate::model::{Error, Result, auth::Notification, auth::User, permissions::FinePermission};
-use crate::{auto_method, execute, get, query_row, query_rows};
+use crate::{auto_method, execute, get, query_row, query_rows, params};
 
 #[cfg(feature = "sqlite")]
 use rusqlite::Row;
@@ -21,7 +21,11 @@ impl DataManager {
             title: get!(x->2(String)),
             content: get!(x->3(String)),
             owner: get!(x->4(i64)) as usize,
-            read: if get!(x->5(i8)) == 1 { true } else { false },
+            read: if get!(x->5(i64)) as i8 == 1 {
+                true
+            } else {
+                false
+            },
         }
     }
 
@@ -61,13 +65,13 @@ impl DataManager {
         let res = execute!(
             &conn,
             "INSERT INTO notifications VALUES ($1, $2, $3, $4, $5, $6)",
-            &[
-                &data.id.to_string().as_str(),
-                &data.created.to_string().as_str(),
-                &data.title.to_string().as_str(),
-                &data.content.to_string().as_str(),
-                &data.owner.to_string().as_str(),
-                &(if data.read { 1 } else { 0 }).to_string().as_str()
+            params![
+                &(data.id as i64),
+                &(data.created as i64),
+                &data.title,
+                &data.content,
+                &(data.owner as i64),
+                &(if data.read { 1 } else { 0 } as i64)
             ]
         );
 
@@ -99,7 +103,7 @@ impl DataManager {
         let res = execute!(
             &conn,
             "DELETE FROM notifications WHERE id = $1",
-            &[&id.to_string()]
+            &[&(id as i64)]
         );
 
         if let Err(e) = res {
@@ -158,7 +162,7 @@ impl DataManager {
         let res = execute!(
             &conn,
             "UPDATE notifications SET read = $1 WHERE id = $2",
-            &[&(if new_read { 1 } else { 0 }).to_string(), &id.to_string()]
+            params![&(if new_read { 1 } else { 0 } as i64), &(id as i64)]
         );
 
         if let Err(e) = res {

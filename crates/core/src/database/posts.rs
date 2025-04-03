@@ -11,7 +11,7 @@ use crate::model::{
     communities::{Community, CommunityWriteAccess, Post, PostContext},
     permissions::FinePermission,
 };
-use crate::{auto_method, execute, get, query_row, query_rows};
+use crate::{auto_method, execute, get, query_row, query_rows, params};
 
 #[cfg(feature = "sqlite")]
 use rusqlite::Row;
@@ -174,7 +174,7 @@ impl DataManager {
 
         let res = query_rows!(
             &conn,
-            "SELECT * FROM posts WHERE community = $1 AND replying_to IS NULL ORDER BY created DESC LIMIT $2 OFFSET $3",
+            "SELECT * FROM posts WHERE community = $1 AND replying_to = 0 AND NOT context LIKE '%\"is_pinned\":true%' ORDER BY created DESC LIMIT $2 OFFSET $3",
             &[&(id as i64), &(batch as i64), &((page * batch) as i64)],
             |x| { Self::get_post_from_row(x) }
         );
@@ -223,7 +223,7 @@ impl DataManager {
 
         let res = query_rows!(
             &conn,
-            "SELECT * FROM posts ORDER BY likes DESC, created ASC LIMIT $2 OFFSET $3",
+            "SELECT * FROM posts ORDER BY likes DESC, created ASC LIMIT $1 OFFSET $2",
             &[&(batch as i64), &((page * batch) as i64)],
             |x| { Self::get_post_from_row(x) }
         );
@@ -395,21 +395,21 @@ impl DataManager {
         let res = execute!(
             &conn,
             "INSERT INTO posts VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
-            &[
-                &Some(data.id.to_string().as_str()),
-                &Some(data.created.to_string().as_str()),
-                &Some(&data.content),
-                &Some(data.owner.to_string().as_str()),
-                &Some(data.community.to_string().as_str()),
-                &Some(&serde_json::to_string(&data.context).unwrap()),
+            params![
+                &(data.id as i64),
+                &(data.created as i64),
+                &data.content,
+                &(data.owner as i64),
+                &(data.community as i64),
+                &serde_json::to_string(&data.context).unwrap(),
                 &if replying_to_id != "0" {
-                    Some(replying_to_id.as_str())
+                    replying_to_id.parse::<i64>().unwrap()
                 } else {
-                    None
+                    0 as i64
                 },
-                &Some(0.to_string().as_str()),
-                &Some(0.to_string().as_str()),
-                &Some(0.to_string().as_str())
+                &(0 as i64),
+                &(0 as i64),
+                &(0 as i64)
             ]
         );
 
@@ -472,7 +472,7 @@ impl DataManager {
             Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
         };
 
-        let res = execute!(&conn, "DELETE FROM posts WHERE id = $1", &[&id.to_string()]);
+        let res = execute!(&conn, "DELETE FROM posts WHERE id = $1", &[&(id as i64)]);
 
         if let Err(e) = res {
             return Err(Error::DatabaseError(e.to_string()));
@@ -538,7 +538,7 @@ impl DataManager {
         let res = execute!(
             &conn,
             "UPDATE posts SET context = $1 WHERE id = $2",
-            &[&serde_json::to_string(&x).unwrap(), &id.to_string()]
+            params![&serde_json::to_string(&x).unwrap(), &(id as i64)]
         );
 
         if let Err(e) = res {

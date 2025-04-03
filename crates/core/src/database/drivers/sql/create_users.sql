@@ -1,15 +1,15 @@
 CREATE TABLE IF NOT EXISTS users (
-    id INTEGER NOT NULL PRIMARY KEY,
-    created INTEGER NOT NULL,
+    id BIGINT NOT NULL PRIMARY KEY,
+    created BIGINT NOT NULL,
     username TEXT NOT NULL,
     password TEXT NOT NULL,
     salt TEXT NOT NULL,
     settings TEXT NOT NULL,
     tokens TEXT NOT NULL,
-    permissions INTEGER NOT NULL,
-    verified INTEGER NOT NULL,
-    notification_count INTEGER NOT NULL,
-    follower_count INTEGER NOT NULL,
-    following_count INTEGER NOT NULL,
-    last_seen INTEGER NOT NULL
+    permissions BIGINT NOT NULL,
+    verified BIGINT NOT NULL,
+    notification_count BIGINT NOT NULL,
+    follower_count BIGINT NOT NULL,
+    following_count BIGINT NOT NULL,
+    last_seen BIGINT NOT NULL
 )

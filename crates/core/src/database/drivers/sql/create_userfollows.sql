@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS userfollows (
-    id INTEGER NOT NULL PRIMARY KEY,
-    created INTEGER NOT NULL,
-    initiator INTEGER NOT NULL,
-    receiver INTEGER NOT NULL
+    id BIGINT NOT NULL PRIMARY KEY,
+    created BIGINT NOT NULL,
+    initiator BIGINT NOT NULL,
+    receiver BIGINT NOT NULL
 )

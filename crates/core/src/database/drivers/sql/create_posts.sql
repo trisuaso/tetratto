@@ -1,14 +1,14 @@
 CREATE TABLE IF NOT EXISTS posts (
-    id INTEGER NOT NULL PRIMARY KEY,
-    created INTEGER NOT NULL,
+    id BIGINT NOT NULL PRIMARY KEY,
+    created BIGINT NOT NULL,
     content TEXT NOT NULL,
-    owner INTEGER NOT NULL,
-    community INTEGER NOT NULL,
+    owner BIGINT NOT NULL,
+    community BIGINT NOT NULL,
     context TEXT NOT NULL,
-    replying_to INTEGER, -- the ID of the post this is a comment on... NULL means it isn't a reply
+    replying_to BIGINT, -- the ID of the post this is a comment on... NULL means it isn't a reply
     -- likes
-    likes INTEGER NOT NULL,
-    dislikes INTEGER NOT NULL,
+    likes BIGINT NOT NULL,
+    dislikes BIGINT NOT NULL,
     -- other counts
-    comment_count INTEGER NOT NULL
+    comment_count BIGINT NOT NULL
 )

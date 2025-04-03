@@ -1,7 +1,7 @@
 use super::*;
 use crate::cache::Cache;
 use crate::model::{Error, Result, auth::User, moderation::AuditLogEntry, permissions::FinePermission};
-use crate::{auto_method, execute, get, query_row, query_rows};
+use crate::{auto_method, execute, get, params, query_row, query_rows};
 
 #[cfg(feature = "sqlite")]
 use rusqlite::Row;
@@ -23,7 +23,7 @@ impl DataManager {
         }
     }
 
-    auto_method!(get_audit_log_entry_by_id(usize)@get_audit_log_entry_from_row -> "SELECT * FROM audit_log WHERE id = $1" --name="audit log entry" --returns=AuditLogEntry --cache-key-tmpl="atto.audit_log:{}");
+    auto_method!(get_audit_log_entry_by_id(usize as i64)@get_audit_log_entry_from_row -> "SELECT * FROM audit_log WHERE id = $1" --name="audit log entry" --returns=AuditLogEntry --cache-key-tmpl="atto.audit_log:{}");
 
     /// Get all audit log entries (paginated).
     ///
@@ -67,10 +67,10 @@ impl DataManager {
         let res = execute!(
             &conn,
             "INSERT INTO audit_log VALUES ($1, $2, $3, $4)",
-            &[
-                &data.id.to_string().as_str(),
-                &data.created.to_string().as_str(),
-                &data.moderator.to_string().as_str(),
+            params![
+                &(data.id as i64),
+                &(data.created as i64),
+                &(data.moderator as i64),
                 &data.content.as_str(),
             ]
         );
@@ -96,7 +96,7 @@ impl DataManager {
         let res = execute!(
             &conn,
             "DELETE FROM audit_log WHERE id = $1",
-            &[&id.to_string()]
+            &[&(id as i64)]
         );
 
         if let Err(e) = res {

@@ -1,15 +1,15 @@
 CREATE TABLE IF NOT EXISTS communities (
-    id INTEGER NOT NULL PRIMARY KEY,
-    created INTEGER NOT NULL,
+    id BIGINT NOT NULL PRIMARY KEY,
+    created BIGINT NOT NULL,
     title TEXT NOT NULL,
     context TEXT NOT NULL,
-    owner INTEGER NOT NULL,
+    owner BIGINT NOT NULL,
     read_access TEXT NOT NULL,
     write_access TEXT NOT NULL,
     join_access TEXT NOT NULL,
     -- likes
-    likes INTEGER NOT NULL,
-    dislikes INTEGER NOT NULL,
+    likes BIGINT NOT NULL,
+    dislikes BIGINT NOT NULL,
     -- counts
-    member_count INTEGER NOT NULL
+    member_count BIGINT NOT NULL
 )

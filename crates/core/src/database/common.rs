@@ -131,6 +131,41 @@ macro_rules! auto_method {
         }
     };
 
+    ($name:ident($selector_t:ty as i64)@$select_fn:ident -> $query:literal --name=$name_:literal --returns=$returns_:tt --cache-key-tmpl=$cache_key_tmpl:literal) => {
+        pub async fn $name(&self, selector: $selector_t) -> Result<$returns_> {
+            if let Some(cached) = self
+                .2
+                .get(format!($cache_key_tmpl, selector.to_string()))
+                .await
+            {
+                return Ok(serde_json::from_str(&cached).unwrap());
+            }
+
+            let conn = match self.connect().await {
+                Ok(c) => c,
+                Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+            };
+
+            let res = query_row!(&conn, $query, &[&(selector as i64)], |x| {
+                Ok(Self::$select_fn(x))
+            });
+
+            if res.is_err() {
+                return Err(Error::GeneralNotFound($name_.to_string()));
+            }
+
+            let x = res.unwrap();
+            self.2
+                .set(
+                    format!($cache_key_tmpl, selector),
+                    serde_json::to_string(&x).unwrap(),
+                )
+                .await;
+
+            Ok(x)
+        }
+    };
+
     ($name:ident()@$select_fn:ident:$permission:ident -> $query:literal) => {
         pub async fn $name(&self, id: usize, user: User) -> Result<()> {
             let y = self.$select_fn(id).await?;
@@ -151,7 +186,7 @@ macro_rules! auto_method {
                 Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
             };
 
-            let res = execute!(&conn, $query, &[&id.to_string()]);
+            let res = execute!(&conn, $query, &[&(id as i64)]);
 
             if let Err(e) = res {
                 return Err(Error::DatabaseError(e.to_string()));
@@ -181,7 +216,7 @@ macro_rules! auto_method {
                 Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
             };
 
-            let res = execute!(&conn, $query, &[&id.to_string()]);
+            let res = execute!(&conn, $query, &[&(id as i64)]);
 
             if let Err(e) = res {
                 return Err(Error::DatabaseError(e.to_string()));
@@ -214,7 +249,7 @@ macro_rules! auto_method {
                 Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
             };
 
-            let res = execute!(&conn, $query, &[&x, &id.to_string()]);
+            let res = execute!(&conn, $query, &[&x, &(id as i64)]);
 
             if let Err(e) = res {
                 return Err(Error::DatabaseError(e.to_string()));
@@ -245,7 +280,7 @@ macro_rules! auto_method {
                 Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
             };
 
-            let res = execute!(&conn, $query, &[&x, &id.to_string()]);
+            let res = execute!(&conn, $query, params![&x, &(id as i64)]);
 
             if let Err(e) = res {
                 return Err(Error::DatabaseError(e.to_string()));
@@ -281,7 +316,7 @@ macro_rules! auto_method {
             let res = execute!(
                 &conn,
                 $query,
-                &[&serde_json::to_string(&x).unwrap(), &id.to_string()]
+                &[&serde_json::to_string(&x).unwrap(), &(id as i64)]
             );
 
             if let Err(e) = res {
@@ -316,7 +351,7 @@ macro_rules! auto_method {
             let res = execute!(
                 &conn,
                 $query,
-                &[&serde_json::to_string(&x).unwrap(), &id.to_string()]
+                &[&serde_json::to_string(&x).unwrap(), &(id as i64)]
             );
 
             if let Err(e) = res {
@@ -336,7 +371,7 @@ macro_rules! auto_method {
                 Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
             };
 
-            let res = execute!(&conn, $query, &[&x, &id.to_string()]);
+            let res = execute!(&conn, $query, &[&x, &(id as i64)]);
 
             if let Err(e) = res {
                 return Err(Error::DatabaseError(e.to_string()));
@@ -353,7 +388,7 @@ macro_rules! auto_method {
                 Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
             };
 
-            let res = execute!(&conn, $query, &[&x, &id.to_string()]);
+            let res = execute!(&conn, $query, &[&x, &(id as i64)]);
 
             if let Err(e) = res {
                 return Err(Error::DatabaseError(e.to_string()));
@@ -375,7 +410,7 @@ macro_rules! auto_method {
             let res = execute!(
                 &conn,
                 $query,
-                &[&serde_json::to_string(&x).unwrap(), &id.to_string()]
+                &[&serde_json::to_string(&x).unwrap(), &(id as i64)]
             );
 
             if let Err(e) = res {
@@ -396,7 +431,7 @@ macro_rules! auto_method {
             let res = execute!(
                 &conn,
                 $query,
-                &[&serde_json::to_string(&x).unwrap(), &id.to_string()]
+                &[&serde_json::to_string(&x).unwrap(), &(id as i64)]
             );
 
             if let Err(e) = res {
@@ -416,7 +451,7 @@ macro_rules! auto_method {
                 Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
             };
 
-            let res = execute!(&conn, $query, &[&id.to_string()]);
+            let res = execute!(&conn, $query, &[&(id as i64)]);
 
             if let Err(e) = res {
                 return Err(Error::DatabaseError(e.to_string()));
@@ -435,7 +470,7 @@ macro_rules! auto_method {
                 Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
             };
 
-            let res = execute!(&conn, $query, &[&id.to_string()]);
+            let res = execute!(&conn, $query, &[&(id as i64)]);
 
             if let Err(e) = res {
                 return Err(Error::DatabaseError(e.to_string()));
@@ -468,7 +503,7 @@ macro_rules! auto_method {
                 Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
             };
 
-            let res = execute!(&conn, $query, &[&id.to_string()]);
+            let res = execute!(&conn, $query, &[&(id as i64)]);
 
             if let Err(e) = res {
                 return Err(Error::DatabaseError(e.to_string()));
@@ -501,7 +536,7 @@ macro_rules! auto_method {
                 Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
             };
 
-            let res = execute!(&conn, $query, &[&x, &id.to_string()]);
+            let res = execute!(&conn, $query, params![&x, &(id as i64)]);
 
             if let Err(e) = res {
                 return Err(Error::DatabaseError(e.to_string()));
@@ -525,7 +560,7 @@ macro_rules! auto_method {
             let res = execute!(
                 &conn,
                 $query,
-                &[&serde_json::to_string(&x).unwrap(), &id.to_string()]
+                params![&serde_json::to_string(&x).unwrap(), &(id as i64)]
             );
 
             if let Err(e) = res {
@@ -562,7 +597,7 @@ macro_rules! auto_method {
             let res = execute!(
                 &conn,
                 $query,
-                &[&serde_json::to_string(&x).unwrap(), &id.to_string()]
+                params![&serde_json::to_string(&x).unwrap(), &(id as i64)]
             );
 
             if let Err(e) = res {
@@ -584,7 +619,7 @@ macro_rules! auto_method {
                 Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
             };
 
-            let res = execute!(&conn, $query, &[&id.to_string()]);
+            let res = execute!(&conn, $query, &[&(id as i64)]);
 
             if let Err(e) = res {
                 return Err(Error::DatabaseError(e.to_string()));
@@ -605,7 +640,7 @@ macro_rules! auto_method {
                 Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
             };
 
-            let res = execute!(&conn, $query, &[&id.to_string()]);
+            let res = execute!(&conn, $query, &[&(id as i64)]);
 
             if let Err(e) = res {
                 return Err(Error::DatabaseError(e.to_string()));

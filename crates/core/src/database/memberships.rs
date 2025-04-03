@@ -9,7 +9,7 @@ use crate::model::{
     communities_permissions::CommunityPermission,
     permissions::FinePermission,
 };
-use crate::{auto_method, execute, get, query_row, query_rows};
+use crate::{auto_method, execute, get, query_row, query_rows, params};
 
 #[cfg(feature = "sqlite")]
 use rusqlite::Row;
@@ -28,7 +28,7 @@ impl DataManager {
             created: get!(x->1(i64)) as usize,
             owner: get!(x->2(i64)) as usize,
             community: get!(x->3(i64)) as usize,
-            role: CommunityPermission::from_bits(get!(x->4(u32))).unwrap(),
+            role: CommunityPermission::from_bits(get!(x->4(i64)) as u32).unwrap(),
         }
     }
 
@@ -78,7 +78,7 @@ impl DataManager {
         let res = query_rows!(
             &conn,
             // 33 = banned, 65 = pending membership
-            "SELECT * FROM memberships WHERE owner = $1 AND role IS NOT 33 AND role IS NOT 65 ORDER BY created DESC",
+            "SELECT * FROM memberships WHERE owner = $1 AND NOT role = 33 AND NOT role = 65 ORDER BY created DESC",
             &[&(owner as i64)],
             |x| { Self::get_membership_from_row(x) }
         );
@@ -142,12 +142,12 @@ impl DataManager {
         let res = execute!(
             &conn,
             "INSERT INTO memberships VALUES ($1, $2, $3, $4, $5)",
-            &[
-                &data.id.to_string().as_str(),
-                &data.created.to_string().as_str(),
-                &data.owner.to_string().as_str(),
-                &data.community.to_string().as_str(),
-                &(data.role.bits()).to_string().as_str(),
+            params![
+                &(data.id as i64),
+                &(data.created as i64),
+                &(data.owner as i64),
+                &(data.community as i64),
+                &(data.role.bits() as i64),
             ]
         );
 
@@ -198,7 +198,7 @@ impl DataManager {
         let res = execute!(
             &conn,
             "DELETE FROM memberships WHERE id = $1",
-            &[&id.to_string()]
+            &[&(id as i64)]
         );
 
         if let Err(e) = res {
@@ -226,7 +226,7 @@ impl DataManager {
         let res = execute!(
             &conn,
             "UPDATE memberships SET role = $1 WHERE id = $2",
-            &[&(new_role.bits()).to_string(), &id.to_string()]
+            params![&(new_role.bits() as i64), &(id as i64)]
         );
 
         if let Err(e) = res {

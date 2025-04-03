@@ -9,20 +9,13 @@ pub struct SecurityConfig {
     /// If registrations are enabled.
     #[serde(default = "default_security_registration_enabled")]
     pub registration_enabled: bool,
-    /// If registrations are enabled.
-    #[serde(default = "default_security_admin_user")]
-    pub admin_user: String,
-    /// If registrations are enabled.
+    /// The name of the header which will contain the real IP of the connecting user.
     #[serde(default = "default_real_ip_header")]
     pub real_ip_header: String,
 }
 
 fn default_security_registration_enabled() -> bool {
     true
-}
-
-fn default_security_admin_user() -> String {
-    "admin".to_string()
 }
 
 fn default_real_ip_header() -> String {
@@ -33,7 +26,6 @@ impl Default for SecurityConfig {
     fn default() -> Self {
         Self {
             registration_enabled: default_security_registration_enabled(),
-            admin_user: default_security_admin_user(),
             real_ip_header: default_real_ip_header(),
         }
     }
@@ -202,7 +194,7 @@ fn default_name() -> String {
 }
 
 fn default_description() -> String {
-    "🐐 tetratto!".to_string()
+    "🐇 tetratto!".to_string()
 }
 
 fn default_color() -> String {

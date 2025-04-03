@@ -1,7 +1,7 @@
 use super::*;
 use crate::cache::Cache;
 use crate::model::{Error, Result, auth::User, auth::UserBlock, permissions::FinePermission};
-use crate::{auto_method, execute, get, query_row};
+use crate::{auto_method, execute, get, query_row, params};
 
 #[cfg(feature = "sqlite")]
 use rusqlite::Row;
@@ -88,11 +88,11 @@ impl DataManager {
         let res = execute!(
             &conn,
             "INSERT INTO userblocks VALUES ($1, $2, $3, $4)",
-            &[
-                &data.id.to_string().as_str(),
-                &data.created.to_string().as_str(),
-                &data.initiator.to_string().as_str(),
-                &data.receiver.to_string().as_str()
+            params![
+                &(data.id as i64),
+                &(data.created as i64),
+                &(data.initiator as i64),
+                &(data.receiver as i64)
             ]
         );
 
@@ -122,7 +122,7 @@ impl DataManager {
         let res = execute!(
             &conn,
             "DELETE FROM userblocks WHERE id = $1",
-            &[&id.to_string()]
+            &[&(id as i64)]
         );
 
         if let Err(e) = res {

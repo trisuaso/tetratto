@@ -1,12 +1,40 @@
 name = "Tetratto"
+description = "🐇 tetratto!"
+color = "#c9b1bc"
 port = 4118
+banned_hosts = []
+no_track = []
+banned_usernames = [
+    "admin",
+    "owner",
+    "moderator",
+    "api",
+    "communities",
+    "notifs",
+    "notification",
+    "post",
+    "void",
+]
 
 [security]
 registration_enabled = true
+real_ip_header = "CF-Connecting-IP"
 
 [dirs]
 templates = "html"
 assets = "public"
+media = "media"
+icons = "icons"
+
+[database]
+name = "tetratto"
+url = "localhost:5432"
+user = "hkau"
+password = "postgres"
+
+[policies]
+terms_of_service = "/public/tos.html"
+privacy = "/public/privacy.html"
 
 [turnstile]
 site_key = "1x00000000000000000000AA"

@@ -9,7 +9,7 @@ use crate::model::{
     communities::{CommunityReadAccess, CommunityWriteAccess},
     permissions::FinePermission,
 };
-use crate::{auto_method, execute, get, query_row, query_rows};
+use crate::{auto_method, execute, get, query_row, query_rows, params};
 use pathbufd::PathBufD;
 use std::fs::{exists, remove_file};
 
@@ -96,7 +96,7 @@ impl DataManager {
         let res = query_row!(
             &conn,
             "SELECT * FROM communities WHERE title = $1",
-            &[&id],
+            params![&id],
             |x| { Ok(Self::get_community_from_row(x)) }
         );
 
@@ -202,18 +202,18 @@ impl DataManager {
         let res = execute!(
             &conn,
             "INSERT INTO communities VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
-            &[
-                &data.id.to_string().as_str(),
-                &data.created.to_string().as_str(),
-                &data.title.to_lowercase().as_str(),
+            params![
+                &(data.id as i64),
+                &(data.created as i64),
+                &data.title.to_lowercase(),
                 &serde_json::to_string(&data.context).unwrap().as_str(),
-                &data.owner.to_string().as_str(),
+                &(data.owner as i64),
                 &serde_json::to_string(&data.read_access).unwrap().as_str(),
                 &serde_json::to_string(&data.write_access).unwrap().as_str(),
                 &serde_json::to_string(&data.join_access).unwrap().as_str(),
-                &0.to_string().as_str(),
-                &0.to_string().as_str(),
-                &0.to_string().as_str()
+                &(0 as i64),
+                &(0 as i64),
+                &(1 as i64)
             ]
         );
 
@@ -266,7 +266,7 @@ impl DataManager {
         let res = execute!(
             &conn,
             "DELETE FROM communities WHERE id = $1",
-            &[&id.to_string()]
+            &[&(id as i64)]
         );
 
         if let Err(e) = res {
@@ -279,7 +279,7 @@ impl DataManager {
         let res = execute!(
             &conn,
             "DELETE FROM memberships WHERE community = $1",
-            &[&id.to_string()]
+            &[&(id as i64)]
         );
 
         if let Err(e) = res {

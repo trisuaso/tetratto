@@ -73,7 +73,7 @@ pub async fn avatar_request(
     let path = PathBufD::current().extend(&[
         data.0.dirs.media.as_str(),
         "avatars",
-        &format!("{}.avif", &user.id),
+        &format!("{}.avif", &(user.id as i64)),
     ]);
 
     if !exists(&path).unwrap() {
@@ -118,7 +118,7 @@ pub async fn banner_request(
     let path = PathBufD::current().extend(&[
         data.0.dirs.media.as_str(),
         "banners",
-        &format!("{}.avif", &user.id),
+        &format!("{}.avif", &(user.id as i64)),
     ]);
 
     if !exists(&path).unwrap() {

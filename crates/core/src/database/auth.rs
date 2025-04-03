@@ -6,7 +6,7 @@ use crate::model::{
     auth::{Token, User, UserSettings},
     permissions::FinePermission,
 };
-use crate::{auto_method, execute, get, query_row};
+use crate::{auto_method, execute, get, query_row, params};
 use pathbufd::PathBufD;
 use std::fs::{exists, remove_file};
 use tetratto_shared::hash::{hash_salted, salt};
@@ -32,8 +32,12 @@ impl DataManager {
             salt: get!(x->4(String)),
             settings: serde_json::from_str(&get!(x->5(String)).to_string()).unwrap(),
             tokens: serde_json::from_str(&get!(x->6(String)).to_string()).unwrap(),
-            permissions: FinePermission::from_bits(get!(x->7(u32))).unwrap(),
-            is_verified: if get!(x->8(i8)) == 1 { true } else { false },
+            permissions: FinePermission::from_bits(get!(x->7(i64)) as u32).unwrap(),
+            is_verified: if get!(x->8(i64)) as i8 == 1 {
+                true
+            } else {
+                false
+            },
             notification_count: get!(x->9(i64)) as usize,
             follower_count: get!(x->10(i64)) as usize,
             following_count: get!(x->11(i64)) as usize,
@@ -41,7 +45,7 @@ impl DataManager {
         }
     }
 
-    auto_method!(get_user_by_id(usize)@get_user_from_row -> "SELECT * FROM users WHERE id = $1" --name="user" --returns=User --cache-key-tmpl="atto.user:{}");
+    auto_method!(get_user_by_id(usize as i64)@get_user_from_row -> "SELECT * FROM users WHERE id = $1" --name="user" --returns=User --cache-key-tmpl="atto.user:{}");
     auto_method!(get_user_by_username(&str)@get_user_from_row -> "SELECT * FROM users WHERE username = $1" --name="user" --returns=User --cache-key-tmpl="atto.user:{}");
 
     /// Get a user given just their auth token.
@@ -106,20 +110,20 @@ impl DataManager {
         let res = execute!(
             &conn,
             "INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
-            &[
-                &data.id.to_string().as_str(),
-                &data.created.to_string().as_str(),
-                &data.username.to_lowercase().as_str(),
-                &data.password.as_str(),
-                &data.salt.as_str(),
-                &serde_json::to_string(&data.settings).unwrap().as_str(),
-                &serde_json::to_string(&data.tokens).unwrap().as_str(),
-                &(FinePermission::DEFAULT.bits()).to_string().as_str(),
-                &(if data.is_verified { 1 } else { 0 }).to_string().as_str(),
-                &0.to_string().as_str(),
-                &0.to_string().as_str(),
-                &0.to_string().as_str(),
-                &data.last_seen.to_string().as_str(),
+            params![
+                &(data.id as i64),
+                &(data.created as i64),
+                &data.username.to_lowercase(),
+                &data.password,
+                &data.salt,
+                &serde_json::to_string(&data.settings).unwrap(),
+                &serde_json::to_string(&data.tokens).unwrap(),
+                &(FinePermission::DEFAULT.bits() as i64),
+                &(if data.is_verified { 1 as i64 } else { 0 as i64 }),
+                &(0 as i64),
+                &(0 as i64),
+                &(0 as i64),
+                &(data.last_seen as i64),
             ]
         );
 
@@ -213,13 +217,13 @@ impl DataManager {
         let avatar = PathBufD::current().extend(&[
             self.0.dirs.media.as_str(),
             "avatars",
-            &format!("{}.avif", &user.id),
+            &format!("{}.avif", &(user.id as i64)),
         ]);
 
         let banner = PathBufD::current().extend(&[
             self.0.dirs.media.as_str(),
             "banners",
-            &format!("{}.avif", &user.id),
+            &format!("{}.avif", &(user.id as i64)),
         ]);
 
         if exists(&avatar).unwrap() {
@@ -249,10 +253,7 @@ impl DataManager {
         let res = execute!(
             &conn,
             "UPDATE users SET verified = $1 WHERE id = $2",
-            &[
-                &(if x { 1 } else { 0 }).to_string().as_str(),
-                &id.to_string().as_str()
-            ]
+            params![&(if x { 1 } else { 0 } as i64), &(id as i64)]
         );
 
         if let Err(e) = res {
@@ -299,11 +300,7 @@ impl DataManager {
         let res = execute!(
             &conn,
             "UPDATE users SET password = $1, salt = $2 WHERE id = $3",
-            &[
-                &new_password.as_str(),
-                &new_salt.as_str(),
-                &id.to_string().as_str()
-            ]
+            params![&new_password.as_str(), &new_salt.as_str(), &(id as i64)]
         );
 
         if let Err(e) = res {
@@ -324,7 +321,7 @@ impl DataManager {
         let res = execute!(
             &conn,
             "UPDATE users SET username = $1 WHERE id = $3",
-            &[&to.as_str(), &id.to_string().as_str()]
+            params![&to.as_str(), &(id as i64)]
         );
 
         if let Err(e) = res {
@@ -370,10 +367,7 @@ impl DataManager {
         let res = execute!(
             &conn,
             "UPDATE users SET permissions = $1 WHERE id = $2",
-            &[
-                &(role.bits()).to_string().as_str(),
-                &id.to_string().as_str()
-            ]
+            params![&(role.bits() as i64), &(id as i64)]
         );
 
         if let Err(e) = res {
@@ -406,10 +400,7 @@ impl DataManager {
         let res = execute!(
             &conn,
             "UPDATE users SET last_seen = $1 WHERE id = $2",
-            &[
-                &unix_epoch_timestamp().to_string().as_str(),
-                &user.id.to_string().as_str()
-            ]
+            params![&(unix_epoch_timestamp() as i64), &(user.id as i64)]
         );
 
         if let Err(e) = res {
