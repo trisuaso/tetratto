@@ -6,7 +6,8 @@ edition = "2024"
 [features]
 postgres = ["tetratto-core/postgres"]
 sqlite = ["tetratto-core/sqlite"]
-default = ["sqlite"]
+redis = ["tetratto-core/redis"]
+default = ["sqlite", "redis"]
 
 [dependencies]
 pathbufd = "0.1.4"
