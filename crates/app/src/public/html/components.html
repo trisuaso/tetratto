@@ -57,7 +57,7 @@ community %}
     {{ components::community_avatar(id=community.id, community=community,
     size="48px") }}
     <div class="flex flex-col">
-        <h3>{{ community.context.display_name }}</h3>
+        <h3 class="name">{{ community.context.display_name }}</h3>
         <span class="fade"><b>{{ community.member_count }}</b> members</span>
     </div>
 </a>
@@ -132,7 +132,9 @@ show_community %}
 
             <div class="flex flex-col w-full gap-1">
                 <div class="flex flex-wrap gap-2 items-center">
-                    {{ components::full_username(user=owner) }}
+                    <span class="name"
+                        >{{ components::full_username(user=owner) }}</span
+                    >
 
                     <span class="fade date">{{ post.created }}</span>
 

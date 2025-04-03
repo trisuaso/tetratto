@@ -438,6 +438,16 @@
                         null,
                         {
                             role: (new_role) => {
+                                const [matching, _] =
+                                    all_matching_permissions(new_role);
+
+                                document.getElementById(
+                                    "permissions",
+                                ).innerHTML = get_permissions_html(
+                                    rebuild_role(matching),
+                                    "permissions",
+                                );
+
                                 return update_user_role(
                                     e.target.uid.value,
                                     new_role,

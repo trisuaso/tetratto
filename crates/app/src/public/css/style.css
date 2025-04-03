@@ -149,6 +149,19 @@ article {
 }
 
 /* typo */
+.name {
+    max-width: 200px;
+    overflow: hidden;
+    overflow-wrap: break-word;
+    text-overflow: ellipsis;
+}
+
+@media screen and (min-width: 901px) {
+    .name.shorter {
+        max-width: 180px;
+    }
+}
+
 ul,
 ol {
     margin-left: 1rem;

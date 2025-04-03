@@ -262,7 +262,7 @@ media_theme_pref();
                 const height = parent_height;
                 const y = box.y + scroll;
 
-                if (y > height - scroll - 300) {
+                if (y > height - scroll - 375) {
                     dropdown.classList.add("top");
                 } else {
                     dropdown.classList.remove("top");

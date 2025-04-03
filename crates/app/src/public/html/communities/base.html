@@ -16,7 +16,7 @@
                         community=community, size="72px") }}
                         <div class="flex flex-col">
                             <div class="flex gap-2 items-center">
-                                <h3 id="title" class="title">
+                                <h3 id="title" class="title name shorter">
                                     <!-- prettier-ignore -->
                                     {% if community.context.display_name %}
                                         {{ community.context.display_name }}
@@ -36,7 +36,7 @@
                                         {{ icon "ellipsis" }}
                                     </button>
 
-                                    <div class="inner left">
+                                    <div class="inner">
                                         <button
                                             class="red"
                                             onclick="trigger('me::report', ['{{ community.id }}', 'community'])"

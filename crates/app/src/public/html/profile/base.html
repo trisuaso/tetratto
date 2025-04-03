@@ -18,7 +18,7 @@
                         <div class="flex flex-col">
                             <!-- prettier-ignore -->
                             <h3 id="username" class="username flex items-center gap-2">
-                                {{ components::username(user=profile) }}
+                                <span class="name shorter">{{ components::username(user=profile) }}</span>
 
                                 {% if profile.is_verified %}
                                 <span title="Verified" style="color: var(--color-primary);" class="flex items-center">
