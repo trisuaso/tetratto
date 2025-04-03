@@ -56,7 +56,7 @@ async fn main() {
         .await
         .unwrap();
 
-    info!("🐐 tetratto.");
+    info!("🐇 tetratto.");
     info!("listening on http://0.0.0.0:{}", config.port);
     axum::serve(listener, app).await.unwrap();
 }

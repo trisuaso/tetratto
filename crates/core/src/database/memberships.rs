@@ -226,7 +226,7 @@ impl DataManager {
         let res = execute!(
             &conn,
             "UPDATE memberships SET role = $1 WHERE id = $2",
-            params![&(new_role.bits() as i64), &(id as i64)]
+            params![&(new_role.bits() as i32), &(id as i64)]
         );
 
         if let Err(e) = res {

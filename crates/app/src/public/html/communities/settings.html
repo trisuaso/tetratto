@@ -324,14 +324,108 @@
                         return;
                     }
 
+                    // permissions manager
+                    const permissions = {
+                        // https://trisuaso.github.io/tetratto/tetratto/model/communities_permissions/struct.CommunityPermission.html
+                        DEFAULT: 1 << 0,
+                        ADMINISTRATOR: 1 << 1,
+                        MEMBER: 1 << 2,
+                        MANAGE_POSTS: 1 << 3,
+                        MANAGE_ROLES: 1 << 4,
+                        BANNED: 1 << 5,
+                        REQUESTED: 1 << 6,
+                        MANAGE_PINS: 1 << 7,
+                    };
+
+                    function all_matching_permissions(role) {
+                        const matching = [];
+                        const not_matching = [];
+
+                        for (permission of Object.entries(permissions)) {
+                            if ((role & permission[1]) === permission[1]) {
+                                matching.push(permission[0]);
+                            } else {
+                                not_matching.push(permission[0]);
+                            }
+                        }
+
+                        return [matching, not_matching];
+                    }
+
+                    function rebuild_role(matching) {
+                        let role = 0;
+
+                        for (const permission of matching) {
+                            role = role | permissions[permission];
+                        }
+
+                        document.getElementById("role").value = role;
+                        return role;
+                    }
+
+                    function get_permissions_html(role, id) {
+                        const [matching, not_matching] =
+                            all_matching_permissions(role);
+
+                        globalThis.remove_permission_from_role = (
+                            permission,
+                        ) => {
+                            matching.splice(matching.indexOf(permission), 1);
+                            not_matching.push(permission);
+
+                            document.getElementById(id).innerHTML =
+                                get_permissions_html(
+                                    rebuild_role(matching),
+                                    id,
+                                );
+                        };
+
+                        globalThis.add_permission_to_role = (permission) => {
+                            not_matching.splice(
+                                not_matching.indexOf(permission),
+                                1,
+                            );
+                            matching.push(permission);
+
+                            document.getElementById(id).innerHTML =
+                                get_permissions_html(
+                                    rebuild_role(matching),
+                                    id,
+                                );
+                        };
+
+                        let permissions_html = "";
+
+                        for (const match of matching) {
+                            permissions_html += `<div class="card w-full secondary flex justify-between gap-2">
+                                <span>${match} <code>${permissions[match]}</code></span>
+                                <button class="red quaternary" onclick="remove_permission_from_role('${match}')">Remove</button>
+                            </div>`;
+                        }
+
+                        for (const match of not_matching) {
+                            permissions_html += `<div class="card w-full secondary flex justify-between gap-2">
+                                <span>${match} <code>${permissions[match]}</code></span>
+                                <button class="green quaternary" onclick="add_permission_to_role('${match}')">Add</button>
+                            </div>`;
+                        }
+
+                        return permissions_html;
+                    }
+
+                    // ...
                     element.innerHTML = `<div class="flex gap-2 flex-wrap" ui_ident="actions">
                         <a target="_blank" class="button" href="/api/v1/auth/profile/find/${e.target.uid.value}">Open user profile</a>
                         ${res.payload.role !== 33 ? `<button class="red quaternary" onclick="update_user_role('${e.target.uid.value}', 33)">Ban</button>` : `<button class="quaternary" onclick="update_user_role('${e.target.uid.value}', 5)">Unban</button>`}
                         ${res.payload.role !== 65 ? `<button class="red quaternary" onclick="update_user_role('${e.target.uid.value}', 65)">Send to review</button>` : `<button class="green quaternary" onclick="update_user_role('${e.target.uid.value}', 5)">Accept join request</button>`}
                         <button class="red quaternary" onclick="kick_user('${e.target.uid.value}')">Kick</button>
+                    </div>
+
+                    <div class="flex flex-col gap-2" ui_ident="permissions" id="permissions">
+                        ${get_permissions_html(res.payload.role, "permissions")}
                     </div>`;
 
-                    ui.refresh_container(element, ["actions"]);
+                    ui.refresh_container(element, ["actions", "permissions"]);
                     ui.generate_settings_ui(
                         element,
                         [
