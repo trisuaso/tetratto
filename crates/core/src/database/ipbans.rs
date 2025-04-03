@@ -18,9 +18,9 @@ impl DataManager {
     ) -> IpBan {
         IpBan {
             ip: get!(x->0(String)),
-            created: get!(x->1(isize)) as usize,
+            created: get!(x->1(i64)) as usize,
             reason: get!(x->2(String)),
-            moderator: get!(x->3(isize)) as usize,
+            moderator: get!(x->3(i64)) as usize,
         }
     }
 
@@ -40,7 +40,7 @@ impl DataManager {
         let res = query_rows!(
             &conn,
             "SELECT * FROM ipbans ORDER BY created DESC LIMIT $1 OFFSET $2",
-            &[&(batch as isize), &((page * batch) as isize)],
+            &[&(batch as i64), &((page * batch) as i64)],
             |x| { Self::get_ipban_from_row(x) }
         );
 
@@ -105,7 +105,7 @@ impl DataManager {
             Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
         };
 
-        let res = execute!(&conn, "DELETE FROM ipbans WHERE ip = $1", &[ip]);
+        let res = execute!(&conn, "DELETE FROM ipbans WHERE ip = $1", &[&ip]);
 
         if let Err(e) = res {
             return Err(Error::DatabaseError(e.to_string()));

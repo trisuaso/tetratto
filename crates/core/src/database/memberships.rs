@@ -24,10 +24,10 @@ impl DataManager {
         #[cfg(feature = "postgres")] x: &Row,
     ) -> CommunityMembership {
         CommunityMembership {
-            id: get!(x->0(isize)) as usize,
-            created: get!(x->1(isize)) as usize,
-            owner: get!(x->2(isize)) as usize,
-            community: get!(x->3(isize)) as usize,
+            id: get!(x->0(i64)) as usize,
+            created: get!(x->1(i64)) as usize,
+            owner: get!(x->2(i64)) as usize,
+            community: get!(x->3(i64)) as usize,
             role: CommunityPermission::from_bits(get!(x->4(u32))).unwrap(),
         }
     }
@@ -57,7 +57,7 @@ impl DataManager {
         let res = query_row!(
             &conn,
             "SELECT * FROM memberships WHERE owner = $1 AND community = $2",
-            &[&(owner as isize), &(community as isize)],
+            &[&(owner as i64), &(community as i64)],
             |x| { Ok(Self::get_membership_from_row(x)) }
         );
 
@@ -79,7 +79,7 @@ impl DataManager {
             &conn,
             // 33 = banned, 65 = pending membership
             "SELECT * FROM memberships WHERE owner = $1 AND role IS NOT 33 AND role IS NOT 65 ORDER BY created DESC",
-            &[&(owner as isize)],
+            &[&(owner as i64)],
             |x| { Self::get_membership_from_row(x) }
         );
 

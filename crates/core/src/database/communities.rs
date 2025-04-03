@@ -26,19 +26,19 @@ impl DataManager {
         #[cfg(feature = "postgres")] x: &Row,
     ) -> Community {
         Community {
-            id: get!(x->0(isize)) as usize,
-            created: get!(x->1(isize)) as usize,
+            id: get!(x->0(i64)) as usize,
+            created: get!(x->1(i64)) as usize,
             title: get!(x->2(String)),
             context: serde_json::from_str(&get!(x->3(String))).unwrap(),
-            owner: get!(x->4(isize)) as usize,
+            owner: get!(x->4(i64)) as usize,
             read_access: serde_json::from_str(&get!(x->5(String))).unwrap(),
             write_access: serde_json::from_str(&get!(x->6(String))).unwrap(),
             join_access: serde_json::from_str(&get!(x->7(String))).unwrap(),
             // likes
-            likes: get!(x->8(isize)) as isize,
-            dislikes: get!(x->9(isize)) as isize,
+            likes: get!(x->8(i64)) as isize,
+            dislikes: get!(x->9(i64)) as isize,
             // counts
-            member_count: get!(x->10(isize)) as usize,
+            member_count: get!(x->10(i64)) as usize,
         }
     }
 
@@ -59,7 +59,7 @@ impl DataManager {
         let res = query_row!(
             &conn,
             "SELECT * FROM communities WHERE id = $1",
-            &[&(id as isize)],
+            &[&(id as i64)],
             |x| { Ok(Self::get_community_from_row(x)) }
         );
 
@@ -96,7 +96,7 @@ impl DataManager {
         let res = query_row!(
             &conn,
             "SELECT * FROM communities WHERE title = $1",
-            &[id],
+            &[&id],
             |x| { Ok(Self::get_community_from_row(x)) }
         );
 

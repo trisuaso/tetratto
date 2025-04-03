@@ -1,8 +1,6 @@
 use super::*;
 use crate::cache::Cache;
-use crate::model::{
-    Error, Result, auth::User, moderation::AuditLogEntry, permissions::FinePermission,
-};
+use crate::model::{Error, Result, auth::User, moderation::AuditLogEntry, permissions::FinePermission};
 use crate::{auto_method, execute, get, query_row, query_rows};
 
 #[cfg(feature = "sqlite")]
@@ -18,9 +16,9 @@ impl DataManager {
         #[cfg(feature = "postgres")] x: &Row,
     ) -> AuditLogEntry {
         AuditLogEntry {
-            id: get!(x->0(isize)) as usize,
-            created: get!(x->1(isize)) as usize,
-            moderator: get!(x->2(isize)) as usize,
+            id: get!(x->0(i64)) as usize,
+            created: get!(x->1(i64)) as usize,
+            moderator: get!(x->2(i64)) as usize,
             content: get!(x->3(String)),
         }
     }
@@ -45,7 +43,7 @@ impl DataManager {
         let res = query_rows!(
             &conn,
             "SELECT * FROM audit_log ORDER BY created DESC LIMIT $1 OFFSET $2",
-            &[&(batch as isize), &((page * batch) as isize)],
+            &[&(batch as i64), &((page * batch) as i64)],
             |x| { Self::get_audit_log_entry_from_row(x) }
         );
 

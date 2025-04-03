@@ -26,11 +26,11 @@ impl DataManager {
         #[cfg(feature = "postgres")] x: &Row,
     ) -> Post {
         Post {
-            id: get!(x->0(isize)) as usize,
-            created: get!(x->1(isize)) as usize,
+            id: get!(x->0(i64)) as usize,
+            created: get!(x->1(i64)) as usize,
             content: get!(x->2(String)),
-            owner: get!(x->3(isize)) as usize,
-            community: get!(x->4(isize)) as usize,
+            owner: get!(x->3(i64)) as usize,
+            community: get!(x->4(i64)) as usize,
             context: serde_json::from_str(&get!(x->5(String))).unwrap(),
             replying_to: if let Some(id) = get!(x->6(Option<i64>)) {
                 Some(id as usize)
@@ -38,10 +38,10 @@ impl DataManager {
                 None
             },
             // likes
-            likes: get!(x->7(isize)) as isize,
-            dislikes: get!(x->8(isize)) as isize,
+            likes: get!(x->7(i64)) as isize,
+            dislikes: get!(x->8(i64)) as isize,
             // other counts
-            comment_count: get!(x->9(isize)) as usize,
+            comment_count: get!(x->9(i64)) as usize,
         }
     }
 
@@ -67,11 +67,7 @@ impl DataManager {
         let res = query_rows!(
             &conn,
             "SELECT * FROM posts WHERE replying_to = $1 ORDER BY created DESC LIMIT $2 OFFSET $3",
-            &[
-                &(id as isize),
-                &(batch as isize),
-                &((page * batch) as isize)
-            ],
+            &[&(id as i64), &(batch as i64), &((page * batch) as i64)],
             |x| { Self::get_post_from_row(x) }
         );
 
@@ -148,11 +144,7 @@ impl DataManager {
         let res = query_rows!(
             &conn,
             "SELECT * FROM posts WHERE owner = $1 ORDER BY created DESC LIMIT $2 OFFSET $3",
-            &[
-                &(id as isize),
-                &(batch as isize),
-                &((page * batch) as isize)
-            ],
+            &[&(id as i64), &(batch as i64), &((page * batch) as i64)],
             |x| { Self::get_post_from_row(x) }
         );
 
@@ -183,11 +175,7 @@ impl DataManager {
         let res = query_rows!(
             &conn,
             "SELECT * FROM posts WHERE community = $1 AND replying_to IS NULL ORDER BY created DESC LIMIT $2 OFFSET $3",
-            &[
-                &(id as isize),
-                &(batch as isize),
-                &((page * batch) as isize)
-            ],
+            &[&(id as i64), &(batch as i64), &((page * batch) as i64)],
             |x| { Self::get_post_from_row(x) }
         );
 
@@ -211,7 +199,7 @@ impl DataManager {
         let res = query_rows!(
             &conn,
             "SELECT * FROM posts WHERE community = $1 AND context LIKE '%\"is_pinned\":true%' ORDER BY created DESC",
-            &[&(id as isize),],
+            &[&(id as i64),],
             |x| { Self::get_post_from_row(x) }
         );
 
@@ -236,7 +224,7 @@ impl DataManager {
         let res = query_rows!(
             &conn,
             "SELECT * FROM posts ORDER BY likes DESC, created ASC LIMIT $2 OFFSET $3",
-            &[&(batch as isize), &((page * batch) as isize)],
+            &[&(batch as i64), &((page * batch) as i64)],
             |x| { Self::get_post_from_row(x) }
         );
 
@@ -283,7 +271,7 @@ impl DataManager {
                 "SELECT * FROM posts WHERE community = {} {query_string} ORDER BY created DESC LIMIT $1 OFFSET $2",
                 first.community
             ),
-            &[&(batch as isize), &((page * batch) as isize)],
+            &[&(batch as i64), &((page * batch) as i64)],
             |x| { Self::get_post_from_row(x) }
         );
 

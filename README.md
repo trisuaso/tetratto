@@ -13,7 +13,7 @@
 Everything Tetratto needs will be built into the main binary. You can build Tetratto with the following command:
 
 ```bash
-cargo build -r --no-default-features features=redis,sqlite
+cargo build -r --no-default-features --features=redis,sqlite
 ```
 
 You can replace `sqlite` in the above command with `postgres`, if you'd like. It's also acceptable to remove the `redis` part if you don't want to use a cache. <sup>I wouldn't recomment removing cache, though</sup>

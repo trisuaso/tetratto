@@ -25,8 +25,8 @@ impl DataManager {
         #[cfg(feature = "postgres")] x: &Row,
     ) -> User {
         User {
-            id: get!(x->0(isize)) as usize,
-            created: get!(x->1(isize)) as usize,
+            id: get!(x->0(i64)) as usize,
+            created: get!(x->1(i64)) as usize,
             username: get!(x->2(String)),
             password: get!(x->3(String)),
             salt: get!(x->4(String)),
@@ -34,10 +34,10 @@ impl DataManager {
             tokens: serde_json::from_str(&get!(x->6(String)).to_string()).unwrap(),
             permissions: FinePermission::from_bits(get!(x->7(u32))).unwrap(),
             is_verified: if get!(x->8(i8)) == 1 { true } else { false },
-            notification_count: get!(x->9(isize)) as usize,
-            follower_count: get!(x->10(isize)) as usize,
-            following_count: get!(x->11(isize)) as usize,
-            last_seen: get!(x->12(isize)) as usize,
+            notification_count: get!(x->9(i64)) as usize,
+            follower_count: get!(x->10(i64)) as usize,
+            following_count: get!(x->11(i64)) as usize,
+            last_seen: get!(x->12(i64)) as usize,
         }
     }
 
@@ -148,7 +148,7 @@ impl DataManager {
             Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
         };
 
-        let res = execute!(&conn, "DELETE FROM users WHERE id = $1", &[&(id as isize)]);
+        let res = execute!(&conn, "DELETE FROM users WHERE id = $1", &[&(id as i64)]);
 
         if let Err(e) = res {
             return Err(Error::DatabaseError(e.to_string()));
@@ -160,7 +160,7 @@ impl DataManager {
         let res = execute!(
             &conn,
             "DELETE FROM communities WHERE owner = $1",
-            &[&(id as isize)]
+            &[&(id as i64)]
         );
 
         if let Err(e) = res {
@@ -172,7 +172,7 @@ impl DataManager {
         let res = execute!(
             &conn,
             "DELETE FROM memberships WHERE owner = $1",
-            &[&(id as isize)]
+            &[&(id as i64)]
         );
 
         if let Err(e) = res {
@@ -183,7 +183,7 @@ impl DataManager {
         let res = execute!(
             &conn,
             "DELETE FROM notifications WHERE owner = $1",
-            &[&(id as isize)]
+            &[&(id as i64)]
         );
 
         if let Err(e) = res {
@@ -195,7 +195,7 @@ impl DataManager {
         let res = execute!(
             &conn,
             "DELETE FROM reactions WHERE owner = $1",
-            &[&(id as isize)]
+            &[&(id as i64)]
         );
 
         if let Err(e) = res {
@@ -203,11 +203,7 @@ impl DataManager {
         }
 
         // delete posts
-        let res = execute!(
-            &conn,
-            "DELETE FROM posts WHERE owner = $1",
-            &[&(id as isize)]
-        );
+        let res = execute!(&conn, "DELETE FROM posts WHERE owner = $1", &[&(id as i64)]);
 
         if let Err(e) = res {
             return Err(Error::DatabaseError(e.to_string()));

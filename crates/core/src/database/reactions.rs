@@ -21,10 +21,10 @@ impl DataManager {
         #[cfg(feature = "postgres")] x: &Row,
     ) -> Reaction {
         Reaction {
-            id: get!(x->0(isize)) as usize,
-            created: get!(x->1(isize)) as usize,
-            owner: get!(x->2(isize)) as usize,
-            asset: get!(x->3(isize)) as usize,
+            id: get!(x->0(i64)) as usize,
+            created: get!(x->1(i64)) as usize,
+            owner: get!(x->2(i64)) as usize,
+            asset: get!(x->3(i64)) as usize,
             asset_type: serde_json::from_str(&get!(x->4(String))).unwrap(),
             is_like: if get!(x->5(i8)) == 1 { true } else { false },
         }
@@ -46,7 +46,7 @@ impl DataManager {
         let res = query_row!(
             &conn,
             "SELECT * FROM reactions WHERE owner = $1 AND asset = $2",
-            &[&(owner as isize), &(asset as isize)],
+            &[&(owner as i64), &(asset as i64)],
             |x| { Ok(Self::get_reaction_from_row(x)) }
         );
 

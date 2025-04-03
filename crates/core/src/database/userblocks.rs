@@ -16,10 +16,10 @@ impl DataManager {
         #[cfg(feature = "postgres")] x: &Row,
     ) -> UserBlock {
         UserBlock {
-            id: get!(x->0(isize)) as usize,
-            created: get!(x->1(isize)) as usize,
-            initiator: get!(x->2(isize)) as usize,
-            receiver: get!(x->3(isize)) as usize,
+            id: get!(x->0(i64)) as usize,
+            created: get!(x->1(i64)) as usize,
+            initiator: get!(x->2(i64)) as usize,
+            receiver: get!(x->3(i64)) as usize,
         }
     }
 
@@ -39,7 +39,7 @@ impl DataManager {
         let res = query_row!(
             &conn,
             "SELECT * FROM userblocks WHERE initiator = $1 AND receiver = $2",
-            &[&(initiator as isize), &(receiver as isize)],
+            &[&(initiator as i64), &(receiver as i64)],
             |x| { Ok(Self::get_userblock_from_row(x)) }
         );
 
@@ -64,7 +64,7 @@ impl DataManager {
         let res = query_row!(
             &conn,
             "SELECT * FROM userblocks WHERE receiver = $1 AND initiator = $2",
-            &[&(receiver as isize), &(initiator as isize)],
+            &[&(receiver as i64), &(initiator as i64)],
             |x| { Ok(Self::get_userblock_from_row(x)) }
         );
 

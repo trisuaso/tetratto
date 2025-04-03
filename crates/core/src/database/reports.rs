@@ -17,11 +17,11 @@ impl DataManager {
         #[cfg(feature = "postgres")] x: &Row,
     ) -> Report {
         Report {
-            id: get!(x->0(isize)) as usize,
-            created: get!(x->1(isize)) as usize,
-            owner: get!(x->2(isize)) as usize,
+            id: get!(x->0(i64)) as usize,
+            created: get!(x->1(i64)) as usize,
+            owner: get!(x->2(i64)) as usize,
             content: get!(x->3(String)),
-            asset: get!(x->4(isize)) as usize,
+            asset: get!(x->4(i64)) as usize,
             asset_type: serde_json::from_str(&get!(x->5(String))).unwrap(),
         }
     }
@@ -42,7 +42,7 @@ impl DataManager {
         let res = query_rows!(
             &conn,
             "SELECT * FROM reports ORDER BY created DESC LIMIT $1 OFFSET $2",
-            &[&(batch as isize), &((page * batch) as isize)],
+            &[&(batch as i64), &((page * batch) as i64)],
             |x| { Self::get_report_from_row(x) }
         );
 

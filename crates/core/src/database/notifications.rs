@@ -16,11 +16,11 @@ impl DataManager {
         #[cfg(feature = "postgres")] x: &Row,
     ) -> Notification {
         Notification {
-            id: get!(x->0(isize)) as usize,
-            created: get!(x->1(isize)) as usize,
+            id: get!(x->0(i64)) as usize,
+            created: get!(x->1(i64)) as usize,
             title: get!(x->2(String)),
             content: get!(x->3(String)),
-            owner: get!(x->4(isize)) as usize,
+            owner: get!(x->4(i64)) as usize,
             read: if get!(x->5(i8)) == 1 { true } else { false },
         }
     }
@@ -37,7 +37,7 @@ impl DataManager {
         let res = query_rows!(
             &conn,
             "SELECT * FROM notifications WHERE owner = $1 ORDER BY created DESC",
-            &[&(owner as isize)],
+            &[&(owner as i64)],
             |x| { Self::get_notification_from_row(x) }
         );
 
