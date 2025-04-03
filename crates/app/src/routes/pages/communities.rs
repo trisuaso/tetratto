@@ -18,6 +18,7 @@ use tetratto_core::model::{
 macro_rules! check_permissions {
     ($community:ident, $jar:ident, $data:ident, $user:ident) => {{
         let mut is_member: bool = false;
+        let mut can_manage_pins: bool = false;
 
         if let Some(ref ua) = $user {
             if let Ok(membership) = $data
@@ -32,18 +33,24 @@ macro_rules! check_permissions {
                 } else if membership.role.check_member() {
                     is_member = true;
                 }
+
+                if membership.role.check(
+                    tetratto_core::model::communities_permissions::CommunityPermission::MANAGE_PINS,
+                ) {
+                    can_manage_pins = true;
+                }
             }
         }
 
         match $community.read_access {
             CommunityReadAccess::Joined => {
                 if !is_member {
-                    false
+                    (false, can_manage_pins)
                 } else {
-                    true
+                    (true, can_manage_pins)
                 }
             }
-            _ => true,
+            _ => (true, can_manage_pins),
         }
     }};
 }
@@ -87,7 +94,13 @@ macro_rules! community_context_bools {
             false
         };
 
-        (is_owner, is_joined, is_pending, can_post)
+        let can_manage_posts = if let Some(ref membership) = membership {
+            membership.role.check(CommunityPermission::MANAGE_POSTS)
+        } else {
+            false
+        };
+
+        (is_owner, is_joined, is_pending, can_post, can_manage_posts)
     }};
 }
 
@@ -141,6 +154,7 @@ pub fn community_context(
     is_pending: bool,
     can_post: bool,
     can_read: bool,
+    can_manage_posts: bool,
 ) {
     context.insert("community", &community);
     context.insert("is_owner", &is_owner);
@@ -148,6 +162,7 @@ pub fn community_context(
     context.insert("is_pending", &is_pending);
     context.insert("can_post", &can_post);
     context.insert("can_read", &can_read);
+    context.insert("can_manage_posts", &can_manage_posts);
 }
 
 /// `/community/{title}`
@@ -179,7 +194,7 @@ pub async fn feed_request(
     }
 
     // check permissions
-    let can_read = check_permissions!(community, jar, data, user);
+    let (can_read, _) = check_permissions!(community, jar, data, user);
 
     // ...
     let feed = match data
@@ -194,14 +209,23 @@ pub async fn feed_request(
         Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
     };
 
+    let pinned = match data.0.get_pinned_posts_by_community(community.id).await {
+        Ok(p) => match data.0.fill_posts(p).await {
+            Ok(p) => p,
+            Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
+        },
+        Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
+    };
+
     // init context
     let lang = get_lang!(jar, data.0);
     let mut context = initial_context(&data.0.0, lang, &user).await;
 
-    let (is_owner, is_joined, is_pending, can_post) =
+    let (is_owner, is_joined, is_pending, can_post, can_manage_posts) =
         community_context_bools!(data, user, community);
 
     context.insert("feed", &feed);
+    context.insert("pinned", &pinned);
     context.insert("page", &props.page);
     community_context(
         &mut context,
@@ -211,6 +235,7 @@ pub async fn feed_request(
         is_pending,
         can_post,
         can_read,
+        can_manage_posts,
     );
 
     // return
@@ -287,7 +312,7 @@ pub async fn post_request(
     };
 
     // check permissions
-    let can_read = check_permissions!(community, jar, data, user);
+    let (can_read, can_manage_pins) = check_permissions!(community, jar, data, user);
 
     // ...
     let feed = match data.0.get_post_comments(post.id, 12, props.page).await {
@@ -302,7 +327,7 @@ pub async fn post_request(
     let lang = get_lang!(jar, data.0);
     let mut context = initial_context(&data.0.0, lang, &user).await;
 
-    let (is_owner, is_joined, is_pending, can_post) =
+    let (is_owner, is_joined, is_pending, can_post, can_manage_posts) =
         community_context_bools!(data, user, community);
 
     context.insert("post", &post);
@@ -316,6 +341,14 @@ pub async fn post_request(
             .await
             .unwrap_or(User::deleted()),
     );
+    context.insert(
+        "post_context_serde",
+        &serde_json::to_string(&post.context)
+            .unwrap()
+            .replace("\"", "\\\""),
+    );
+    context.insert("can_manage_pins", &can_manage_pins);
+
     community_context(
         &mut context,
         &community,
@@ -324,6 +357,7 @@ pub async fn post_request(
         is_pending,
         can_post,
         can_read,
+        can_manage_posts,
     );
 
     // return

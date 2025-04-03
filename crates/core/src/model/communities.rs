@@ -3,7 +3,7 @@ use tetratto_shared::{snow::AlmostSnowflake, unix_epoch_timestamp};
 
 use super::communities_permissions::CommunityPermission;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Community {
     pub id: usize,
     pub created: usize,
@@ -70,7 +70,7 @@ impl Community {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CommunityContext {
     pub display_name: String,
     pub description: String,
@@ -86,7 +86,7 @@ impl Default for CommunityContext {
 }
 
 /// Who can read a [`Community`].
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum CommunityReadAccess {
     /// Everybody can view the community.
     Everybody,
@@ -101,7 +101,7 @@ impl Default for CommunityReadAccess {
 }
 
 /// Who can write to a [`Community`].
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum CommunityWriteAccess {
     /// Everybody.
     Everybody,
@@ -120,7 +120,7 @@ impl Default for CommunityWriteAccess {
 }
 
 /// Who can join a [`Community`].
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub enum CommunityJoinAccess {
     /// Joins are closed. Nobody can join the community.
     Nobody,
@@ -163,13 +163,21 @@ impl CommunityMembership {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct PostContext {
+    #[serde(default = "default_comments_enabled")]
     pub comments_enabled: bool,
+    #[serde(default)]
+    pub is_pinned: bool,
+}
+
+fn default_comments_enabled() -> bool {
+    true
 }
 
 impl Default for PostContext {
     fn default() -> Self {
         Self {
-            comments_enabled: true,
+            comments_enabled: default_comments_enabled(),
+            is_pinned: false,
         }
     }
 }

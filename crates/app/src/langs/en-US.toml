@@ -70,6 +70,7 @@ version = "1.0.0"
 "communities:label.delete_community" = "Delete community"
 "communities:label.change_title" = "Change title"
 "communities:label.new_title" = "New title"
+"communities:label.pinned" = "Pinned"
 
 "notifs:action.mark_as_read" = "Mark as read"
 "notifs:action.mark_as_unread" = "Mark as unread"

@@ -3,6 +3,8 @@ use std::collections::HashMap;
 use super::*;
 use crate::cache::Cache;
 use crate::model::auth::Notification;
+use crate::model::communities_permissions::CommunityPermission;
+use crate::model::moderation::AuditLogEntry;
 use crate::model::{
     Error, Result,
     auth::User,
@@ -84,9 +86,17 @@ impl DataManager {
     pub async fn fill_posts(&self, posts: Vec<Post>) -> Result<Vec<(Post, User)>> {
         let mut out: Vec<(Post, User)> = Vec::new();
 
+        let mut users: HashMap<usize, User> = HashMap::new();
         for post in posts {
             let owner = post.owner.clone();
-            out.push((post, self.get_user_by_id(owner).await?));
+
+            if let Some(user) = users.get(&owner) {
+                out.push((post, user.clone()));
+            } else {
+                let user = self.get_user_by_id(owner).await?;
+                users.insert(owner, user.clone());
+                out.push((post, user));
+            }
         }
 
         Ok(out)
@@ -99,14 +109,20 @@ impl DataManager {
     ) -> Result<Vec<(Post, User, Community)>> {
         let mut out: Vec<(Post, User, Community)> = Vec::new();
 
+        let mut seen_before: HashMap<(usize, usize), (User, Community)> = HashMap::new();
         for post in posts {
             let owner = post.owner.clone();
             let community = post.community.clone();
-            out.push((
-                post,
-                self.get_user_by_id(owner).await?,
-                self.get_community_by_id(community).await?,
-            ));
+
+            if let Some((user, community)) = seen_before.get(&(owner, community)) {
+                out.push((post, user.clone(), community.to_owned()));
+            } else {
+                let user = self.get_user_by_id(owner).await?;
+                let community = self.get_community_by_id(community).await?;
+
+                seen_before.insert((owner, community.id), (user.clone(), community.clone()));
+                out.push((post, user, community));
+            }
         }
 
         Ok(out)
@@ -172,6 +188,30 @@ impl DataManager {
                 &(batch as isize),
                 &((page * batch) as isize)
             ],
+            |x| { Self::get_post_from_row(x) }
+        );
+
+        if res.is_err() {
+            return Err(Error::GeneralNotFound("post".to_string()));
+        }
+
+        Ok(res.unwrap())
+    }
+
+    /// Get all pinned posts from the given community (from most recent).
+    ///
+    /// # Arguments
+    /// * `id` - the ID of the community the requested posts belong to
+    pub async fn get_pinned_posts_by_community(&self, id: usize) -> Result<Vec<Post>> {
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = query_rows!(
+            &conn,
+            "SELECT * FROM posts WHERE community = $1 AND context LIKE '%\"is_pinned\":true%' ORDER BY created DESC",
+            &[&(id as isize),],
             |x| { Self::get_post_from_row(x) }
         );
 
@@ -315,6 +355,19 @@ impl DataManager {
             }
         }
 
+        // check if the post we're replying to allows commments
+        let replying_to = if let Some(id) = data.replying_to {
+            Some(self.get_post_by_id(id).await?)
+        } else {
+            None
+        };
+
+        if let Some(ref rt) = replying_to {
+            if !rt.context.comments_enabled {
+                return Err(Error::MiscError("Post has comments disabled".to_string()));
+            }
+        }
+
         // send mention notifications
         let mut already_notified: HashMap<String, User> = HashMap::new();
         for username in User::parse_mentions(&data.content) {
@@ -341,31 +394,6 @@ impl DataManager {
                 &format!("@{username}"),
                 &format!("[@{username}](/api/v1/auth/profile/find/{})", user.id),
             );
-        }
-
-        // incr comment count
-        if let Some(id) = data.replying_to {
-            self.incr_post_comments(id).await.unwrap();
-
-            // send notification
-            let rt = self.get_post_by_id(id).await?;
-
-            if data.owner != rt.owner {
-                let owner = self.get_user_by_id(rt.owner).await?;
-                self.create_notification(Notification::new(
-                    "Your post has received a new comment!".to_string(),
-                    format!(
-                        "[@{}](/api/v1/auth/profile/find/{}) has commented on your [post](/post/{}).",
-                        owner.username, owner.id, rt.id
-                    ),
-                    rt.owner,
-                ))
-                .await?;
-
-                if rt.context.comments_enabled == false {
-                    return Err(Error::NotAllowed);
-                }
-            }
         }
 
         // ...
@@ -401,6 +429,29 @@ impl DataManager {
             return Err(Error::DatabaseError(e.to_string()));
         }
 
+        // incr comment count and send notification
+        if let Some(rt) = replying_to {
+            self.incr_post_comments(rt.id).await.unwrap();
+
+            // send notification
+            if data.owner != rt.owner {
+                let owner = self.get_user_by_id(rt.owner).await?;
+                self.create_notification(Notification::new(
+                    "Your post has received a new comment!".to_string(),
+                    format!(
+                        "[@{}](/api/v1/auth/profile/find/{}) has commented on your [post](/post/{}).",
+                        owner.username, owner.id, rt.id
+                    ),
+                    rt.owner,
+                ))
+                .await?;
+
+                if rt.context.comments_enabled == false {
+                    return Err(Error::NotAllowed);
+                }
+            }
+        }
+
         // return
         Ok(data.id)
     }
@@ -408,11 +459,19 @@ impl DataManager {
     pub async fn delete_post(&self, id: usize, user: User) -> Result<()> {
         let y = self.get_post_by_id(id).await?;
 
-        if user.id != y.owner {
+        let user_membership = self
+            .get_membership_by_owner_community(user.id, y.community)
+            .await?;
+
+        if (user.id != y.owner)
+            && !user_membership
+                .role
+                .check(CommunityPermission::MANAGE_POSTS)
+        {
             if !user.permissions.check(FinePermission::MANAGE_POSTS) {
                 return Err(Error::NotAllowed);
             } else {
-                self.create_audit_log_entry(crate::model::moderation::AuditLogEntry::new(
+                self.create_audit_log_entry(AuditLogEntry::new(
                     user.id,
                     format!("invoked `delete_post` with x value `{id}`"),
                 ))
@@ -442,8 +501,69 @@ impl DataManager {
         Ok(())
     }
 
+    pub async fn update_post_context(&self, id: usize, user: User, x: PostContext) -> Result<()> {
+        let y = self.get_post_by_id(id).await?;
+
+        let user_membership = self
+            .get_membership_by_owner_community(user.id, y.community)
+            .await?;
+
+        if (user.id != y.owner)
+            && !user_membership
+                .role
+                .check(CommunityPermission::MANAGE_POSTS)
+        {
+            if !user.permissions.check(FinePermission::MANAGE_POSTS) {
+                return Err(Error::NotAllowed);
+            } else {
+                self.create_audit_log_entry(AuditLogEntry::new(
+                    user.id,
+                    format!("invoked `update_post_context` with x value `{id}`"),
+                ))
+                .await?
+            }
+        }
+
+        // check if we can manage pins
+        if x.is_pinned != y.context.is_pinned {
+            if !user_membership.role.check(CommunityPermission::MANAGE_PINS) {
+                // lacking this permission is overtaken by having the MANAGE_POSTS
+                // global permission
+                if !user.permissions.check(FinePermission::MANAGE_POSTS) {
+                    return Err(Error::NotAllowed);
+                } else {
+                    self.create_audit_log_entry(AuditLogEntry::new(
+                        user.id,
+                        format!("invoked `update_post_context(pinned)` with x value `{id}`"),
+                    ))
+                    .await?
+                }
+            }
+        }
+
+        // ...
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = execute!(
+            &conn,
+            "UPDATE posts SET context = $1 WHERE id = $2",
+            &[&serde_json::to_string(&x).unwrap(), &id.to_string()]
+        );
+
+        if let Err(e) = res {
+            return Err(Error::DatabaseError(e.to_string()));
+        }
+
+        self.2.remove(format!("atto.post:{}", id)).await;
+
+        // return
+        Ok(())
+    }
+
     auto_method!(update_post_content(String)@get_post_by_id:MANAGE_POSTS -> "UPDATE posts SET content = $1 WHERE id = $2" --cache-key-tmpl="atto.post:{}");
-    auto_method!(update_post_context(PostContext)@get_post_by_id:MANAGE_POSTS -> "UPDATE posts SET context = $1 WHERE id = $2" --serde --cache-key-tmpl="atto.post:{}");
 
     auto_method!(incr_post_likes() -> "UPDATE posts SET likes = likes + 1 WHERE id = $1" --cache-key-tmpl="atto.post:{}" --incr);
     auto_method!(incr_post_dislikes() -> "UPDATE posts SET dislikes = dislikes + 1 WHERE id = $1" --cache-key-tmpl="atto.post:{}" --incr);

@@ -105,7 +105,8 @@ community %}
     {% endif %}
 </div>
 {%- endmacro %} {% macro post(post, owner, secondary=false, community=false,
-show_community=true) -%} {% if community and show_community %}
+show_community=true, can_manage_post=false) -%} {% if community and
+show_community %}
 <div class="card-nest">
     <div class="card small">
         <a
@@ -115,6 +116,8 @@ show_community=true) -%} {% if community and show_community %}
             {{ components::community_avatar(id=post.community,
             community=community) }}
             <b>{{ community.title }}</b>
+
+            {% if post.context.is_pinned %} {{ icon "pin" }} {% endif %}
         </a>
     </div>
     {% endif %}
@@ -197,7 +200,7 @@ show_community=true) -%} {% if community and show_community %}
                             <span>{{ text "general:action.report" }}</span>
                         </button>
                         {% endif %} {% if (user.id == post.owner) or is_helper
-                        %}
+                        or can_manage_post %}
                         <b class="title">{{ text "general:action.manage" }}</b>
                         <button
                             class="red"

@@ -15,6 +15,7 @@ bitflags! {
         const MANAGE_ROLES = 1 << 4;
         const BANNED = 1 << 5;
         const REQUESTED = 1 << 6;
+        const MANAGE_PINS = 1 << 7;
 
         const _ = !0;
     }

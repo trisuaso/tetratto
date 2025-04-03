@@ -31,6 +31,20 @@
             </button>
         </form>
     </div>
+    {% endif %} {% if pinned|length != 0 %}
+    <div class="card-nest">
+        <div class="card small flex gap-2 items-center">
+            {{ icon "pin" }}
+            <span>{{ text "communities:label.pinned" }}</span>
+        </div>
+
+        <div class="card flex flex-col gap-4">
+            <!-- prettier-ignore -->
+            {% for post in pinned %}
+                {{ components::post(post=post[0], owner=post[1], secondary=true, show_community=false, can_manage_post=can_manage_posts) }}
+            {% endfor %}
+        </div>
+    </div>
     {% endif %}
 
     <div class="card-nest">
@@ -42,7 +56,7 @@
         <div class="card flex flex-col gap-4">
             <!-- prettier-ignore -->
             {% for post in feed %}
-                {{ components::post(post=post[0], owner=post[1], secondary=true, show_community=false) }}
+                {{ components::post(post=post[0], owner=post[1], secondary=true, show_community=false, can_manage_post=can_manage_posts) }}
             {% endfor %}
 
             {{ components::pagination(page=page, items=feed|length) }}

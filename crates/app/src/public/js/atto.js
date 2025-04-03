@@ -736,12 +736,17 @@ media_theme_pref();
     const self = reg_ns("ui");
 
     self.define("refresh_container", (_, element, keep) => {
+        if (keep.length === 0) {
+            element.innerHTML = "";
+            return;
+        }
+
         for (const child of element.children) {
             if (keep.includes(child.getAttribute("ui_ident"))) {
                 continue;
             }
 
-            child.remove();
+            child.outerHTML = "";
         }
     });
 

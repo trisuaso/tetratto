@@ -8,7 +8,8 @@
         <span>{{ text "communities:action.continue_thread" }}</span>
     </a>
     {% endif %} {{ components::post(post=post, owner=owner, community=community,
-    show_community=true) }} {% if user %}
+    show_community=true, can_manage_post=can_manage_posts) }} {% if user and
+    post.context.comments_enabled %}
     <div class="card-nest">
         <div class="card small">
             <b>{{ text "communities:label.create_reply" }}</b>
@@ -38,9 +39,91 @@
             </button>
         </form>
     </div>
+    {% endif %} {% if user and user.id == post.owner or can_manage_posts %}
+    <div class="pillmenu">
+        <a href="#/replies" data-tab-button="replies" class="active">
+            {{ icon "newspaper" }}
+            <span>{{ text "communities:label.replies" }}</span>
+        </a>
+
+        <a href="#/configure" data-tab-button="configure">
+            {{ icon "settings" }}
+            <span>{{ text "communities:action.configure" }}</span>
+        </a>
+    </div>
+
+    <div class="flex flex-col gap-2 hidden" data-tab="configure">
+        <div class="card-nest w-full">
+            <div class="card small flex items-center gap-2">
+                {{ icon "settings" }}
+                <span>{{ text "communities:action.configure" }}</span>
+            </div>
+
+            <div
+                class="card tertiary flex flex-col gap-4"
+                id="post_context"
+            ></div>
+        </div>
+
+        <button onclick="save_context()">
+            {{ icon "check" }}
+            <span>{{ text "general:action.save" }}</span>
+        </button>
+
+        <script>
+            setTimeout(() => {
+                const ui = ns("ui");
+                const element = document.getElementById("post_context");
+                const settings = JSON.parse("{{ post_context_serde|safe }}");
+
+                globalThis.save_context = () => {
+                    fetch("/api/v1/posts/{{ post.id }}/context", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            context: settings,
+                        }),
+                    })
+                        .then((res) => res.json())
+                        .then((res) => {
+                            trigger("atto::toast", [
+                                res.ok ? "success" : "error",
+                                res.message,
+                            ]);
+                        });
+                };
+
+                ui.refresh_container(element, []);
+
+                const can_manage_pins = "{{ can_manage_pins }}" === "true";
+                const settings_fields = [
+                    [
+                        [
+                            "comments_enabled",
+                            "Allow people to comment on your post",
+                        ],
+                        "{{ post.context.comments_enabled }}",
+                        "checkbox",
+                    ],
+                ];
+
+                if (can_manage_pins) {
+                    settings_fields.push([
+                        ["is_pinned", "Pinned to community wall"],
+                        "{{ post.context.is_pinned }}",
+                        "checkbox",
+                    ]);
+                }
+
+                ui.generate_settings_ui(element, settings_fields, settings);
+            }, 250);
+        </script>
+    </div>
     {% endif %}
 
-    <div class="card-nest w-full">
+    <div class="card-nest w-full" data-tab="replies">
         <div class="card small flex items-center gap-2">
             {{ icon "newspaper" }}
             <span>{{ text "communities:label.replies" }}</span>
