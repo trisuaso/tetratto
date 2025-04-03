@@ -58,8 +58,9 @@
 </main>
 
 <script>
-    function create_community_from_form(e) {
+    async function create_community_from_form(e) {
         e.preventDefault();
+        await trigger("atto::debounce", ["communities::create"]);
         fetch("/api/v1/communities", {
             method: "POST",
             headers: {

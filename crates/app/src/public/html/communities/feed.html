@@ -65,8 +65,9 @@
 </div>
 
 <script>
-    function create_post_from_form(e) {
+    async function create_post_from_form(e) {
         e.preventDefault();
+        await trigger("atto::debounce", ["posts::create"]);
         fetch("/api/v1/posts", {
             method: "POST",
             headers: {

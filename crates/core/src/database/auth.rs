@@ -76,10 +76,12 @@ impl DataManager {
     ///
     /// # Arguments
     /// * `data` - a mock [`User`] object to insert
-    pub async fn create_user(&self, data: User) -> Result<()> {
+    pub async fn create_user(&self, mut data: User) -> Result<()> {
         if self.0.security.registration_enabled == false {
             return Err(Error::RegistrationDisabled);
         }
+
+        data.username = data.username.to_lowercase();
 
         // check values
         if data.username.len() < 2 {

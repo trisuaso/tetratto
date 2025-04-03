@@ -223,7 +223,7 @@ impl DataManager {
 
         let res = query_rows!(
             &conn,
-            "SELECT * FROM posts ORDER BY likes DESC, created ASC LIMIT $1 OFFSET $2",
+            "SELECT * FROM posts WHERE replying_to = 0 ORDER BY likes DESC, created ASC LIMIT $1 OFFSET $2",
             &[&(batch as i64), &((page * batch) as i64)],
             |x| { Self::get_post_from_row(x) }
         );
@@ -268,7 +268,7 @@ impl DataManager {
         let res = query_rows!(
             &conn,
             &format!(
-                "SELECT * FROM posts WHERE community = {} {query_string} ORDER BY created DESC LIMIT $1 OFFSET $2",
+                "SELECT * FROM posts WHERE (community = {} {query_string}) AND replying_to = 0 ORDER BY created DESC LIMIT $1 OFFSET $2",
                 first.community
             ),
             &[&(batch as i64), &((page * batch) as i64)],
@@ -423,7 +423,7 @@ impl DataManager {
 
             // send notification
             if data.owner != rt.owner {
-                let owner = self.get_user_by_id(rt.owner).await?;
+                let owner = self.get_user_by_id(data.owner).await?;
                 self.create_notification(Notification::new(
                     "Your post has received a new comment!".to_string(),
                     format!(
