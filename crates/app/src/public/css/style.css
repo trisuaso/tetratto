@@ -160,6 +160,10 @@ article {
     .name.shorter {
         max-width: 180px;
     }
+
+    .name.lg\:long {
+        max-width: unset;
+    }
 }
 
 ul,
