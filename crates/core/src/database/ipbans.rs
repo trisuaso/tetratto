@@ -2,7 +2,7 @@ use super::*;
 use crate::cache::Cache;
 use crate::model::moderation::AuditLogEntry;
 use crate::model::{Error, Result, auth::IpBan, auth::User, permissions::FinePermission};
-use crate::{auto_method, execute, get, query_row};
+use crate::{auto_method, execute, get, query_row, query_rows};
 
 #[cfg(feature = "sqlite")]
 use rusqlite::Row;
@@ -26,7 +26,32 @@ impl DataManager {
 
     auto_method!(get_ipban_by_ip(&str)@get_ipban_from_row -> "SELECT * FROM ipbans WHERE ip = $1" --name="ip ban" --returns=IpBan --cache-key-tmpl="atto.ipban:{}");
 
-    /// Create a new user block in the database.
+    /// Get all IP bans (paginated).
+    ///
+    /// # Arguments
+    /// * `batch` - the limit of items in each page
+    /// * `page` - the page number
+    pub async fn get_ipbans(&self, batch: usize, page: usize) -> Result<Vec<IpBan>> {
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = query_rows!(
+            &conn,
+            "SELECT * FROM ipbans ORDER BY created DESC LIMIT $1 OFFSET $2",
+            &[&(batch as isize), &((page * batch) as isize)],
+            |x| { Self::get_ipban_from_row(x) }
+        );
+
+        if res.is_err() {
+            return Err(Error::GeneralNotFound("ip ban".to_string()));
+        }
+
+        Ok(res.unwrap())
+    }
+
+    /// Create a new IP ban in the database.
     ///
     /// # Arguments
     /// * `data` - a mock [`IpBan`] object to insert

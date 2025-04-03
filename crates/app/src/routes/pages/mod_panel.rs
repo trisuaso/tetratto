@@ -113,3 +113,39 @@ pub async fn file_report_request(
         data.1.render("mod/file_report.html", &context).unwrap(),
     ))
 }
+
+/// `/mod_panel/ip_bans`
+pub async fn ip_bans_request(
+    jar: CookieJar,
+    Extension(data): Extension<State>,
+    Query(req): Query<PaginatedQuery>,
+) -> impl IntoResponse {
+    let data = data.read().await;
+    let user = match get_user_from_token!(jar, data.0) {
+        Some(ua) => ua,
+        None => {
+            return Err(Html(
+                render_error(Error::NotAllowed, &jar, &data, &None).await,
+            ));
+        }
+    };
+
+    if !user.permissions.check(FinePermission::MANAGE_BANS) {
+        return Err(Html(
+            render_error(Error::NotAllowed, &jar, &data, &None).await,
+        ));
+    }
+
+    let items = match data.0.get_ipbans(12, req.page).await {
+        Ok(p) => p,
+        Err(e) => return Err(Html(render_error(e, &jar, &data, &Some(user)).await)),
+    };
+
+    let lang = get_lang!(jar, data.0);
+    let mut context = initial_context(&data.0.0, lang, &Some(user)).await;
+    context.insert("items", &items);
+    context.insert("page", &req.page);
+
+    // return
+    Ok(Html(data.1.render("mod/ip_bans.html", &context).unwrap()))
+}

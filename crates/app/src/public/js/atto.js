@@ -408,6 +408,62 @@ media_theme_pref();
         }
     });
 
+    self.define("hooks::ips", ({ $ }) => {
+        for (const anchor of Array.from(document.querySelectorAll("a"))) {
+            try {
+                const href = new URL(anchor.href);
+
+                if (
+                    href.pathname.startsWith("/api/v1/auth/profile/find_by_ip/")
+                ) {
+                    const ban_button = document.createElement("button");
+                    ban_button.innerText = "Ban IP";
+                    ban_button.className = "quaternary red small";
+                    anchor.parentElement.parentElement.appendChild(ban_button);
+
+                    ban_button.addEventListener("click", async (e) => {
+                        e.preventDefault();
+
+                        $.ban_ip(
+                            href.pathname.replace(
+                                "/api/v1/auth/profile/find_by_ip/",
+                                "",
+                            ),
+                        );
+                    });
+                }
+            } catch {}
+        }
+    });
+
+    self.define("ban_ip", async ({ $ }, ip) => {
+        const reason = await $.prompt(
+            "Please explain your reason for banning this IP below:",
+        );
+
+        if (!reason) {
+            return;
+        }
+
+        fetch(`/api/v1/bans/${ip}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                ip,
+                reason,
+            }),
+        })
+            .then((res) => res.json())
+            .then((res) => {
+                trigger("app::toast", [
+                    res.success ? "success" : "error",
+                    res.message,
+                ]);
+            });
+    });
+
     self.define(
         "hooks::attach_to_partial",
         ({ $ }, partial, full, attach, wrapper, page, run_on_load) => {

@@ -152,6 +152,10 @@ pub fn routes() -> Router {
             "/auth/profile/find/{id}",
             get(auth::profile::redirect_from_id),
         )
+        .route(
+            "/auth/profile/find_by_ip/{ip}",
+            get(auth::profile::redirect_from_ip),
+        )
         // notifications
         .route(
             "/notifications/my",

@@ -1,0 +1,70 @@
+{% import "macros.html" as macros %} {% extends "root.html" %} {% block head %}
+<title>IP Bans - {{ config.name }}</title>
+{% endblock %} {% block body %} {{ macros::nav(selected="notifications") }}
+<main class="flex flex-col gap-2">
+    <div class="card-nest w-full">
+        <div class="card small flex items-center gap-2">
+            {{ icon "ban" }}
+            <span>{{ text "general:link.ip_bans" }}</span>
+        </div>
+
+        <div class="card flex flex-col gap-2">
+            <!-- prettier-ignore -->
+            {% for item in items %}
+            <div class="card-nest">
+                <a
+                    class="card small flex items-center gap-2 flush"
+                    href="/api/v1/auth/profile/find/{{ item.moderator }}"
+                >
+                    <!-- prettier-ignore -->
+                    {{ components::avatar(username=item.moderator, selector_type="id") }}
+                    <span>{{ item.moderator }}</span>
+                    <span class="fade date">{{ item.created }}</span>
+                </a>
+
+                <div class="card secondary flex flex-col gap-2">
+                    <code>{{ item.ip }}</code>
+                    <span>{{ item.reason|markdown|safe }}</span>
+
+                    <div class="card w-full flex flex-wrap gap-2">
+                        <button
+                            onclick="remove_report('{{ item.ip }}')"
+                            class="red quaternary"
+                        >
+                            {{ icon "trash" }}
+                            <span>{{ text "general:action.delete" }}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- prettier-ignore -->
+            {{ components::pagination(page=page, items=items|length) }}
+        </div>
+    </div>
+</main>
+
+<script>
+    async function remove_ban(ip) {
+        if (
+            !(await trigger("atto::confirm", [
+                "Are you sure you would like to do this?",
+            ]))
+        ) {
+            return;
+        }
+
+        fetch(`/api/v1/bans/${id}`, {
+            method: "DELETE",
+        })
+            .then((res) => res.json())
+            .then((res) => {
+                trigger("atto::toast", [
+                    res.ok ? "success" : "error",
+                    res.message,
+                ]);
+            });
+    }
+</script>
+{% endblock %}

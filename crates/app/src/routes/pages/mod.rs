@@ -28,6 +28,7 @@ pub fn routes() -> Router {
             "/mod_panel/file_report",
             get(mod_panel::file_report_request),
         )
+        .route("/mod_panel/ip_bans", get(mod_panel::ip_bans_request))
         // auth
         .route("/auth/register", get(auth::register_request))
         .route("/auth/login", get(auth::login_request))

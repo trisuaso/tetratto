@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use super::*;
 use crate::cache::Cache;
 use crate::model::auth::Notification;
@@ -314,17 +316,27 @@ impl DataManager {
         }
 
         // send mention notifications
+        let mut already_notified: HashMap<String, User> = HashMap::new();
         for username in User::parse_mentions(&data.content) {
-            let user = self.get_user_by_username(&username).await?;
-            self.create_notification(Notification::new(
-                "You've been mentioned in a post!".to_string(),
-                format!(
-                    "[Somebody](/api/v1/auth/profile/find/{}) mentioned you in their [post](/post/{}).",
-                    data.owner, data.id
-                ),
-                user.id,
-            ))
-            .await?;
+            let user = {
+                if let Some(ua) = already_notified.get(&username) {
+                    ua.to_owned()
+                } else {
+                    let user = self.get_user_by_username(&username).await?;
+                    self.create_notification(Notification::new(
+                        "You've been mentioned in a post!".to_string(),
+                        format!(
+                            "[Somebody](/api/v1/auth/profile/find/{}) mentioned you in their [post](/post/{}).",
+                            data.owner, data.id
+                        ),
+                        user.id,
+                    ))
+                    .await?;
+                    already_notified.insert(username.to_owned(), user.clone());
+                    user
+                }
+            };
+
             data.content = data.content.replace(
                 &format!("@{username}"),
                 &format!("[@{username}](/api/v1/auth/profile/find/{})", user.id),

@@ -241,7 +241,19 @@
                     "
                     >{{ token[1] }}</b
                 >
-                <span class="fade">{{ token[0] }}</span>
+                {% if is_helper %}
+                <span class="flex gap-2 items-center">
+                    <span class="fade"
+                        ><a
+                            href="/api/v1/auth/profile/find_by_ip/{{ token[0] }}"
+                            ><code>{{ token[0] }}</code></a
+                        ></span
+                    >
+                </span>
+                {% else %}
+                <span class="fade"><code>{{ token[0] }}</code></span>
+                {% endif %}
+
                 <span class="fade date">{{ token[2] }}</span>
             </div>
 

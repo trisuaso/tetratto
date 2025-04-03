@@ -14,7 +14,7 @@ bitflags! {
         const MANAGE_POSTS = 1 << 3;
         const MANAGE_POST_REPLIES = 1 << 4;
         const MANAGE_USERS = 1 << 5;
-        const MANAGE_BANS = 1 << 6; // includes managing IP bans
+        const MANAGE_BANS = 1 << 6;
         const MANAGE_WARNINGS = 1 << 7;
         const MANAGE_NOTIFICATIONS = 1 << 8;
         const VIEW_REPORTS = 1 << 9;

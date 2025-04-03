@@ -33,6 +33,27 @@ pub async fn redirect_from_id(
     }
 }
 
+pub async fn redirect_from_ip(
+    jar: CookieJar,
+    Extension(data): Extension<State>,
+    Path(ip): Path<String>,
+) -> impl IntoResponse {
+    let data = &(data.read().await).0;
+    let user = match get_user_from_token!(jar, data) {
+        Some(ua) => ua,
+        None => return Redirect::to("/"),
+    };
+
+    if !user.permissions.check(FinePermission::MANAGE_BANS) {
+        return Redirect::to("/");
+    }
+
+    match data.get_user_by_token(&ip).await {
+        Ok(u) => Redirect::to(&format!("/@{}", u.username)),
+        Err(_) => Redirect::to("/"),
+    }
+}
+
 /// Update the settings of the given user.
 pub async fn update_user_settings_request(
     jar: CookieJar,
