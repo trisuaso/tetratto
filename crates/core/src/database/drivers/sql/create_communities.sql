@@ -8,8 +8,8 @@ CREATE TABLE IF NOT EXISTS communities (
     write_access TEXT NOT NULL,
     join_access TEXT NOT NULL,
     -- likes
-    likes BIGINT NOT NULL,
-    dislikes BIGINT NOT NULL,
+    likes INT NOT NULL,
+    dislikes INT NOT NULL,
     -- counts
-    member_count BIGINT NOT NULL
+    member_count INT NOT NULL
 )

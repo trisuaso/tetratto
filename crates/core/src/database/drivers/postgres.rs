@@ -35,17 +35,16 @@ impl DataManager {
 
     /// Create a new [`DataManager`] (and init database).
     pub async fn new(config: Config) -> Result<Self> {
-        let manager = PostgresConnectionManager::new(
-            PgConfig::from_str(&format!(
-                "postgresql://{}:{}@{}/{}?target_session_attrs=read-write",
-                config.database.user,
-                config.database.password,
-                config.database.url,
-                config.database.name
-            ))
-            .unwrap(),
-            NoTls,
+        let con_url = &format!(
+            "postgresql://{}:{}@{}/{}?target_session_attrs=read-write",
+            config.database.user,
+            config.database.password,
+            config.database.url,
+            config.database.name
         );
+
+        println!("attempting connection on: {con_url}");
+        let manager = PostgresConnectionManager::new(PgConfig::from_str(con_url).unwrap(), NoTls);
 
         let pool = Pool::builder().max_size(15).build(manager).await.unwrap();
         Ok(Self(

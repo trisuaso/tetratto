@@ -35,10 +35,10 @@ impl DataManager {
             write_access: serde_json::from_str(&get!(x->6(String))).unwrap(),
             join_access: serde_json::from_str(&get!(x->7(String))).unwrap(),
             // likes
-            likes: get!(x->8(i64)) as isize,
-            dislikes: get!(x->9(i64)) as isize,
+            likes: get!(x->8(i32)) as isize,
+            dislikes: get!(x->9(i32)) as isize,
             // counts
-            member_count: get!(x->10(i64)) as usize,
+            member_count: get!(x->10(i32)) as usize,
         }
     }
 
@@ -211,9 +211,9 @@ impl DataManager {
                 &serde_json::to_string(&data.read_access).unwrap().as_str(),
                 &serde_json::to_string(&data.write_access).unwrap().as_str(),
                 &serde_json::to_string(&data.join_access).unwrap().as_str(),
-                &(0 as i64),
-                &(0 as i64),
-                &(1 as i64)
+                &(0 as i32),
+                &(0 as i32),
+                &(1 as i32)
             ]
         );
 

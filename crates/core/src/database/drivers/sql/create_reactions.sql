@@ -4,5 +4,5 @@ CREATE TABLE IF NOT EXISTS reactions (
     owner BIGINT NOT NULL,
     asset BIGINT NOT NULL,
     asset_type TEXT NOT NULL,
-    is_like BIGINT NOT NULL
+    is_like INT NOT NULL
 )

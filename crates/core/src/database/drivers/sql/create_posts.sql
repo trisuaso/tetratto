@@ -5,10 +5,10 @@ CREATE TABLE IF NOT EXISTS posts (
     owner BIGINT NOT NULL,
     community BIGINT NOT NULL,
     context TEXT NOT NULL,
-    replying_to BIGINT, -- the ID of the post this is a comment on... NULL means it isn't a reply
+    replying_to BIGINT, -- the ID of the post this is a comment on... 0 means it isn't a reply
     -- likes
-    likes BIGINT NOT NULL,
-    dislikes BIGINT NOT NULL,
+    likes INT NOT NULL,
+    dislikes INT NOT NULL,
     -- other counts
-    comment_count BIGINT NOT NULL
+    comment_count INT NOT NULL
 )

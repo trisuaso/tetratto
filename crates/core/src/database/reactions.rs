@@ -26,7 +26,7 @@ impl DataManager {
             owner: get!(x->2(i64)) as usize,
             asset: get!(x->3(i64)) as usize,
             asset_type: serde_json::from_str(&get!(x->4(String))).unwrap(),
-            is_like: if get!(x->5(i64)) as i8 == 1 {
+            is_like: if get!(x->5(i32)) as i8 == 1 {
                 true
             } else {
                 false
@@ -80,7 +80,7 @@ impl DataManager {
                 &(data.owner as i64),
                 &(data.asset as i64),
                 &serde_json::to_string(&data.asset_type).unwrap().as_str(),
-                &(if data.is_like { 1 } else { 0 } as i64)
+                &(if data.is_like { 1 } else { 0 } as i32)
             ]
         );
 

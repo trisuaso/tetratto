@@ -38,10 +38,10 @@ impl DataManager {
                 None
             },
             // likes
-            likes: get!(x->7(i64)) as isize,
-            dislikes: get!(x->8(i64)) as isize,
+            likes: get!(x->7(i32)) as isize,
+            dislikes: get!(x->8(i32)) as isize,
             // other counts
-            comment_count: get!(x->9(i64)) as usize,
+            comment_count: get!(x->9(i32)) as usize,
         }
     }
 
@@ -407,9 +407,9 @@ impl DataManager {
                 } else {
                     0 as i64
                 },
-                &(0 as i64),
-                &(0 as i64),
-                &(0 as i64)
+                &(0 as i32),
+                &(0 as i32),
+                &(0 as i32)
             ]
         );
 

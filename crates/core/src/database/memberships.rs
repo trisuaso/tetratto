@@ -28,7 +28,7 @@ impl DataManager {
             created: get!(x->1(i64)) as usize,
             owner: get!(x->2(i64)) as usize,
             community: get!(x->3(i64)) as usize,
-            role: CommunityPermission::from_bits(get!(x->4(i64)) as u32).unwrap(),
+            role: CommunityPermission::from_bits(get!(x->4(i32)) as u32).unwrap(),
         }
     }
 
@@ -147,7 +147,7 @@ impl DataManager {
                 &(data.created as i64),
                 &(data.owner as i64),
                 &(data.community as i64),
-                &(data.role.bits() as i64),
+                &(data.role.bits() as i32),
             ]
         );
 

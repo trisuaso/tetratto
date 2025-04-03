@@ -4,5 +4,5 @@ CREATE TABLE IF NOT EXISTS notifications (
     title TEXT NOT NULL,
     content TEXT NOT NULL,
     owner BIGINT NOT NULL,
-    read BIGINT NOT NULL
+    read INT NOT NULL
 )

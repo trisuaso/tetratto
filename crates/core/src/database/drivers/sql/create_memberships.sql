@@ -3,5 +3,5 @@ CREATE TABLE IF NOT EXISTS memberships (
     created BIGINT NOT NULL,
     owner BIGINT NOT NULL,
     community BIGINT NOT NULL,
-    role BIGINT NOT NULL
+    role INT NOT NULL
 )

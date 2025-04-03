@@ -21,7 +21,7 @@ impl DataManager {
             title: get!(x->2(String)),
             content: get!(x->3(String)),
             owner: get!(x->4(i64)) as usize,
-            read: if get!(x->5(i64)) as i8 == 1 {
+            read: if get!(x->5(i32)) as i8 == 1 {
                 true
             } else {
                 false
@@ -71,7 +71,7 @@ impl DataManager {
                 &data.title,
                 &data.content,
                 &(data.owner as i64),
-                &(if data.read { 1 } else { 0 } as i64)
+                &(if data.read { 1 } else { 0 } as i32)
             ]
         );
 
@@ -162,7 +162,7 @@ impl DataManager {
         let res = execute!(
             &conn,
             "UPDATE notifications SET read = $1 WHERE id = $2",
-            params![&(if new_read { 1 } else { 0 } as i64), &(id as i64)]
+            params![&(if new_read { 1 } else { 0 } as i32), &(id as i64)]
         );
 
         if let Err(e) = res {

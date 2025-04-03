@@ -6,10 +6,10 @@ CREATE TABLE IF NOT EXISTS users (
     salt TEXT NOT NULL,
     settings TEXT NOT NULL,
     tokens TEXT NOT NULL,
-    permissions BIGINT NOT NULL,
-    verified BIGINT NOT NULL,
-    notification_count BIGINT NOT NULL,
-    follower_count BIGINT NOT NULL,
-    following_count BIGINT NOT NULL,
+    permissions INT NOT NULL,
+    verified INT NOT NULL,
+    notification_count INT NOT NULL,
+    follower_count INT NOT NULL,
+    following_count INT NOT NULL,
     last_seen BIGINT NOT NULL
 )

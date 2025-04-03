@@ -32,15 +32,15 @@ impl DataManager {
             salt: get!(x->4(String)),
             settings: serde_json::from_str(&get!(x->5(String)).to_string()).unwrap(),
             tokens: serde_json::from_str(&get!(x->6(String)).to_string()).unwrap(),
-            permissions: FinePermission::from_bits(get!(x->7(i64)) as u32).unwrap(),
-            is_verified: if get!(x->8(i64)) as i8 == 1 {
+            permissions: FinePermission::from_bits(get!(x->7(i32)) as u32).unwrap(),
+            is_verified: if get!(x->8(i32)) as i8 == 1 {
                 true
             } else {
                 false
             },
-            notification_count: get!(x->9(i64)) as usize,
-            follower_count: get!(x->10(i64)) as usize,
-            following_count: get!(x->11(i64)) as usize,
+            notification_count: get!(x->9(i32)) as usize,
+            follower_count: get!(x->10(i32)) as usize,
+            following_count: get!(x->11(i32)) as usize,
             last_seen: get!(x->12(i64)) as usize,
         }
     }
@@ -118,11 +118,11 @@ impl DataManager {
                 &data.salt,
                 &serde_json::to_string(&data.settings).unwrap(),
                 &serde_json::to_string(&data.tokens).unwrap(),
-                &(FinePermission::DEFAULT.bits() as i64),
-                &(if data.is_verified { 1 as i64 } else { 0 as i64 }),
-                &(0 as i64),
-                &(0 as i64),
-                &(0 as i64),
+                &(FinePermission::DEFAULT.bits() as i32),
+                &(if data.is_verified { 1 as i32 } else { 0 as i32 }),
+                &(0 as i32),
+                &(0 as i32),
+                &(0 as i32),
                 &(data.last_seen as i64),
             ]
         );
@@ -253,7 +253,7 @@ impl DataManager {
         let res = execute!(
             &conn,
             "UPDATE users SET verified = $1 WHERE id = $2",
-            params![&(if x { 1 } else { 0 } as i64), &(id as i64)]
+            params![&(if x { 1 } else { 0 } as i32), &(id as i64)]
         );
 
         if let Err(e) = res {
@@ -367,7 +367,7 @@ impl DataManager {
         let res = execute!(
             &conn,
             "UPDATE users SET permissions = $1 WHERE id = $2",
-            params![&(role.bits() as i64), &(id as i64)]
+            params![&(role.bits() as i32), &(id as i64)]
         );
 
         if let Err(e) = res {
