@@ -109,6 +109,47 @@ impl Default for DatabaseConfig {
     }
 }
 
+/// Policies config (TOS/privacy)
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct PoliciesConfig {
+    /// The link to your terms of service page.
+    /// This is relative to `/auth/register` on the site.
+    ///
+    /// If your TOS is an HTML file located in `./public`, you can put
+    /// `/public/tos.html` here (or something).
+    pub terms_of_service: String,
+    /// The link to your privacy policy page.
+    /// This is relative to `/auth/register` on the site.
+    ///
+    /// Same deal as terms of service page.
+    pub privacy: String,
+}
+
+impl Default for PoliciesConfig {
+    fn default() -> Self {
+        Self {
+            terms_of_service: "/public/tos.html".to_string(),
+            privacy: "/public/privacy.html".to_string(),
+        }
+    }
+}
+
+/// Cloudflare Turnstile configuration
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct TurnstileConfig {
+    pub site_key: String,
+    pub secret_key: String,
+}
+
+impl Default for TurnstileConfig {
+    fn default() -> Self {
+        Self {
+            site_key: "1x00000000000000000000AA".to_string(), // always passing, visible
+            secret_key: "1x0000000000000000000000000000000AA".to_string(), // always passing
+        }
+    }
+}
+
 /// Configuration file
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Config {
@@ -148,6 +189,12 @@ pub struct Config {
     /// A list of usernames which cannot be used. This also includes community names.
     #[serde(default = "default_banned_usernames")]
     pub banned_usernames: Vec<String>,
+    /// Configuration for your site's policies (terms of service, privacy).
+    #[serde(default = "default_policies")]
+    pub policies: PoliciesConfig,
+    /// Configuration for Cloudflare Turnstile.
+    #[serde(default = "default_turnstile")]
+    pub turnstile: TurnstileConfig,
 }
 
 fn default_name() -> String {
@@ -199,6 +246,14 @@ fn default_banned_usernames() -> Vec<String> {
     ]
 }
 
+fn default_policies() -> PoliciesConfig {
+    PoliciesConfig::default()
+}
+
+fn default_turnstile() -> TurnstileConfig {
+    TurnstileConfig::default()
+}
+
 impl Default for Config {
     fn default() -> Self {
         Self {
@@ -212,6 +267,8 @@ impl Default for Config {
             dirs: default_dirs(),
             no_track: default_no_track(),
             banned_usernames: default_banned_usernames(),
+            policies: default_policies(),
+            turnstile: default_turnstile(),
         }
     }
 }

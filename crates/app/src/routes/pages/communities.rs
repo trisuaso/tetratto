@@ -108,6 +108,11 @@ pub async fn list_request(jar: CookieJar, Extension(data): Extension<State>) -> 
         Err(e) => return Err(Html(render_error(e, &jar, &data, &Some(user)).await)),
     };
 
+    let popular_list = match data.0.get_popular_communities().await {
+        Ok(p) => p,
+        Err(e) => return Err(Html(render_error(e, &jar, &data, &Some(user)).await)),
+    };
+
     let mut communities: Vec<Community> = Vec::new();
     for membership in &list {
         match data.0.get_community_by_id(membership.community).await {
@@ -118,7 +123,9 @@ pub async fn list_request(jar: CookieJar, Extension(data): Extension<State>) -> 
 
     let lang = get_lang!(jar, data.0);
     let mut context = initial_context(&data.0.0, lang, &Some(user)).await;
+
     context.insert("list", &communities);
+    context.insert("popular_list", &popular_list);
 
     // return
     Ok(Html(

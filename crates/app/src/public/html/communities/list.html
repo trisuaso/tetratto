@@ -30,8 +30,31 @@
             </button>
         </form>
     </div>
-    {% endif %} {% for item in list %} {{
-    components::community_listing_card(community=item) }} {% endfor %}
+    {% endif %}
+
+    <div class="card-nest w-full">
+        <div class="card small flex items-center gap-2">
+            {{ icon "award" }}
+            <span>{{ text "communities:label.my_communities" }}</span>
+        </div>
+
+        <div class="card flex flex-col gap-2">
+            {% for item in list %} {{
+            components::community_listing_card(community=item) }} {% endfor %}
+        </div>
+    </div>
+
+    <div class="card-nest w-full">
+        <div class="card small flex items-center gap-2">
+            {{ icon "trending-up" }}
+            <span>{{ text "communities:label.popular_communities" }}</span>
+        </div>
+
+        <div class="card flex flex-col gap-2">
+            {% for item in popular_list %} {{
+            components::community_listing_card(community=item) }} {% endfor %}
+        </div>
+    </div>
 </main>
 
 <script>

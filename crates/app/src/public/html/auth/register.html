@@ -1,6 +1,11 @@
 {% extends "auth/base.html" %} {% block head %}
 <title>Register</title>
 {% endblock %} {% block title %}Register{% endblock %} {% block content %}
+<script
+    src="https://challenges.cloudflare.com/turnstile/v0/api.js"
+    defer
+></script>
+
 <form class="w-full flex flex-col gap-4" onsubmit="register(event)">
     <div class="flex flex-col gap-1">
         <label for="username"><b>Username</b></label>
@@ -24,6 +29,48 @@
         />
     </div>
 
+    <hr />
+
+    <div class="card-nest w-full">
+        <div class="card small flex items-center gap-2">
+            {{ icon "scroll-text" }}
+            <b>Policies</b>
+        </div>
+
+        <div class="card secondary flex flex-col gap-2">
+            <span>By continuing, you agree to the following policies:</span>
+
+            <ul>
+                <li>
+                    <a href="{{ config.policies.terms_of_service }}"
+                        >Terms of service</a
+                    >
+                </li>
+
+                <li>
+                    <a href="{{ config.policies.privacy }}">Privacy policy</a>
+                </li>
+            </ul>
+
+            <div class="flex gap-2">
+                <input
+                    type="checkbox"
+                    name="policy_consent"
+                    id="policy_consent"
+                    class="w-content"
+                    required
+                />
+                <label for="policy_consent">I agree</label>
+            </div>
+        </div>
+    </div>
+
+    <div
+        class="cf-turnstile"
+        data-sitekey="{{ config.turnstile.site_key }}"
+    ></div>
+
+    <hr />
     <button>Submit</button>
 </form>
 
@@ -38,6 +85,10 @@
             body: JSON.stringify({
                 username: e.target.username.value,
                 password: e.target.password.value,
+                policy_consent: e.target.policy_consent.checked,
+                captcha_response: e.target.querySelector(
+                    "[name=cf-turnstile-response]",
+                ).value,
             }),
         })
             .then((res) => res.json())

@@ -51,7 +51,7 @@ community %}
 />
 {% endif %} {%- endmacro %} {% macro community_listing_card(community) -%}
 <a
-    class="card w-full flex items-center gap-4"
+    class="card secondary w-full flex items-center gap-4"
     href="/community/{{ community.title }}"
 >
     {{ components::community_avatar(id=community.id, community=community,

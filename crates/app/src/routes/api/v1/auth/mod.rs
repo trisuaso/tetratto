@@ -3,7 +3,7 @@ pub mod ipbans;
 pub mod profile;
 pub mod social;
 
-use super::AuthProps;
+use super::{LoginProps, RegisterProps};
 use crate::{
     State, get_user_from_token,
     model::{ApiReturn, Error, auth::User},
@@ -16,12 +16,14 @@ use axum::{
 use axum_extra::extract::CookieJar;
 use tetratto_shared::hash::hash;
 
+use cf_turnstile::{SiteVerifyRequest, TurnstileClient};
+
 /// `/api/v1/auth/register`
 pub async fn register_request(
     headers: HeaderMap,
     jar: CookieJar,
     Extension(data): Extension<State>,
-    Json(props): Json<AuthProps>,
+    Json(props): Json<RegisterProps>,
 ) -> impl IntoResponse {
     let data = &(data.read().await).0;
     let user = get_user_from_token!(jar, data);
@@ -50,8 +52,31 @@ pub async fn register_request(
         return (None, Json(Error::NotAllowed.into()));
     }
 
+    // check captcha
+    let client = TurnstileClient::new(data.0.turnstile.secret_key.clone().into());
+
+    let validated = match client
+        .siteverify(SiteVerifyRequest {
+            response: props.captcha_response,
+            ..Default::default()
+        })
+        .await
+    {
+        Ok(v) => v,
+        Err(e) => return (None, Json(Error::MiscError(e.to_string()).into())),
+    };
+
+    if !validated.success | !props.policy_consent {
+        return (
+            None,
+            Json(Error::MiscError("Captcha failed".to_string()).into()),
+        );
+    }
+
     // ...
     let mut user = User::new(props.username, props.password);
+    user.settings.policy_consent = true;
+
     let (initial_token, t) = User::create_token(&real_ip);
     user.tokens.push(t);
 
@@ -81,7 +106,7 @@ pub async fn login_request(
     headers: HeaderMap,
     jar: CookieJar,
     Extension(data): Extension<State>,
-    Json(props): Json<AuthProps>,
+    Json(props): Json<LoginProps>,
 ) -> impl IntoResponse {
     let data = &(data.read().await).0;
     let user = get_user_from_token!(jar, data);

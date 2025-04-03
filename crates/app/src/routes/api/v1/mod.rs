@@ -188,9 +188,17 @@ pub fn routes() -> Router {
 }
 
 #[derive(Deserialize)]
-pub struct AuthProps {
+pub struct LoginProps {
     pub username: String,
     pub password: String,
+}
+
+#[derive(Deserialize)]
+pub struct RegisterProps {
+    pub username: String,
+    pub password: String,
+    pub policy_consent: bool,
+    pub captcha_response: String,
 }
 
 #[derive(Deserialize)]

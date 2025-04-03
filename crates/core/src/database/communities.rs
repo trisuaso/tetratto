@@ -9,7 +9,7 @@ use crate::model::{
     communities::{CommunityReadAccess, CommunityWriteAccess},
     permissions::FinePermission,
 };
-use crate::{auto_method, execute, get, query_row};
+use crate::{auto_method, execute, get, query_row, query_rows};
 use pathbufd::PathBufD;
 use std::fs::{exists, remove_file};
 
@@ -118,6 +118,32 @@ impl DataManager {
 
     auto_method!(get_community_by_id_no_void()@get_community_from_row -> "SELECT * FROM communities WHERE id = $1" --name="community" --returns=Community --cache-key-tmpl="atto.community:{}");
     auto_method!(get_community_by_title_no_void(&str)@get_community_from_row -> "SELECT * FROM communities WHERE title = $1" --name="community" --returns=Community --cache-key-tmpl="atto.community:{}");
+
+    /// Get the top 12 most popular (most likes) communities.
+    pub async fn get_popular_communities(&self) -> Result<Vec<Community>> {
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        #[cfg(feature = "sqlite")]
+        let empty = [];
+        #[cfg(feature = "postgres")]
+        let empty = &[];
+
+        let res = query_rows!(
+            &conn,
+            "SELECT * FROM communities ORDER BY likes DESC LIMIT 12",
+            empty,
+            |x| { Self::get_community_from_row(x) }
+        );
+
+        if res.is_err() {
+            return Err(Error::GeneralNotFound("communities".to_string()));
+        }
+
+        Ok(res.unwrap())
+    }
 
     /// Create a new community in the database.
     ///

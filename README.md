@@ -32,6 +32,8 @@ Your first start of Tetratto might be a little slow as it's going to download al
 
 In the directory you're running Tetratto from, you should create a `tetratto.toml` file. This file follows the configuration schema defined [here](https://trisuaso.github.io/tetratto/tetratto/config/struct.Config.html)!
 
+Tetratto **requires** Cloudflare Turnstile for registrations. Testing keys are listed [here](https://developers.cloudflare.com/turnstile/troubleshooting/testing/). You can _technically_ disable the captcha by using the always passing, invisible keys.
+
 ## Usage (as a user)
 
 Tetratto is very simple once you get the hang of it! At the top of the page (or bottom if you're on mobile), you'll see the navigation bar. Once logged in, you'll be able to access "Home", "Popular", and "Communities" from there! You can also press your profile picture (on the right) to view your own profile, settings, or log out!

@@ -42,6 +42,8 @@ impl Default for ThemePreference {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct UserSettings {
     #[serde(default)]
+    pub policy_consent: bool,
+    #[serde(default)]
     pub display_name: String,
     #[serde(default)]
     pub biography: String,
@@ -58,6 +60,7 @@ pub struct UserSettings {
 impl Default for UserSettings {
     fn default() -> Self {
         Self {
+            policy_consent: false,
             display_name: String::new(),
             biography: String::new(),
             private_profile: false,
