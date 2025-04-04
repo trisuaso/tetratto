@@ -43,6 +43,19 @@ impl DataManager {
         Ok(communities)
     }
 
+    /// Replace a list of community memberships with the proper user.
+    pub async fn fill_users(
+        &self,
+        list: Vec<CommunityMembership>,
+    ) -> Result<Vec<(CommunityMembership, User)>> {
+        let mut users: Vec<(CommunityMembership, User)> = Vec::new();
+        for membership in list {
+            let owner = membership.owner.clone();
+            users.push((membership, self.get_user_by_id(owner).await?));
+        }
+        Ok(users)
+    }
+
     /// Get a community membership by `owner` and `community`.
     pub async fn get_membership_by_owner_community(
         &self,
@@ -80,6 +93,37 @@ impl DataManager {
             // 33 = banned, 65 = pending membership
             "SELECT * FROM memberships WHERE owner = $1 AND NOT role = 33 AND NOT role = 65 ORDER BY created DESC",
             &[&(owner as i64)],
+            |x| { Self::get_membership_from_row(x) }
+        );
+
+        if res.is_err() {
+            return Err(Error::GeneralNotFound("community membership".to_string()));
+        }
+
+        Ok(res.unwrap())
+    }
+
+    /// Get all community memberships by `community`.
+    pub async fn get_memberships_by_community(
+        &self,
+        community: usize,
+        batch: usize,
+        page: usize,
+    ) -> Result<Vec<CommunityMembership>> {
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = query_rows!(
+            &conn,
+            // 33 = banned, 65 = pending membership
+            "SELECT * FROM memberships WHERE community = $1 AND NOT role = 33 AND NOT role = 65 ORDER BY created DESC LIMIT $2 OFFSET $3",
+            &[
+                &(community as i64),
+                &(batch as i64),
+                &((page * batch) as i64)
+            ],
             |x| { Self::get_membership_from_row(x) }
         );
 

@@ -75,6 +75,7 @@ version = "1.0.0"
 "notifs:action.mark_as_read" = "Mark as read"
 "notifs:action.mark_as_unread" = "Mark as unread"
 "notifs:action.clear" = "Clear"
+"notifs:label.notifications" = "Notifications"
 
 "settings:tab.general" = "General"
 "settings:tab.account" = "Account"

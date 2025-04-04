@@ -100,7 +100,27 @@ macro_rules! community_context_bools {
             false
         };
 
-        (is_owner, is_joined, is_pending, can_post, can_manage_posts)
+        let can_manage_community = if let Some(ref membership) = membership {
+            membership.role.check(CommunityPermission::MANAGE_COMMUNITY)
+        } else {
+            false
+        };
+
+        let can_manage_roles = if let Some(ref membership) = membership {
+            membership.role.check(CommunityPermission::MANAGE_ROLES)
+        } else {
+            false
+        };
+
+        (
+            is_owner,
+            is_joined,
+            is_pending,
+            can_post,
+            can_manage_posts,
+            can_manage_community,
+            can_manage_roles,
+        )
     }};
 }
 
@@ -155,6 +175,8 @@ pub fn community_context(
     can_post: bool,
     can_read: bool,
     can_manage_posts: bool,
+    can_manage_community: bool,
+    can_manage_roles: bool,
 ) {
     context.insert("community", &community);
     context.insert("is_owner", &is_owner);
@@ -163,6 +185,8 @@ pub fn community_context(
     context.insert("can_post", &can_post);
     context.insert("can_read", &can_read);
     context.insert("can_manage_posts", &can_manage_posts);
+    context.insert("can_manage_community", &can_manage_community);
+    context.insert("can_manage_roles", &can_manage_roles);
 }
 
 /// `/community/{title}`
@@ -221,8 +245,15 @@ pub async fn feed_request(
     let lang = get_lang!(jar, data.0);
     let mut context = initial_context(&data.0.0, lang, &user).await;
 
-    let (is_owner, is_joined, is_pending, can_post, can_manage_posts) =
-        community_context_bools!(data, user, community);
+    let (
+        is_owner,
+        is_joined,
+        is_pending,
+        can_post,
+        can_manage_posts,
+        can_manage_community,
+        can_manage_roles,
+    ) = community_context_bools!(data, user, community);
 
     context.insert("feed", &feed);
     context.insert("pinned", &pinned);
@@ -236,6 +267,8 @@ pub async fn feed_request(
         can_post,
         can_read,
         can_manage_posts,
+        can_manage_community,
+        can_manage_roles,
     );
 
     // return
@@ -265,7 +298,19 @@ pub async fn settings_request(
         Err(e) => return Err(Html(render_error(e, &jar, &data, &Some(user)).await)),
     };
 
-    if user.id != community.owner && !user.permissions.check(FinePermission::MANAGE_COMMUNITIES) {
+    let membership = match data
+        .0
+        .get_membership_by_owner_community(user.id, community.id)
+        .await
+    {
+        Ok(m) => m,
+        Err(e) => return Err(Html(render_error(e, &jar, &data, &Some(user)).await)),
+    };
+
+    if user.id != community.owner
+        && !user.permissions.check(FinePermission::MANAGE_COMMUNITIES)
+        && !membership.role.check(CommunityPermission::MANAGE_COMMUNITY)
+    {
         return Err(Html(
             render_error(Error::NotAllowed, &jar, &data, &None).await,
         ));
@@ -327,8 +372,15 @@ pub async fn post_request(
     let lang = get_lang!(jar, data.0);
     let mut context = initial_context(&data.0.0, lang, &user).await;
 
-    let (is_owner, is_joined, is_pending, can_post, can_manage_posts) =
-        community_context_bools!(data, user, community);
+    let (
+        is_owner,
+        is_joined,
+        is_pending,
+        can_post,
+        can_manage_posts,
+        can_manage_community,
+        can_manage_roles,
+    ) = community_context_bools!(data, user, community);
 
     context.insert("post", &post);
     context.insert("replies", &feed);
@@ -358,10 +410,91 @@ pub async fn post_request(
         can_post,
         can_read,
         can_manage_posts,
+        can_manage_community,
+        can_manage_roles,
     );
 
     // return
     Ok(Html(
         data.1.render("communities/post.html", &context).unwrap(),
+    ))
+}
+
+/// `/community/{title}/members`
+pub async fn members_request(
+    jar: CookieJar,
+    Path(title): Path<String>,
+    Query(props): Query<PaginatedQuery>,
+    Extension(data): Extension<State>,
+) -> impl IntoResponse {
+    let data = data.read().await;
+    let user = get_user_from_token!(jar, data.0);
+
+    let community = match data.0.get_community_by_title(&title.to_lowercase()).await {
+        Ok(ua) => ua,
+        Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
+    };
+
+    if community.id == 0 {
+        // don't show page for void community
+        return Err(Html(
+            render_error(
+                Error::GeneralNotFound("community".to_string()),
+                &jar,
+                &data,
+                &user,
+            )
+            .await,
+        ));
+    }
+
+    // check permissions
+    let (can_read, _) = check_permissions!(community, jar, data, user);
+
+    // ...
+    let list = match data
+        .0
+        .get_memberships_by_community(community.id, 12, props.page)
+        .await
+    {
+        Ok(p) => match data.0.fill_users(p).await {
+            Ok(p) => p,
+            Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
+        },
+        Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
+    };
+
+    // init context
+    let lang = get_lang!(jar, data.0);
+    let mut context = initial_context(&data.0.0, lang, &user).await;
+
+    let (
+        is_owner,
+        is_joined,
+        is_pending,
+        can_post,
+        can_manage_posts,
+        can_manage_community,
+        can_manage_roles,
+    ) = community_context_bools!(data, user, community);
+
+    context.insert("list", &list);
+    context.insert("page", &props.page);
+    community_context(
+        &mut context,
+        &community,
+        is_owner,
+        is_joined,
+        is_pending,
+        can_post,
+        can_read,
+        can_manage_posts,
+        can_manage_community,
+        can_manage_roles,
+    );
+
+    // return
+    Ok(Html(
+        data.1.render("communities/members.html", &context).unwrap(),
     ))
 }

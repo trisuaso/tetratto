@@ -2,12 +2,26 @@
 <title>Notifications - {{ config.name }}</title>
 {% endblock %} {% block body %} {{ macros::nav(selected="notifications") }}
 <main class="flex flex-col gap-2">
-    <button onclick="trigger('me::clear_notifs')">
-        {{ icon "bomb" }}
-        <span>{{ text "notifs:action.clear" }}</span>
-    </button>
+    <div class="card-nest">
+        <div class="card small flex items-center justify-between gap-2">
+            <span class="flex items-center gap-2">
+                {{ icon "bell" }}
+                <span>{{ text "notifs:label.notifications" }}</span>
+            </span>
 
-    {% for notification in notifications %} {{
-    components::notification(notification=notification) }} {% endfor %}
+            <button
+                onclick="trigger('me::clear_notifs')"
+                class="small quaternary"
+            >
+                {{ icon "bomb" }}
+                <span>{{ text "notifs:action.clear" }}</span>
+            </button>
+        </div>
+
+        <div class="card tertiary flex flex-col gap-4">
+            {% for notification in notifications %} {{
+            components::notification(notification=notification) }} {% endfor %}
+        </div>
+    </div>
 </main>
 {% endblock %}

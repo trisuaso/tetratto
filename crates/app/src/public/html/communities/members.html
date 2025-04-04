@@ -1,0 +1,38 @@
+{% import "macros.html" as macros %} {% import "components.html" as components
+%} {% extends "communities/base.html" %} {% block content %}
+<div class="flex flex-col gap-4 w-full">
+    <div class="card-nest">
+        <div class="card small flex gap-2 items-center">
+            {{ icon "users-round" }}
+            <span>{{ text "communities:tab.members" }}</span>
+        </div>
+
+        <div class="card flex flex-col gap-4">
+            <!-- prettier-ignore -->
+            {% for item in list %}
+            <div class="card-nest">
+                <div class="card small flex items-center gap-2 justify-between">
+                    <span>
+                        Since
+                        <span class="date">{{ item[0].created }}</span>
+                    </span>
+
+                    {% if can_manage_roles %}
+                    <a
+                        href="/community/{{ community.title }}/manage?uid={{ item[1].id }}#/members"
+                        class="button small quaternary"
+                    >
+                        {{ icon "pencil" }}
+                        <span>{{ text "general:action.manage" }}</span>
+                    </a>
+                    {% endif %}
+                </div>
+
+                {{ components::user_card(user=item[1]) }}
+            </div>
+            {% endfor %} {{ components::pagination(page=page, items=list|length)
+            }}
+        </div>
+    </div>
+</div>
+{% endblock %}

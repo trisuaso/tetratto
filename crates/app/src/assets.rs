@@ -50,6 +50,7 @@ pub const COMMUNITIES_BASE: &str = include_str!("./public/html/communities/base.
 pub const COMMUNITIES_FEED: &str = include_str!("./public/html/communities/feed.html");
 pub const COMMUNITIES_POST: &str = include_str!("./public/html/communities/post.html");
 pub const COMMUNITIES_SETTINGS: &str = include_str!("./public/html/communities/settings.html");
+pub const COMMUNITIES_MEMBERS: &str = include_str!("./public/html/communities/members.html");
 
 pub const TIMELINES_HOME: &str = include_str!("./public/html/timelines/home.html");
 pub const TIMELINES_POPULAR: &str = include_str!("./public/html/timelines/popular.html");
@@ -174,6 +175,7 @@ pub(crate) async fn write_assets(config: &Config) -> PathBufD {
     write_template!(html_path->"communities/feed.html"(crate::assets::COMMUNITIES_FEED) --config=config);
     write_template!(html_path->"communities/post.html"(crate::assets::COMMUNITIES_POST) --config=config);
     write_template!(html_path->"communities/settings.html"(crate::assets::COMMUNITIES_SETTINGS) --config=config);
+    write_template!(html_path->"communities/members.html"(crate::assets::COMMUNITIES_MEMBERS) --config=config);
 
     write_template!(html_path->"timelines/home.html"(crate::assets::TIMELINES_HOME) -d "timelines" --config=config);
     write_template!(html_path->"timelines/popular.html"(crate::assets::TIMELINES_POPULAR) --config=config);

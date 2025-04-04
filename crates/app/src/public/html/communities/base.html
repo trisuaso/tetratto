@@ -165,7 +165,8 @@
                                     });
                             };
                         </script>
-                        {% endif %} {% endif %} {% if is_owner or is_manager %}
+                        {% endif %} {% endif %} {% if can_manage_community or
+                        is_manager %}
                         <a
                             href="/community/{{ community.title }}/manage"
                             class="button primary"
@@ -204,7 +205,9 @@
 
                         <div class="w-full flex justify-between items-center">
                             <span class="notification chip">Members</span>
-                            <span>{{ community.member_count }}</span>
+                            <a href="/community/{{ community.title }}/members"
+                                >{{ community.member_count }}</a
+                            >
                         </div>
 
                         <div class="w-full flex justify-between items-center">

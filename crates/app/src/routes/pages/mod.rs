@@ -44,6 +44,10 @@ pub fn routes() -> Router {
             "/community/{title}/manage",
             get(communities::settings_request),
         )
+        .route(
+            "/community/{title}/members",
+            get(communities::members_request),
+        )
         .route("/post/{id}", get(communities::post_request))
 }
 

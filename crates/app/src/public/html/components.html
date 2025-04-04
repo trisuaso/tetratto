@@ -115,7 +115,14 @@ show_community %}
         >
             {{ components::community_avatar(id=post.community,
             community=community) }}
-            <b>{{ community.title }}</b>
+            <b>
+                <!-- prettier-ignore -->
+                {% if community.context.display_name %}
+                    {{ community.context.display_name }}
+                {% else %}
+                    {{ community.title }}
+                {% endif %}
+            </b>
 
             {% if post.context.is_pinned %} {{ icon "pin" }} {% endif %}
         </a>
