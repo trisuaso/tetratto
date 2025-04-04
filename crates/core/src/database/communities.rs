@@ -133,7 +133,7 @@ impl DataManager {
 
         let res = query_rows!(
             &conn,
-            "SELECT * FROM communities ORDER BY likes DESC LIMIT 12",
+            "SELECT * FROM communities ORDER BY member_count DESC LIMIT 12",
             empty,
             |x| { Self::get_community_from_row(x) }
         );

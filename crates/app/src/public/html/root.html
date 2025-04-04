@@ -109,6 +109,12 @@
                 atto["hooks::check_reactions"]();
                 atto["hooks::tabs"]();
                 atto["hooks::partial_embeds"]();
+
+                if (document.getElementById("tokens")) {
+                    trigger("me::render_token_picker", [
+                        document.getElementById("tokens"),
+                    ]);
+                }
             });
         </script>
 
@@ -257,5 +263,38 @@
                 </form>
             </div>
         </dialog>
+
+        {% if user %}
+        <dialog id="tokens_dialog">
+            <div class="inner flex flex-col gap-2">
+                <form
+                    class="flex gap-2 flex-col"
+                    onsubmit="event.preventDefault()"
+                >
+                    <div id="tokens" style="display: contents"></div>
+
+                    <a href="/auth/login" class="button" data-turbo="false">
+                        {{ icon "plus" }}
+                        <span>{{ text "general:action.add_account" }}</span>
+                    </a>
+
+                    <div class="flex justify-between">
+                        <div></div>
+
+                        <div class="flex gap-2">
+                            <button
+                                class="quaternary"
+                                onclick="document.getElementById('tokens_dialog').close()"
+                                type="button"
+                            >
+                                {{ icon "check" }}
+                                <span>{{ text "dialog:action.okay" }}</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </dialog>
+        {% endif %}
     </body>
 </html>

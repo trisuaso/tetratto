@@ -107,6 +107,11 @@ show_lhs=true) -%}
                     </a>
 
                     <div class="title"></div>
+                    <button onclick="trigger('me::switch_account')">
+                        {{ icon "ellipsis" }}
+                        <span>{{ text "general:action.switch_account" }}</span>
+                    </button>
+
                     <button class="red" onclick="trigger('me::logout')">
                         {{ icon "log-out" }}
                         <span>{{ text "auth:action.logout" }}</span>

@@ -9,11 +9,13 @@ use crate::{
     model::{ApiReturn, Error, auth::User},
 };
 use axum::{
-    Extension, Json,
+    extract::Query,
     http::{HeaderMap, HeaderValue},
-    response::IntoResponse,
+    response::{IntoResponse, Redirect},
+    Extension, Json,
 };
 use axum_extra::extract::CookieJar;
+use serde::Deserialize;
 use tetratto_shared::hash::hash;
 
 use cf_turnstile::{SiteVerifyRequest, TurnstileClient};
@@ -21,23 +23,23 @@ use cf_turnstile::{SiteVerifyRequest, TurnstileClient};
 /// `/api/v1/auth/register`
 pub async fn register_request(
     headers: HeaderMap,
-    jar: CookieJar,
+    // jar: CookieJar,
     Extension(data): Extension<State>,
     Json(props): Json<RegisterProps>,
 ) -> impl IntoResponse {
     let data = &(data.read().await).0;
-    let user = get_user_from_token!(jar, data);
+    // let user = get_user_from_token!(jar, data);
 
-    if user.is_some() {
-        return (
-            None,
-            Json(ApiReturn {
-                ok: false,
-                message: Error::AlreadyAuthenticated.to_string(),
-                payload: (),
-            }),
-        );
-    }
+    // if user.is_some() {
+    //     return (
+    //         None,
+    //         Json(ApiReturn {
+    //             ok: false,
+    //             message: Error::AlreadyAuthenticated.to_string(),
+    //             payload: (),
+    //         }),
+    //     );
+    // }
 
     // get real ip
     let real_ip = headers
@@ -93,7 +95,7 @@ pub async fn register_request(
             )]),
             Json(ApiReturn {
                 ok: true,
-                message: "User created".to_string(),
+                message: initial_token,
                 payload: (),
             }),
         ),
@@ -104,16 +106,16 @@ pub async fn register_request(
 /// `/api/v1/auth/login`
 pub async fn login_request(
     headers: HeaderMap,
-    jar: CookieJar,
+    // jar: CookieJar,
     Extension(data): Extension<State>,
     Json(props): Json<LoginProps>,
 ) -> impl IntoResponse {
     let data = &(data.read().await).0;
-    let user = get_user_from_token!(jar, data);
+    // let user = get_user_from_token!(jar, data);
 
-    if user.is_some() {
-        return (None, Json(Error::AlreadyAuthenticated.into()));
-    }
+    // if user.is_some() {
+    //     return (None, Json(Error::AlreadyAuthenticated.into()));
+    // }
 
     // get real ip
     let real_ip = headers
@@ -209,5 +211,34 @@ pub async fn logout_request(
             message: "Goodbye!".to_string(),
             payload: (),
         }),
+    )
+}
+
+#[derive(Deserialize)]
+pub struct SetTokenQuery {
+    #[serde(default)]
+    pub token: String,
+}
+
+/// Set the current user token.
+pub async fn set_token_request(Query(props): Query<SetTokenQuery>) -> impl IntoResponse {
+    (
+        {
+            let mut headers = HeaderMap::new();
+
+            headers.insert(
+                "Set-Cookie",
+                format!(
+                    "__Secure-atto-token={}; SameSite=Lax; Secure; Path=/; HostOnly=true; HttpOnly=true; Max-Age={}",
+                    props.token,
+                    60* 60 * 24 * 365
+                )
+                .parse()
+                .unwrap(),
+            );
+
+            headers
+        },
+        Redirect::to("/"),
     )
 }

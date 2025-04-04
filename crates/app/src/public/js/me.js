@@ -1,6 +1,10 @@
 (() => {
     const self = reg_ns("me");
 
+    self.LOGIN_ACCOUNT_TOKENS = JSON.parse(
+        window.localStorage.getItem("atto:login_account_tokens") || "{}",
+    );
+
     self.define("logout", async () => {
         if (
             !(await trigger("atto::confirm", [
@@ -161,5 +165,49 @@
                     trigger("atto::toast", ["error", res.message]);
                 }
             });
+    });
+
+    // token switcher
+    self.define(
+        "set_login_account_tokens",
+        ({ $ }, value) => {
+            $.LOGIN_ACCOUNT_TOKENS = value;
+            window.localStorage.setItem(
+                "atto:login_account_tokens",
+                JSON.stringify(value),
+            );
+        },
+        ["object"],
+    );
+
+    self.define("login", ({ $ }, username) => {
+        const token = self.LOGIN_ACCOUNT_TOKENS[username];
+
+        if (!token) {
+            return;
+        }
+
+        window.location.href = `/api/v1/auth/token?token=${token}`;
+    });
+
+    self.define("render_token_picker", ({ $ }, element) => {
+        element.innerHTML = "";
+        for (const token of Object.entries($.LOGIN_ACCOUNT_TOKENS)) {
+            element.innerHTML += `<button class="quaternary w-full justify-start" onclick="trigger('me::login', ['${token[0]}'])">
+                <img
+                    title="${token[0]}'s avatar"
+                    src="/api/v1/auth/profile/${token[0]}/avatar?selector_type=username"
+                    alt="Avatar image"
+                    class="avatar"
+                    style="--size: 24px"
+                />
+
+                <span>${token[0]}</span>
+            </button>`;
+        }
+    });
+
+    self.define("switch_account", () => {
+        document.getElementById("tokens_dialog").showModal();
     });
 })();

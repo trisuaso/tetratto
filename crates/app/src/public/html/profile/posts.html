@@ -1,5 +1,5 @@
 {% import "macros.html" as macros %} {% extends "profile/base.html" %} {% block
-content %} {% if config.town_square %}
+content %} {% if config.town_square and is_self %}
 <div class="card-nest">
     <div class="card small flex flex-col">
         <div class="flex items-center gap-2">

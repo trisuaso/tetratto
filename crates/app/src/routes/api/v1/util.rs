@@ -109,7 +109,7 @@ pub struct LangFileQuery {
     pub id: String,
 }
 
-/// Set the current language
+/// Set the current language.
 pub async fn set_langfile_request(Query(props): Query<LangFileQuery>) -> impl IntoResponse {
     (
         {
