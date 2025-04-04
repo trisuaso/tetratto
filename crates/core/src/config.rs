@@ -187,6 +187,12 @@ pub struct Config {
     /// Configuration for Cloudflare Turnstile.
     #[serde(default = "default_turnstile")]
     pub turnstile: TurnstileConfig,
+    /// The ID of the "town square" community. This community is required to allow
+    /// people to post from their profiles.
+    ///
+    /// This community **must** have open write access.
+    #[serde(default)]
+    pub town_square: String,
 }
 
 fn default_name() -> String {
@@ -261,6 +267,7 @@ impl Default for Config {
             banned_usernames: default_banned_usernames(),
             policies: default_policies(),
             turnstile: default_turnstile(),
+            town_square: String::new(),
         }
     }
 }

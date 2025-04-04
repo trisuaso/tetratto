@@ -36,10 +36,6 @@ media_theme_pref();
 (() => {
     const self = reg_ns("atto");
 
-    for (const element of document.querySelectorAll('[selected="false"]')) {
-        element.removeAttribute("selected");
-    }
-
     // init
     use("me", () => {});
 
@@ -72,6 +68,12 @@ media_theme_pref();
 
             return resolve();
         });
+    });
+
+    self.define("remove_false_options", () => {
+        for (const element of document.querySelectorAll('[selected="false"]')) {
+            element.removeAttribute("selected");
+        }
     });
 
     self.define("rel_date", (_, date) => {
