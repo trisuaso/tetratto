@@ -1,12 +1,14 @@
 use super::{PaginatedQuery, render_error};
 use crate::{State, assets::initial_context, get_lang, get_user_from_token};
 use axum::{
-    Extension,
-    extract::Query,
+    extract::{Path, Query},
     response::{Html, IntoResponse},
+    Extension,
 };
 use axum_extra::extract::CookieJar;
 use tetratto_core::model::Error;
+use std::fs::read_to_string;
+use pathbufd::PathBufD;
 
 pub async fn not_found(jar: CookieJar, Extension(data): Extension<State>) -> impl IntoResponse {
     let data = data.read().await;
@@ -111,4 +113,38 @@ pub async fn notifications_request(
     Ok(Html(
         data.1.render("misc/notifications.html", &context).unwrap(),
     ))
+}
+
+/// `/doc/{file_name}`
+pub async fn markdown_document_request(
+    jar: CookieJar,
+    Extension(data): Extension<State>,
+    Path(name): Path<String>,
+) -> impl IntoResponse {
+    let data = data.read().await;
+    let user = get_user_from_token!(jar, data.0);
+
+    if name.contains("//") | name.contains("..") | name.starts_with("/") {
+        return Err(Html(
+            render_error(Error::NotAllowed, &jar, &data, &user).await,
+        ));
+    }
+
+    let path = PathBufD::current().extend(&[&data.0.0.dirs.docs, &name]);
+    let file = match read_to_string(&path) {
+        Ok(f) => f,
+        Err(e) => {
+            return Err(Html(
+                render_error(Error::MiscError(e.to_string()), &jar, &data, &user).await,
+            ));
+        }
+    };
+
+    let lang = get_lang!(jar, data.0);
+    let mut context = initial_context(&data.0.0, lang, &user).await;
+    context.insert("file", &file);
+    context.insert("file_name", &name);
+
+    // return
+    Ok(Html(data.1.render("misc/markdown.html", &context).unwrap()))
 }

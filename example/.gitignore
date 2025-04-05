@@ -1,11 +1,8 @@
 atto.db*
 
 html/*
-!html/.gitkeep
-
 public/*
-!public/.gitkeep
-
 media/*
 icons/*
 langs/*
+docs/*

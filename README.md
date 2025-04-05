@@ -34,6 +34,8 @@ In the directory you're running Tetratto from, you should create a `tetratto.tom
 
 Tetratto **requires** Cloudflare Turnstile for registrations. Testing keys are listed [here](https://developers.cloudflare.com/turnstile/troubleshooting/testing/). You can _technically_ disable the captcha by using the always passing, invisible keys.
 
+A `docs` directory will be generated in the same directory that you ran the `tetratto` binary in. **Markdown** files placed here will be served at `/doc/{*file_name}`. For other types of assets, you can place them in the generated `public` directory. This directory serves everything at `/public/{*file_name}`.
+
 ## Usage (as a user)
 
 Tetratto is very simple once you get the hang of it! At the top of the page (or bottom if you're on mobile), you'll see the navigation bar. Once logged in, you'll be able to access "Home", "Popular", and "Communities" from there! You can also press your profile picture (on the right) to view your own profile, settings, or log out!

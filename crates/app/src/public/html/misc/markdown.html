@@ -1,0 +1,16 @@
+{% import "macros.html" as macros %} {% extends "root.html" %} {% block head %}
+<title>{{ file_name }} - {{ config.name }}</title>
+{% endblock %} {% block body %} {{ macros::nav(selected="notifications") }}
+<main class="flex flex-col gap-2">
+    <div class="card-nest">
+        <div class="card small flex items-center justify-between gap-2">
+            <span class="flex items-center gap-2">
+                {{ icon "scroll-text" }}
+                <span>{{ file_name }}</span>
+            </span>
+        </div>
+
+        <div class="card">{{ file|markdown|safe }}</div>
+    </div>
+</main>
+{% endblock %}

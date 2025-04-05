@@ -20,6 +20,7 @@ pub fn routes() -> Router {
         .route("/", get(misc::index_request))
         .route("/popular", get(misc::popular_request))
         .route("/notifs", get(misc::notifications_request))
+        .route("/doc/{*file_name}", get(misc::markdown_document_request))
         .fallback_service(get(misc::not_found))
         // mod
         .route("/mod_panel/audit_log", get(mod_panel::audit_log_request))

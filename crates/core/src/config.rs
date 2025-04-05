@@ -46,6 +46,9 @@ pub struct DirsConfig {
     /// The icons files directory.
     #[serde(default = "default_dir_icons")]
     pub icons: String,
+    /// The markdown document files directory.
+    #[serde(default = "default_dir_docs")]
+    pub docs: String,
 }
 
 fn default_dir_templates() -> String {
@@ -64,6 +67,10 @@ fn default_dir_icons() -> String {
     "icons".to_string()
 }
 
+fn default_dir_docs() -> String {
+    "docs".to_string()
+}
+
 impl Default for DirsConfig {
     fn default() -> Self {
         Self {
@@ -71,6 +78,7 @@ impl Default for DirsConfig {
             assets: default_dir_assets(),
             media: default_dir_media(),
             icons: default_dir_icons(),
+            docs: default_dir_docs(),
         }
     }
 }
