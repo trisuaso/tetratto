@@ -89,6 +89,7 @@ version = "1.0.0"
 "settings:label.new_password" = "New password"
 "settings:label.change_username" = "Change username"
 "settings:label.new_username" = "New username"
+"settings:label.two_factor_authentication" = "Two-factor authentication"
 "settings:label.change_avatar" = "Change avatar"
 "settings:label.change_banner" = "Change banner"
 

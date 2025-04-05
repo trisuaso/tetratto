@@ -57,7 +57,7 @@ pub async fn avatar_request(
 }
 
 /// Get a profile's banner image
-/// `/api/v1/auth/profile/{id}/banner`
+/// `/api/v1/auth/user/{id}/banner`
 pub async fn banner_request(
     Path(id): Path<usize>,
     Extension(data): Extension<State>,
@@ -120,9 +120,11 @@ pub async fn upload_avatar_request(
         Err(e) => return Json(e.into()),
     };
 
-    if auth_user.id != community.owner && !auth_user
+    if auth_user.id != community.owner
+        && !auth_user
             .permissions
-            .check(FinePermission::MANAGE_COMMUNITIES) {
+            .check(FinePermission::MANAGE_COMMUNITIES)
+    {
         return Json(Error::NotAllowed.into());
     }
 
@@ -173,9 +175,11 @@ pub async fn upload_banner_request(
         Err(e) => return Json(e.into()),
     };
 
-    if auth_user.id != community.owner && !auth_user
+    if auth_user.id != community.owner
+        && !auth_user
             .permissions
-            .check(FinePermission::MANAGE_COMMUNITIES) {
+            .check(FinePermission::MANAGE_COMMUNITIES)
+    {
         return Json(Error::NotAllowed.into());
     }
 

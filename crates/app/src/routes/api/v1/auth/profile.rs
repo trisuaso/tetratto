@@ -1,9 +1,11 @@
 use crate::{
-    State, get_user_from_token,
+    get_user_from_token,
     model::{ApiReturn, Error},
     routes::api::v1::{
-        DeleteUser, UpdateUserIsVerified, UpdateUserPassword, UpdateUserRole, UpdateUserUsername,
+        DeleteUser, DisableTotp, UpdateUserIsVerified, UpdateUserPassword, UpdateUserRole,
+        UpdateUserUsername,
     },
+    State,
 };
 use axum::{
     Extension, Json,
@@ -11,9 +13,12 @@ use axum::{
     response::{IntoResponse, Redirect},
 };
 use axum_extra::extract::CookieJar;
-use tetratto_core::model::{
-    auth::{Token, UserSettings},
-    permissions::FinePermission,
+use tetratto_core::{
+    model::{
+        auth::{Token, UserSettings},
+        permissions::FinePermission,
+    },
+    DataManager,
 };
 
 pub async fn redirect_from_id(
@@ -263,4 +268,121 @@ pub async fn delete_user_request(
         }),
         Err(e) => Json(e.into()),
     }
+}
+
+/// Enable TOTP for a user.
+pub async fn enable_totp_request(
+    jar: CookieJar,
+    Path(id): Path<usize>,
+    Extension(data): Extension<State>,
+) -> impl IntoResponse {
+    let data = &(data.read().await).0;
+    let user = match get_user_from_token!(jar, data) {
+        Some(ua) => ua,
+        None => return Json(Error::NotAllowed.into()),
+    };
+
+    match data.enable_totp(id, user).await {
+        Ok(x) => Json(ApiReturn {
+            ok: true,
+            message: "TOTP enabled".to_string(),
+            payload: Some(x),
+        }),
+        Err(e) => Json(e.into()),
+    }
+}
+
+/// Disable TOTP for a user.
+pub async fn disable_totp_request(
+    jar: CookieJar,
+    Path(id): Path<usize>,
+    Extension(data): Extension<State>,
+    Json(req): Json<DisableTotp>,
+) -> impl IntoResponse {
+    let data = &(data.read().await).0;
+    let user = match get_user_from_token!(jar, data) {
+        Some(ua) => ua,
+        None => return Json(Error::NotAllowed.into()),
+    };
+
+    if user.id != id && !user.permissions.check(FinePermission::MANAGE_USERS) {
+        return Json(Error::NotAllowed.into());
+    }
+
+    // check totp code
+    let other_user = match data.get_user_by_id(id).await {
+        Ok(u) => u,
+        Err(e) => return Json(e.into()),
+    };
+
+    if !data.check_totp(&other_user, &req.totp) {
+        return Json(Error::NotAllowed.into());
+    }
+
+    // ...
+    match data.update_user_totp(id, &String::new(), &Vec::new()).await {
+        Ok(()) => Json(ApiReturn {
+            ok: true,
+            message: "TOTP disabled".to_string(),
+            payload: (),
+        }),
+        Err(e) => Json(e.into()),
+    }
+}
+
+/// Refresh TOTP recovery codes for a user.
+pub async fn refresh_totp_codes_request(
+    jar: CookieJar,
+    Path(id): Path<usize>,
+    Extension(data): Extension<State>,
+    Json(req): Json<DisableTotp>,
+) -> impl IntoResponse {
+    let data = &(data.read().await).0;
+    let user = match get_user_from_token!(jar, data) {
+        Some(ua) => ua,
+        None => return Json(Error::NotAllowed.into()),
+    };
+
+    if user.id != id && !user.permissions.check(FinePermission::MANAGE_USERS) {
+        return Json(Error::NotAllowed.into());
+    }
+
+    // check totp code
+    let other_user = match data.get_user_by_id(id).await {
+        Ok(u) => u,
+        Err(e) => return Json(e.into()),
+    };
+
+    if !data.check_totp(&other_user, &req.totp) {
+        return Json(Error::NotAllowed.into());
+    }
+
+    // ...
+    let recovery_codes = DataManager::generate_totp_recovery_codes();
+    match data.update_user_totp(id, &user.totp, &recovery_codes).await {
+        Ok(()) => Json(ApiReturn {
+            ok: true,
+            message: "Recovery codes refreshed".to_string(),
+            payload: Some(recovery_codes),
+        }),
+        Err(e) => Json(e.into()),
+    }
+}
+
+/// Check if the given user has TOTP enabled.
+pub async fn has_totp_enabled_request(
+    Path(username): Path<String>,
+    Extension(data): Extension<State>,
+) -> impl IntoResponse {
+    let data = &(data.read().await).0;
+    let user = match data.get_user_by_username(&username).await {
+        Ok(u) => u,
+        Err(e) => return Json(e.into()),
+    };
+
+    Json(ApiReturn {
+        ok: true,
+        message: "User exists".to_string(),
+        payload: Some(!user.totp.is_empty()),
+    })
 }

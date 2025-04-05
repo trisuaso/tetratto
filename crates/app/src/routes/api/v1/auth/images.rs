@@ -43,7 +43,7 @@ pub struct AvatarSelectorQuery {
 }
 
 /// Get a profile's avatar image
-/// `/api/v1/auth/profile/{id}/avatar`
+/// `/api/v1/auth/user/{id}/avatar`
 pub async fn avatar_request(
     Path(selector): Path<String>,
     Extension(data): Extension<State>,
@@ -94,7 +94,7 @@ pub async fn avatar_request(
 }
 
 /// Get a profile's banner image
-/// `/api/v1/auth/profile/{id}/banner`
+/// `/api/v1/auth/user/{id}/banner`
 pub async fn banner_request(
     Path(username): Path<String>,
     Extension(data): Extension<State>,

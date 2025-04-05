@@ -168,20 +168,27 @@ impl DataManager {
         }
 
         // check number of communities
-        let memberships = self.get_memberships_by_owner(data.owner).await?;
-        let mut admin_count = 0; // you can not make anymore communities if you are already admin of at least 5
+        let owner = self.get_user_by_id(data.owner).await?;
 
-        for membership in memberships {
-            if membership.role.check(CommunityPermission::ADMINISTRATOR) {
-                admin_count += 1;
+        if !owner
+            .permissions
+            .check(FinePermission::INFINITE_COMMUNITIES)
+        {
+            let memberships = self.get_memberships_by_owner(data.owner).await?;
+            let mut admin_count = 0; // you can not make anymore communities if you are already admin of at least 5
+
+            for membership in memberships {
+                if membership.role.check(CommunityPermission::ADMINISTRATOR) {
+                    admin_count += 1;
+                }
             }
-        }
 
-        if admin_count >= 5 {
-            return Err(Error::MiscError(
-                "You are already owner/co-owner of too many communities to create another"
-                    .to_string(),
-            ));
+            if admin_count >= 5 {
+                return Err(Error::MiscError(
+                    "You are already owner/co-owner of too many communities to create another"
+                        .to_string(),
+                ));
+            }
         }
 
         // make sure community doesn't already exist with title

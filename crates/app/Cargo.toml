@@ -16,16 +16,16 @@ tera = "1.20.0"
 tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 tower-http = { version = "0.6.2", features = ["trace", "fs"] }
-axum = { version = "0.8.1", features = ["macros"] }
+axum = { version = "0.8.3", features = ["macros"] }
 tokio = { version = "1.44.1", features = ["macros", "rt-multi-thread"] }
-axum-extra = { version = "0.10.0", features = ["cookie", "multipart"] }
+axum-extra = { version = "0.10.1", features = ["cookie", "multipart"] }
 tetratto-shared = { path = "../shared" }
 tetratto-core = { path = "../core", features = [
     "redis",
 ], default-features = false }
 tetratto-l10n = { path = "../l10n" }
 
-image = "0.25.5"
+image = "0.25.6"
 reqwest = { version = "0.12.15", features = ["json", "stream"] }
 regex = "1.11.1"
 serde_json = "1.0.140"

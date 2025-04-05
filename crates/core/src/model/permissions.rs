@@ -26,6 +26,7 @@ bitflags! {
         const MANAGE_AUDITLOG = 1 << 15;
         const MANAGE_REPORTS = 1 << 16;
         const BANNED = 1 << 17;
+        const INFINITE_COMMUNITIES = 1 << 18;
 
         const _ = !0;
     }

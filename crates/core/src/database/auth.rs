@@ -9,6 +9,7 @@ use crate::model::{
 use crate::{auto_method, execute, get, query_row, params};
 use pathbufd::PathBufD;
 use std::fs::{exists, remove_file};
+use std::usize;
 use tetratto_shared::hash::{hash_salted, salt};
 use tetratto_shared::unix_epoch_timestamp;
 
@@ -42,6 +43,8 @@ impl DataManager {
             follower_count: get!(x->10(i32)) as usize,
             following_count: get!(x->11(i32)) as usize,
             last_seen: get!(x->12(i64)) as usize,
+            totp: get!(x->13(String)),
+            recovery_codes: serde_json::from_str(&get!(x->14(String)).to_string()).unwrap(),
         }
     }
 
@@ -111,7 +114,7 @@ impl DataManager {
 
         let res = execute!(
             &conn,
-            "INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)",
+            "INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)",
             params![
                 &(data.id as i64),
                 &(data.created as i64),
@@ -126,6 +129,8 @@ impl DataManager {
                 &(0 as i32),
                 &(0 as i32),
                 &(data.last_seen as i64),
+                &String::new(),
+                &"[]"
             ]
         );
 
@@ -412,6 +417,138 @@ impl DataManager {
         self.cache_clear_user(&user).await;
 
         Ok(())
+    }
+
+    /// Validate a given TOTP code for the given profile.
+    pub fn check_totp(&self, ua: &User, code: &str) -> bool {
+        let totp = ua.totp(Some(
+            self.0
+                .banned_hosts
+                .get(0)
+                .unwrap_or(&"https://tetratto.com".to_string())
+                .replace("http://", "")
+                .replace("https://", "")
+                .replace(":", "_"),
+        ));
+
+        if let Some(totp) = totp {
+            return !code.is_empty()
+                && (totp.check_current(code).unwrap()
+                    | ua.recovery_codes.contains(&code.to_string()));
+        }
+
+        true
+    }
+
+    /// Generate 8 random recovery codes for TOTP.
+    pub fn generate_totp_recovery_codes() -> Vec<String> {
+        let mut out: Vec<String> = Vec::new();
+
+        for _ in 0..9 {
+            out.push(salt())
+        }
+
+        out
+    }
+
+    /// Update the profile's TOTP secret.
+    ///
+    /// # Arguments
+    /// * `id` - the ID of the user
+    /// * `secret` - the TOTP secret
+    /// * `recovery` - the TOTP recovery codes
+    pub async fn update_user_totp(
+        &self,
+        id: usize,
+        secret: &str,
+        recovery: &Vec<String>,
+    ) -> Result<()> {
+        let user = self.get_user_by_id(id).await?;
+
+        // update
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = execute!(
+            &conn,
+            "UPDATE users SET totp = $1, recovery_codes = $2 WHERE id = $3",
+            params![
+                &secret,
+                &serde_json::to_string(recovery).unwrap(),
+                &(id as i64)
+            ]
+        );
+
+        if let Err(e) = res {
+            return Err(Error::DatabaseError(e.to_string()));
+        }
+
+        self.cache_clear_user(&user).await;
+        Ok(())
+    }
+
+    /// Enable TOTP for a profile.
+    ///
+    /// # Arguments
+    /// * `id` - the ID of the user to enable TOTP for
+    /// * `user` - the user doing this
+    ///
+    /// # Returns
+    /// `Result<(secret, qr base64)>`
+    pub async fn enable_totp(
+        &self,
+        id: usize,
+        user: User,
+    ) -> Result<(String, String, Vec<String>)> {
+        let other_user = self.get_user_by_id(id).await?;
+
+        if other_user.id != user.id {
+            if other_user.permissions.check(FinePermission::MANAGE_USERS) {
+                // create audit log entry
+                self.create_audit_log_entry(AuditLogEntry::new(
+                    user.id,
+                    format!("invoked `enable_totp` with x value `{}`", other_user.id,),
+                ))
+                .await?;
+            } else {
+                return Err(Error::NotAllowed);
+            }
+        }
+
+        let secret = totp_rs::Secret::default().to_string();
+        let recovery = Self::generate_totp_recovery_codes();
+        self.update_user_totp(id, &secret, &recovery).await?;
+
+        // fetch profile again (with totp information)
+        let other_user = self.get_user_by_id(id).await?;
+
+        // get totp
+        let totp = other_user.totp(Some(
+            self.0
+                .banned_hosts
+                .get(0)
+                .unwrap_or(&"https://tetratto.com".to_string())
+                .replace("http://", "")
+                .replace("https://", "")
+                .replace(":", "_"),
+        ));
+
+        if totp.is_none() {
+            return Err(Error::MiscError("Failed to get TOTP code".to_string()));
+        }
+
+        let totp = totp.unwrap();
+
+        // generate qr
+        let qr = match totp.get_qr_base64() {
+            Ok(q) => q,
+            Err(e) => return Err(Error::MiscError(e.to_string())),
+        };
+
+        // return
+        Ok((secret, qr, recovery))
     }
 
     pub async fn cache_clear_user(&self, user: &User) {

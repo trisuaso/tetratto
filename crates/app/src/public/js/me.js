@@ -156,7 +156,7 @@
     });
 
     self.define("seen", () => {
-        fetch("/api/v1/auth/profile/me/seen", {
+        fetch("/api/v1/auth/user/me/seen", {
             method: "POST",
         })
             .then((res) => res.json())
@@ -196,7 +196,7 @@
             element.innerHTML += `<button class="quaternary w-full justify-start" onclick="trigger('me::login', ['${token[0]}'])">
                 <img
                     title="${token[0]}'s avatar"
-                    src="/api/v1/auth/profile/${token[0]}/avatar?selector_type=username"
+                    src="/api/v1/auth/user/${token[0]}/avatar?selector_type=username"
                     alt="Avatar image"
                     class="avatar"
                     style="--size: 24px"

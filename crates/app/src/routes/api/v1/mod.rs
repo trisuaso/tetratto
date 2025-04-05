@@ -104,57 +104,58 @@ pub fn routes() -> Router {
             post(auth::images::upload_banner_request),
         )
         // profile
+        .route("/auth/user/{id}/avatar", get(auth::images::avatar_request))
+        .route("/auth/user/{id}/banner", get(auth::images::banner_request))
+        .route("/auth/user/{id}/follow", post(auth::social::follow_request))
+        .route("/auth/user/{id}/block", post(auth::social::block_request))
         .route(
-            "/auth/profile/{id}/avatar",
-            get(auth::images::avatar_request),
-        )
-        .route(
-            "/auth/profile/{id}/banner",
-            get(auth::images::banner_request),
-        )
-        .route(
-            "/auth/profile/{id}/follow",
-            post(auth::social::follow_request),
-        )
-        .route(
-            "/auth/profile/{id}/block",
-            post(auth::social::block_request),
-        )
-        .route(
-            "/auth/profile/{id}/settings",
+            "/auth/user/{id}/settings",
             post(auth::profile::update_user_settings_request),
         )
         .route(
-            "/auth/profile/{id}/role",
+            "/auth/user/{id}/role",
             post(auth::profile::update_user_role_request),
         )
         .route(
-            "/auth/profile/{id}",
+            "/auth/user/{id}",
             delete(auth::profile::delete_user_request),
         )
         .route(
-            "/auth/profile/{id}/password",
+            "/auth/user/{id}/password",
             post(auth::profile::update_user_password_request),
         )
         .route(
-            "/auth/profile/{id}/username",
+            "/auth/user/{id}/username",
             post(auth::profile::update_user_username_request),
         )
         .route(
-            "/auth/profile/{id}/tokens",
+            "/auth/user/{id}/tokens",
             post(auth::profile::update_user_tokens_request),
         )
         .route(
-            "/auth/profile/{id}/verified",
+            "/auth/user/{id}/verified",
             post(auth::profile::update_user_is_verified_request),
         )
-        .route("/auth/profile/me/seen", post(auth::profile::seen_request))
         .route(
-            "/auth/profile/find/{id}",
-            get(auth::profile::redirect_from_id),
+            "/auth/user/{id}/totp",
+            post(auth::profile::enable_totp_request),
         )
         .route(
-            "/auth/profile/find_by_ip/{ip}",
+            "/auth/user/{id}/totp",
+            delete(auth::profile::disable_totp_request),
+        )
+        .route(
+            "/auth/user/{id}/totp/codes",
+            post(auth::profile::refresh_totp_codes_request),
+        )
+        .route(
+            "/auth/user/{username}/totp/check",
+            get(auth::profile::has_totp_enabled_request),
+        )
+        .route("/auth/user/me/seen", post(auth::profile::seen_request))
+        .route("/auth/user/find/{id}", get(auth::profile::redirect_from_id))
+        .route(
+            "/auth/user/find_by_ip/{ip}",
             get(auth::profile::redirect_from_ip),
         )
         // notifications
@@ -196,6 +197,8 @@ pub fn routes() -> Router {
 pub struct LoginProps {
     pub username: String,
     pub password: String,
+    #[serde(default)]
+    pub totp: String,
 }
 
 #[derive(Deserialize)]
@@ -307,4 +310,9 @@ pub struct DeleteUser {
 #[derive(Deserialize)]
 pub struct CreateIpBan {
     pub reason: String,
+}
+
+#[derive(Deserialize)]
+pub struct DisableTotp {
+    pub totp: String,
 }

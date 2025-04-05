@@ -107,7 +107,7 @@ impl DataManager {
                             .create_notification(Notification::new(
                                 "Your community has received a like!".to_string(),
                                 format!(
-                                    "[@{}](/api/v1/auth/profile/find/{}) has liked your [community](/api/v1/communities/find/{})!",
+                                    "[@{}](/api/v1/auth/user/find/{}) has liked your [community](/api/v1/communities/find/{})!",
                                     user.username, user.id, community.id
                                 ),
                                 community.owner,
@@ -136,7 +136,7 @@ impl DataManager {
                             .create_notification(Notification::new(
                                 "Your post has received a like!".to_string(),
                                 format!(
-                                    "[@{}](/api/v1/auth/profile/find/{}) has liked your post!",
+                                    "[@{}](/api/v1/auth/user/find/{}) has liked your post!",
                                     user.username, user.id
                                 ),
                                 post.owner,

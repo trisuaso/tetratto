@@ -415,9 +415,7 @@ media_theme_pref();
             try {
                 const href = new URL(anchor.href);
 
-                if (
-                    href.pathname.startsWith("/api/v1/auth/profile/find_by_ip/")
-                ) {
+                if (href.pathname.startsWith("/api/v1/auth/user/find_by_ip/")) {
                     const ban_button = document.createElement("button");
                     ban_button.innerText = "Ban IP";
                     ban_button.className = "quaternary red small";
@@ -428,7 +426,7 @@ media_theme_pref();
 
                         $.ban_ip(
                             href.pathname.replace(
-                                "/api/v1/auth/profile/find_by_ip/",
+                                "/api/v1/auth/user/find_by_ip/",
                                 "",
                             ),
                         );

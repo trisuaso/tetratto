@@ -2,34 +2,68 @@
 <title>Login</title>
 {% endblock %} {% block title %}Login{% endblock %} {% block content %}
 <form class="w-full flex flex-col gap-4" onsubmit="login(event)">
-    <div class="flex flex-col gap-1">
-        <label for="username"><b>Username</b></label>
-        <input
-            type="text"
-            placeholder="username"
-            required
-            name="username"
-            id="username"
-        />
+    <div id="flow_1" style="display: contents">
+        <div class="flex flex-col gap-1">
+            <label for="username"><b>Username</b></label>
+            <input
+                type="text"
+                placeholder="username"
+                required
+                name="username"
+                id="username"
+            />
+        </div>
+
+        <div class="flex flex-col gap-1">
+            <label for="username"><b>Password</b></label>
+            <input
+                type="password"
+                placeholder="password"
+                required
+                name="password"
+                id="password"
+            />
+        </div>
     </div>
 
-    <div class="flex flex-col gap-1">
-        <label for="username"><b>Password</b></label>
-        <input
-            type="password"
-            placeholder="password"
-            required
-            name="password"
-            id="password"
-        />
+    <div id="flow_2" style="display: none">
+        <div class="flex flex-col gap-1">
+            <label for="totp"><b>TOTP code</b></label>
+            <input type="text" placeholder="totp code" name="totp" id="totp" />
+        </div>
     </div>
 
     <button>Submit</button>
 </form>
 
 <script>
-    function login(e) {
+    let flow_page = 1;
+
+    function next_page() {
+        document.getElementById(`flow_${flow_page}`).style.display = "none";
+        flow_page += 1;
+        document.getElementById(`flow_${flow_page}`).style.display = "contents";
+    }
+
+    async function login(e) {
         e.preventDefault();
+
+        if (flow_page === 1) {
+            // check if we need TOTP
+            const res = await (
+                await fetch(
+                    `/api/v1/auth/user/${e.target.username.value}/totp/check`,
+                )
+            ).json();
+
+            trigger("atto::toast", [res.ok ? "success" : "error", res.message]);
+
+            if (res.ok && res.payload) {
+                // user exists AND totp is required
+                return next_page();
+            }
+        }
+
         fetch("/api/v1/auth/login", {
             method: "POST",
             headers: {
@@ -38,6 +72,7 @@
             body: JSON.stringify({
                 username: e.target.username.value,
                 password: e.target.password.value,
+                totp: e.target.totp.value,
             }),
         })
             .then((res) => res.json())

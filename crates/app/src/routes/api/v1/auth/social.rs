@@ -36,7 +36,7 @@ pub async fn follow_request(
                     .create_notification(Notification::new(
                         "Somebody has followed you!".to_string(),
                         format!(
-                            "You have been followed by [@{}](/api/v1/auth/profile/find/{}).",
+                            "You have been followed by [@{}](/api/v1/auth/user/find/{}).",
                             user.username, user.id
                         ),
                         id,

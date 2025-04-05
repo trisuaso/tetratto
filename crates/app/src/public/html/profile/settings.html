@@ -100,6 +100,60 @@
                     </button>
                 </form>
             </div>
+
+            <div class="card-nest" ui_ident="two_factor_authentication">
+                <div class="card small">
+                    <b>{{ text "settings:label.two_factor_authentication" }}</b>
+                </div>
+
+                <div class="card flex flex-col gap-2">
+                    {% if profile.totp|length == 0 %}
+                    <div id="totp_stuff" style="display: none">
+                        <span
+                            >Scan this QR code in a TOTP authenticator app (like
+                            Google Authenticator):
+                        </span>
+
+                        <img id="totp_qr" style="max-width: 250px" />
+
+                        <span>TOTP secret (do NOT share):</span>
+                        <pre id="totp_secret"></pre>
+
+                        <span
+                            >Recovery codes (STORE SAFELY, these can only be
+                            viewed once):</span
+                        >
+
+                        <pre id="totp_recovery_codes"></pre>
+                    </div>
+
+                    <button
+                        class="quaternary green"
+                        onclick="enable_totp(event)"
+                    >
+                        Enable TOTP 2FA
+                    </button>
+                    {% else %}
+                    <pre id="totp_recovery_codes" style="display: none"></pre>
+
+                    <div class="flex gap-2 flex-wrap">
+                        <button
+                            class="quaternary red"
+                            onclick="refresh_totp_codes(event)"
+                        >
+                            Refresh recovery codes
+                        </button>
+
+                        <button
+                            class="quaternary red"
+                            onclick="disable_totp(event)"
+                        >
+                            Disable TOTP 2FA
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
 
         <div class="card-nest" ui_ident="change_password">
@@ -244,8 +298,7 @@
                 {% if is_helper %}
                 <span class="flex gap-2 items-center">
                     <span class="fade"
-                        ><a
-                            href="/api/v1/auth/profile/find_by_ip/{{ token[0] }}"
+                        ><a href="/api/v1/auth/user/find_by_ip/{{ token[0] }}"
                             ><code>{{ token[0] }}</code></a
                         ></span
                     >
@@ -296,7 +349,7 @@
                 tokens = new_tokens;
 
                 // send request to save
-                fetch("/api/v1/auth/profile/{{ profile.id }}/tokens", {
+                fetch("/api/v1/auth/user/{{ profile.id }}/tokens", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -313,7 +366,7 @@
             };
 
             globalThis.save_settings = () => {
-                fetch("/api/v1/auth/profile/{{ profile.id }}/settings", {
+                fetch("/api/v1/auth/user/{{ profile.id }}/settings", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -331,7 +384,7 @@
 
             globalThis.change_password = (e) => {
                 e.preventDefault();
-                fetch("/api/v1/auth/profile/{{ profile.id }}/password", {
+                fetch("/api/v1/auth/user/{{ profile.id }}/password", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -361,7 +414,7 @@
                     return;
                 }
 
-                fetch("/api/v1/auth/profile/{{ profile.id }}/username", {
+                fetch("/api/v1/auth/user/{{ profile.id }}/username", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -390,7 +443,7 @@
                     return;
                 }
 
-                fetch("/api/v1/auth/profile/{{ profile.id }}", {
+                fetch("/api/v1/auth/user/{{ profile.id }}", {
                     method: "DELETE",
                     headers: {
                         "Content-Type": "application/json",
@@ -454,6 +507,117 @@
                 alert("Banner upload in progress. Please wait!");
             };
 
+            globalThis.enable_totp = async (event) => {
+                if (
+                    !(await trigger("atto::confirm", [
+                        "Are you sure you want to do this? You must have access to your TOTP codes to disable TOTP.",
+                    ]))
+                ) {
+                    return;
+                }
+
+                fetch("/api/v1/auth/user/{{ user.id }}/totp", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                })
+                    .then((res) => res.json())
+                    .then((res) => {
+                        trigger("atto::toast", [
+                            res.ok ? "success" : "error",
+                            res.message,
+                        ]);
+
+                        const [secret, qr, recovery_codes] = res.payload;
+
+                        document.getElementById("totp_secret").innerText =
+                            secret;
+                        document.getElementById("totp_qr").src =
+                            `data:image/png;base64,${qr}`;
+                        document.getElementById(
+                            "totp_recovery_codes",
+                        ).innerText = recovery_codes.join("\n");
+
+                        document.getElementById("totp_stuff").style.display =
+                            "contents";
+                        event.target.remove();
+                    });
+            };
+
+            globalThis.disable_totp = async (event) => {
+                if (
+                    !(await trigger("atto::confirm", [
+                        "Are you sure you want to do this?",
+                    ]))
+                ) {
+                    return;
+                }
+
+                const totp_code = await trigger("atto::prompt", ["TOTP code:"]);
+
+                if (!totp_code) {
+                    return;
+                }
+
+                fetch("/api/v1/auth/user/{{ profile.id }}/totp", {
+                    method: "DELETE",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ totp: totp_code }),
+                })
+                    .then((res) => res.json())
+                    .then((res) => {
+                        trigger("atto::toast", [
+                            res.ok ? "success" : "error",
+                            res.message,
+                        ]);
+
+                        event.target.remove();
+                    });
+            };
+
+            globalThis.refresh_totp_codes = async (event) => {
+                if (
+                    !(await trigger("atto::confirm", [
+                        "Are you sure you want to do this? The old codes will no longer work.",
+                    ]))
+                ) {
+                    return;
+                }
+
+                const totp_code = await trigger("atto::prompt", ["TOTP code:"]);
+
+                if (!totp_code) {
+                    return;
+                }
+
+                fetch("/api/v1/auth/user/{{ profile.id }}/totp/codes", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ totp: totp_code }),
+                })
+                    .then((res) => res.json())
+                    .then((res) => {
+                        trigger("atto::toast", [
+                            res.ok ? "success" : "error",
+                            res.message,
+                        ]);
+
+                        document.getElementById(
+                            "totp_recovery_codes",
+                        ).innerText = res.payload.join("\n");
+                        document.getElementById(
+                            "totp_recovery_codes",
+                        ).style.display = "block";
+
+                        event.target.remove();
+                    });
+            };
+
             const account_settings =
                 document.getElementById("account_settings");
             const profile_settings =
@@ -462,6 +626,7 @@
             ui.refresh_container(account_settings, [
                 "change_password",
                 "change_username",
+                "two_factor_authentication",
             ]);
             ui.refresh_container(profile_settings, [
                 "theme_preference",

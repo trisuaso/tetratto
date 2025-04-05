@@ -1,7 +1,7 @@
 {% macro avatar(username, size="24px", selector_type="username") -%}
 <img
     title="{{ username }}'s avatar"
-    src="/api/v1/auth/profile/{{ username }}/avatar?selector_type={{ selector_type }}"
+    src="/api/v1/auth/user/{{ username }}/avatar?selector_type={{ selector_type }}"
     alt="@{{ username }}"
     class="avatar shadow"
     loading="lazy"
@@ -28,7 +28,7 @@
 border_radius="var(--radius)") -%}
 <img
     title="{{ username }}'s banner"
-    src="/api/v1/auth/profile/{{ username }}/banner"
+    src="/api/v1/auth/user/{{ username }}/banner"
     alt="@{{ username }}'s banner"
     class="banner shadow"
     loading="lazy"

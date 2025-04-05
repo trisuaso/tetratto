@@ -140,6 +140,11 @@ pub async fn login_request(
         return (None, Json(Error::IncorrectPassword.into()));
     }
 
+    // verify totp code
+    if !data.check_totp(&user, &props.totp) {
+        return (None, Json(Error::NotAllowed.into()));
+    }
+
     // update tokens
     let mut new_tokens = user.tokens.clone();
     let (unhashed_token_id, token) = User::create_token(&real_ip);

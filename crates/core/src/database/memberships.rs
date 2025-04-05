@@ -163,7 +163,7 @@ impl DataManager {
                     self.create_notification(Notification::new(
                         "You've received a community join request!".to_string(),
                         format!(
-                            "[Somebody](/api/v1/auth/profile/find/{}) is asking to join your [community](/community/{}).\n\n[Click here to review their request](/community/{}/manage?uid={}#/members).",
+                            "[Somebody](/api/v1/auth/user/find/{}) is asking to join your [community](/community/{}).\n\n[Click here to review their request](/community/{}/manage?uid={}#/members).",
                             data.owner, data.community, data.community, data.owner
                         ),
                         community.owner,

@@ -1,5 +1,6 @@
 use super::permissions::FinePermission;
 use serde::{Deserialize, Serialize};
+use totp_rs::TOTP;
 use tetratto_shared::{
     hash::{hash_salted, salt},
     snow::AlmostSnowflake,
@@ -24,6 +25,12 @@ pub struct User {
     pub follower_count: usize,
     pub following_count: usize,
     pub last_seen: usize,
+    /// The TOTP secret for this profile. An empty value means the user has TOTP disabled.
+    #[serde(default)]
+    pub totp: String,
+    /// The TOTP recovery codes for this profile.
+    #[serde(default)]
+    pub recovery_codes: Vec<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -100,6 +107,8 @@ impl User {
             follower_count: 0,
             following_count: 0,
             last_seen: unix_epoch_timestamp() as usize,
+            totp: String::new(),
+            recovery_codes: Vec::new(),
         }
     }
 
@@ -183,6 +192,26 @@ impl User {
 
         // return
         out
+    }
+
+    /// Get a [`TOTP`] from the profile's `totp` secret value.
+    pub fn totp(&self, issuer: Option<String>) -> Option<TOTP> {
+        if self.totp.is_empty() {
+            return None;
+        }
+
+        match TOTP::new(
+            totp_rs::Algorithm::SHA1,
+            6,
+            1,
+            30,
+            self.totp.as_bytes().to_owned(),
+            Some(issuer.unwrap_or("tetratto!".to_string())),
+            self.username.clone(),
+        ) {
+            Ok(t) => Some(t),
+            Err(_) => None,
+        }
     }
 }
 

@@ -367,7 +367,7 @@ impl DataManager {
                     self.create_notification(Notification::new(
                         "You've been mentioned in a post!".to_string(),
                         format!(
-                            "[Somebody](/api/v1/auth/profile/find/{}) mentioned you in their [post](/post/{}).",
+                            "[Somebody](/api/v1/auth/user/find/{}) mentioned you in their [post](/post/{}).",
                             data.owner, data.id
                         ),
                         user.id,
@@ -380,7 +380,7 @@ impl DataManager {
 
             data.content = data.content.replace(
                 &format!("@{username}"),
-                &format!("[@{username}](/api/v1/auth/profile/find/{})", user.id),
+                &format!("[@{username}](/api/v1/auth/user/find/{})", user.id),
             );
         }
 
@@ -427,7 +427,7 @@ impl DataManager {
                 self.create_notification(Notification::new(
                     "Your post has received a new comment!".to_string(),
                     format!(
-                        "[@{}](/api/v1/auth/profile/find/{}) has commented on your [post](/post/{}).",
+                        "[@{}](/api/v1/auth/user/find/{}) has commented on your [post](/post/{}).",
                         owner.username, owner.id, rt.id
                     ),
                     rt.owner,
