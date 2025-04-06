@@ -810,4 +810,76 @@ ${option.input_element_type === "textarea" ? `${option.value}</textarea>` : ""}
             };
         },
     );
+
+    // permissions ui
+    self.define(
+        "generate_permissions_ui",
+        (_, permissions, field_id = "role") => {
+            function all_matching_permissions(role) {
+                const matching = [];
+                const not_matching = [];
+
+                for (const permission of Object.entries(permissions)) {
+                    if ((role & permission[1]) === permission[1]) {
+                        matching.push(permission[0]);
+                    } else {
+                        not_matching.push(permission[0]);
+                    }
+                }
+
+                return [matching, not_matching];
+            }
+
+            function rebuild_role(matching) {
+                let role = 0;
+
+                for (const permission of matching) {
+                    role = role | permissions[permission];
+                }
+
+                document.getElementById(field_id).value = role;
+                return role;
+            }
+
+            function get_permissions_html(role, id) {
+                const [matching, not_matching] = all_matching_permissions(role);
+
+                globalThis.remove_permission_from_role = (permission) => {
+                    matching.splice(matching.indexOf(permission), 1);
+                    not_matching.push(permission);
+
+                    document.getElementById(id).innerHTML =
+                        get_permissions_html(rebuild_role(matching), id);
+                };
+
+                globalThis.add_permission_to_role = (permission) => {
+                    not_matching.splice(not_matching.indexOf(permission), 1);
+                    matching.push(permission);
+
+                    document.getElementById(id).innerHTML =
+                        get_permissions_html(rebuild_role(matching), id);
+                };
+
+                let permissions_html = "";
+
+                for (const match of matching) {
+                    permissions_html += `<div class="card w-full secondary flex justify-between gap-2">
+                    <span>${match} <code>${permissions[match]}</code></span>
+                    <button class="red quaternary" onclick="remove_permission_from_role('${match}')">Remove</button>
+                </div>`;
+                }
+
+                for (const match of not_matching) {
+                    permissions_html += `<div class="card w-full secondary flex justify-between gap-2">
+                    <span>${match} <code>${permissions[match]}</code></span>
+                    <button class="green quaternary" onclick="add_permission_to_role('${match}')">Add</button>
+                </div>`;
+                }
+
+                return permissions_html;
+            }
+
+            return get_permissions_html;
+        },
+    );
 })();

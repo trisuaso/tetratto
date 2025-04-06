@@ -30,6 +30,10 @@ pub fn routes() -> Router {
             get(mod_panel::file_report_request),
         )
         .route("/mod_panel/ip_bans", get(mod_panel::ip_bans_request))
+        .route(
+            "/mod_panel/profile/{id}",
+            get(mod_panel::manage_profile_request),
+        )
         // auth
         .route("/auth/register", get(auth::register_request))
         .route("/auth/login", get(auth::login_request))

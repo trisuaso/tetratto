@@ -60,6 +60,7 @@ pub const MOD_AUDIT_LOG: &str = include_str!("./public/html/mod/audit_log.html")
 pub const MOD_REPORTS: &str = include_str!("./public/html/mod/reports.html");
 pub const MOD_FILE_REPORT: &str = include_str!("./public/html/mod/file_report.html");
 pub const MOD_IP_BANS: &str = include_str!("./public/html/mod/ip_bans.html");
+pub const MOD_PROFILE: &str = include_str!("./public/html/mod/profile.html");
 
 // langs
 pub const LANG_EN_US: &str = include_str!("./langs/en-US.toml");
@@ -186,6 +187,7 @@ pub(crate) async fn write_assets(config: &Config) -> PathBufD {
     write_template!(html_path->"mod/reports.html"(crate::assets::MOD_REPORTS) --config=config);
     write_template!(html_path->"mod/file_report.html"(crate::assets::MOD_FILE_REPORT) --config=config);
     write_template!(html_path->"mod/ip_bans.html"(crate::assets::MOD_IP_BANS) --config=config);
+    write_template!(html_path->"mod/profile.html"(crate::assets::MOD_PROFILE) --config=config);
 
     html_path
 }

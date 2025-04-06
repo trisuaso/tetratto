@@ -8,9 +8,7 @@ use axum::{
 use axum_extra::extract::CookieJar;
 use serde::Deserialize;
 use tera::Context;
-use tetratto_core::model::{
-    Error, auth::User, communities::Community, permissions::FinePermission,
-};
+use tetratto_core::model::{Error, auth::User, communities::Community, permissions::FinePermission};
 
 #[derive(Deserialize)]
 pub struct SettingsProps {
@@ -87,6 +85,11 @@ pub fn profile_context(
     context.insert("is_following", &is_following);
     context.insert("is_following_you", &is_following_you);
     context.insert("is_blocking", &is_blocking);
+
+    context.insert(
+        "is_supporter",
+        &profile.permissions.check(FinePermission::SUPPORTER),
+    );
 }
 
 /// `/@{username}`
@@ -121,11 +124,14 @@ pub async fn posts_request(
     // check for private profile
     if other_user.settings.private_profile {
         if let Some(ref ua) = user {
-            if (ua.id != other_user.id) && !ua.permissions.check(FinePermission::MANAGE_USERS) && data
+            if (ua.id != other_user.id)
+                && !ua.permissions.check(FinePermission::MANAGE_USERS)
+                && data
                     .0
                     .get_userfollow_by_initiator_receiver(other_user.id, ua.id)
                     .await
-                    .is_err() {
+                    .is_err()
+            {
                 return Err(Html(
                     render_error(Error::NotAllowed, &jar, &data, &user).await,
                 ));
@@ -243,11 +249,13 @@ pub async fn following_request(
     // check for private profile
     if other_user.settings.private_profile {
         if let Some(ref ua) = user {
-            if ua.id != other_user.id && data
+            if ua.id != other_user.id
+                && data
                     .0
                     .get_userfollow_by_initiator_receiver(other_user.id, ua.id)
                     .await
-                    .is_err() {
+                    .is_err()
+            {
                 return Err(Html(
                     render_error(Error::NotAllowed, &jar, &data, &user).await,
                 ));
@@ -367,11 +375,13 @@ pub async fn followers_request(
     // check for private profile
     if other_user.settings.private_profile {
         if let Some(ref ua) = user {
-            if ua.id != other_user.id && data
+            if ua.id != other_user.id
+                && data
                     .0
                     .get_userfollow_by_initiator_receiver(other_user.id, ua.id)
                     .await
-                    .is_err() {
+                    .is_err()
+            {
                 return Err(Html(
                     render_error(Error::NotAllowed, &jar, &data, &user).await,
                 ));

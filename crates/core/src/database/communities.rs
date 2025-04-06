@@ -183,7 +183,13 @@ impl DataManager {
                 }
             }
 
-            if admin_count >= 5 {
+            let maximum_count = if owner.permissions.check(FinePermission::SUPPORTER) {
+                10
+            } else {
+                5
+            };
+
+            if admin_count >= maximum_count {
                 return Err(Error::MiscError(
                     "You are already owner/co-owner of too many communities to create another"
                         .to_string(),

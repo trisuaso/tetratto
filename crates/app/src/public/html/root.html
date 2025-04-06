@@ -295,6 +295,26 @@
                 </form>
             </div>
         </dialog>
+
+        <dialog id="town_square_post_dialog">
+            <div class="inner flex flex-col gap-2">
+                {{ components::town_square_post_form() }}
+
+                <div class="flex justify-between">
+                    <div></div>
+
+                    <div class="flex gap-2">
+                        <button
+                            class="bold red quaternary"
+                            onclick="document.getElementById('town_square_post_dialog').remove()"
+                            type="button"
+                        >
+                            {{ icon "x" }} {{ text "dialog:action.close" }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </dialog>
         {% endif %}
     </body>
 </html>

@@ -325,94 +325,23 @@
                     }
 
                     // permissions manager
-                    const permissions = {
-                        // https://trisuaso.github.io/tetratto/tetratto/model/communities_permissions/struct.CommunityPermission.html
-                        DEFAULT: 1 << 0,
-                        ADMINISTRATOR: 1 << 1,
-                        MEMBER: 1 << 2,
-                        MANAGE_POSTS: 1 << 3,
-                        MANAGE_ROLES: 1 << 4,
-                        BANNED: 1 << 5,
-                        REQUESTED: 1 << 6,
-                        MANAGE_PINS: 1 << 7,
-                        MANAGE_COMMUNITY: 1 << 8,
-                    };
-
-                    function all_matching_permissions(role) {
-                        const matching = [];
-                        const not_matching = [];
-
-                        for (permission of Object.entries(permissions)) {
-                            if ((role & permission[1]) === permission[1]) {
-                                matching.push(permission[0]);
-                            } else {
-                                not_matching.push(permission[0]);
-                            }
-                        }
-
-                        return [matching, not_matching];
-                    }
-
-                    function rebuild_role(matching) {
-                        let role = 0;
-
-                        for (const permission of matching) {
-                            role = role | permissions[permission];
-                        }
-
-                        document.getElementById("role").value = role;
-                        return role;
-                    }
-
-                    function get_permissions_html(role, id) {
-                        const [matching, not_matching] =
-                            all_matching_permissions(role);
-
-                        globalThis.remove_permission_from_role = (
-                            permission,
-                        ) => {
-                            matching.splice(matching.indexOf(permission), 1);
-                            not_matching.push(permission);
-
-                            document.getElementById(id).innerHTML =
-                                get_permissions_html(
-                                    rebuild_role(matching),
-                                    id,
-                                );
-                        };
-
-                        globalThis.add_permission_to_role = (permission) => {
-                            not_matching.splice(
-                                not_matching.indexOf(permission),
-                                1,
-                            );
-                            matching.push(permission);
-
-                            document.getElementById(id).innerHTML =
-                                get_permissions_html(
-                                    rebuild_role(matching),
-                                    id,
-                                );
-                        };
-
-                        let permissions_html = "";
-
-                        for (const match of matching) {
-                            permissions_html += `<div class="card w-full secondary flex justify-between gap-2">
-                                <span>${match} <code>${permissions[match]}</code></span>
-                                <button class="red quaternary" onclick="remove_permission_from_role('${match}')">Remove</button>
-                            </div>`;
-                        }
-
-                        for (const match of not_matching) {
-                            permissions_html += `<div class="card w-full secondary flex justify-between gap-2">
-                                <span>${match} <code>${permissions[match]}</code></span>
-                                <button class="green quaternary" onclick="add_permission_to_role('${match}')">Add</button>
-                            </div>`;
-                        }
-
-                        return permissions_html;
-                    }
+                    const get_permissions_html = trigger(
+                        "ui::generate_permissions_ui",
+                        [
+                            {
+                                // https://trisuaso.github.io/tetratto/tetratto/model/communities_permissions/struct.CommunityPermission.html
+                                DEFAULT: 1 << 0,
+                                ADMINISTRATOR: 1 << 1,
+                                MEMBER: 1 << 2,
+                                MANAGE_POSTS: 1 << 3,
+                                MANAGE_ROLES: 1 << 4,
+                                BANNED: 1 << 5,
+                                REQUESTED: 1 << 6,
+                                MANAGE_PINS: 1 << 7,
+                                MANAGE_COMMUNITY: 1 << 8,
+                            },
+                        ],
+                    );
 
                     // ...
                     element.innerHTML = `<div class="flex gap-2 flex-wrap" ui_ident="actions">

@@ -39,6 +39,13 @@ show_lhs=true) -%}
 
         <div class="flex nav_side">
             {% if user %}
+            <button
+                onclick="document.getElementById('town_square_post_dialog').showModal()"
+                title="Create post"
+            >
+                {{ icon "square-pen" }}
+            </button>
+
             <a
                 href="/notifs"
                 class="button {% if selected == 'notifications' %}active{% endif %}"

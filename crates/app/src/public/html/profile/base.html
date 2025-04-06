@@ -25,6 +25,12 @@
                                     {{ icon "badge-check" }}
                                 </span>
                                 {% endif %}
+
+                                {% if is_supporter %}
+                                <span title="Supporter" style="color: var(--color-primary);" class="flex items-center">
+                                    {{ icon "star" }}
+                                </span>
+                                {% endif %}
                             </h3>
 
                             <span class="fade">{{ profile.username }}</span>
@@ -126,6 +132,14 @@
                             {{ icon "shield-off" }}
                             <span>{{ text "auto:action.unblock" }}</span>
                         </button>
+                        {% endif %} {% if is_helper %}
+                        <a
+                            href="/mod_panel/profile/{{ profile.id }}"
+                            class="button quaternary"
+                        >
+                            {{ icon "shield" }}
+                            <span>{{ text "general:action.manage" }}</span>
+                        </a>
                         {% endif %}
 
                         <script>
@@ -192,206 +206,7 @@
             </div>
 
             <div class="rhs w-full flex flex-col gap-4">
-                {% if is_helper %}
-                <div class="card-nest">
-                    <div class="card small flex items-center gap-2">
-                        {{ icon "shield" }}
-                        <span>{{ text "auth:label.moderation" }}</span>
-                    </div>
-
-                    <div class="card tertiary">
-                        <div class="flex flex-col gap-2" id="mod_options">
-                            <div
-                                class="card w-full flex flex-wrap gap-2"
-                                ui_ident="actions"
-                            >
-                                <a
-                                    href="/settings?username={{ profile.username }}"
-                                    class="button quaternary"
-                                >
-                                    {{ icon "settings" }}
-                                    <span>View settings</span>
-                                </a>
-
-                                <button
-                                    class="red quaternary"
-                                    onclick="delete_account(event)"
-                                >
-                                    {{ icon "trash" }}
-                                    <span
-                                        >{{ text "settings:label.delete_account"
-                                        }}</span
-                                    >
-                                </button>
-
-                                {% if profile.permissions != 131073 %}
-                                <button
-                                    class="red quaternary"
-                                    onclick="update_user_role(131073)"
-                                >
-                                    Ban
-                                </button>
-                                {% else %}
-                                <button
-                                    class="quaternary"
-                                    onclick="update_user_role(1)"
-                                >
-                                    Unban
-                                </button>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <script>
-                            setTimeout(() => {
-                                const ui = ns("ui");
-                                const element =
-                                    document.getElementById("mod_options");
-
-                                async function profile_request(
-                                    do_confirm,
-                                    path,
-                                    body,
-                                ) {
-                                    if (do_confirm) {
-                                        if (
-                                            !(await trigger("atto::confirm", [
-                                                "Are you sure you would like to do this?",
-                                            ]))
-                                        ) {
-                                            return;
-                                        }
-                                    }
-
-                                    fetch(
-                                        `/api/v1/auth/user/{{ profile.id }}/${path}`,
-                                        {
-                                            method: "POST",
-                                            headers: {
-                                                "Content-Type":
-                                                    "application/json",
-                                            },
-                                            body: JSON.stringify(body),
-                                        },
-                                    )
-                                        .then((res) => res.json())
-                                        .then((res) => {
-                                            trigger("atto::toast", [
-                                                res.ok ? "success" : "error",
-                                                res.message,
-                                            ]);
-                                        });
-                                }
-
-                                globalThis.delete_account = async (e) => {
-                                    e.preventDefault();
-
-                                    if (
-                                        !(await trigger("atto::confirm", [
-                                            "Are you sure you would like to do this?",
-                                        ]))
-                                    ) {
-                                        return;
-                                    }
-
-                                    fetch(
-                                        "/api/v1/auth/user/{{ profile.id }}",
-                                        {
-                                            method: "DELETE",
-                                            headers: {
-                                                "Content-Type":
-                                                    "application/json",
-                                            },
-                                            body: JSON.stringify({
-                                                password: "",
-                                            }),
-                                        },
-                                    )
-                                        .then((res) => res.json())
-                                        .then((res) => {
-                                            trigger("atto::toast", [
-                                                res.ok ? "success" : "error",
-                                                res.message,
-                                            ]);
-                                        });
-                                };
-
-                                globalThis.update_user_role = async (
-                                    new_role,
-                                ) => {
-                                    if (
-                                        !(await trigger("atto::confirm", [
-                                            "Are you sure you would like to do this?",
-                                        ]))
-                                    ) {
-                                        return;
-                                    }
-
-                                    fetch(
-                                        `/api/v1/auth/user/{{ profile.id }}/role`,
-                                        {
-                                            method: "POST",
-                                            headers: {
-                                                "Content-Type":
-                                                    "application/json",
-                                            },
-                                            body: JSON.stringify({
-                                                role: Number.parseInt(new_role),
-                                            }),
-                                        },
-                                    )
-                                        .then((res) => res.json())
-                                        .then((res) => {
-                                            trigger("atto::toast", [
-                                                res.ok ? "success" : "error",
-                                                res.message,
-                                            ]);
-                                        });
-                                };
-
-                                ui.refresh_container(element, ["actions"]);
-
-                                setTimeout(() => {
-                                    ui.refresh_container(element, ["actions"]);
-
-                                    ui.generate_settings_ui(
-                                        element,
-                                        [
-                                            [
-                                                ["is_verified", "Is verified"],
-                                                "{{ profile.is_verified }}",
-                                                "checkbox",
-                                            ],
-                                            [
-                                                ["role", "Permission level"],
-                                                "{{ profile.permissions }}",
-                                                "input",
-                                            ],
-                                        ],
-                                        null,
-                                        {
-                                            is_verified: (value) => {
-                                                profile_request(
-                                                    false,
-                                                    "verified",
-                                                    {
-                                                        is_verified: value,
-                                                    },
-                                                );
-                                            },
-                                            role: (new_role) => {
-                                                return update_user_role(
-                                                    new_role,
-                                                );
-                                            },
-                                        },
-                                    );
-                                }, 100);
-                            }, 150);
-                        </script>
-                    </div>
-                </div>
-                {% endif %} {% block content %}{% endblock %}
+                {% block content %}{% endblock %}
             </div>
         </div>
     </div>
