@@ -16,6 +16,7 @@ use crate::{auto_method, execute, get, query_row, query_rows, params};
 #[cfg(feature = "sqlite")]
 use rusqlite::Row;
 
+use tetratto_shared::unix_epoch_timestamp;
 #[cfg(feature = "postgres")]
 use tokio_postgres::Row;
 
@@ -143,7 +144,7 @@ impl DataManager {
 
         let res = query_rows!(
             &conn,
-            "SELECT * FROM posts WHERE owner = $1 ORDER BY created DESC LIMIT $2 OFFSET $3",
+            "SELECT * FROM posts WHERE owner = $1 AND NOT context LIKE '%\"is_profile_pinned\":true%' ORDER BY created DESC LIMIT $2 OFFSET $3",
             &[&(id as i64), &(batch as i64), &((page * batch) as i64)],
             |x| { Self::get_post_from_row(x) }
         );
@@ -199,6 +200,30 @@ impl DataManager {
         let res = query_rows!(
             &conn,
             "SELECT * FROM posts WHERE community = $1 AND context LIKE '%\"is_pinned\":true%' ORDER BY created DESC",
+            &[&(id as i64),],
+            |x| { Self::get_post_from_row(x) }
+        );
+
+        if res.is_err() {
+            return Err(Error::GeneralNotFound("post".to_string()));
+        }
+
+        Ok(res.unwrap())
+    }
+
+    /// Get all pinned posts from the given user (from most recent).
+    ///
+    /// # Arguments
+    /// * `id` - the ID of the user the requested posts belong to
+    pub async fn get_pinned_posts_by_user(&self, id: usize) -> Result<Vec<Post>> {
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = query_rows!(
+            &conn,
+            "SELECT * FROM posts WHERE owner = $1 AND context LIKE '%\"is_profile_pinned\":true%' ORDER BY created DESC",
             &[&(id as i64),],
             |x| { Self::get_post_from_row(x) }
         );
@@ -529,6 +554,19 @@ impl DataManager {
             }
         }
 
+        // check if we can manage profile pins
+        if (x.is_profile_pinned != y.context.is_profile_pinned) && (user.id != y.owner) {
+            if !user.permissions.check(FinePermission::MANAGE_POSTS) {
+                return Err(Error::NotAllowed);
+            } else {
+                self.create_audit_log_entry(AuditLogEntry::new(
+                    user.id,
+                    format!("invoked `update_post_context(profile_pinned)` with x value `{id}`"),
+                ))
+                .await?
+            }
+        }
+
         // ...
         let conn = match self.connect().await {
             Ok(c) => c,
@@ -551,7 +589,44 @@ impl DataManager {
         Ok(())
     }
 
-    auto_method!(update_post_content(String)@get_post_by_id:MANAGE_POSTS -> "UPDATE posts SET content = $1 WHERE id = $2" --cache-key-tmpl="atto.post:{}");
+    pub async fn update_post_content(&self, id: usize, user: User, x: String) -> Result<()> {
+        let mut y = self.get_post_by_id(id).await?;
+
+        if user.id != y.owner {
+            if !user.permissions.check(FinePermission::MANAGE_POSTS) {
+                return Err(Error::NotAllowed);
+            } else {
+                self.create_audit_log_entry(AuditLogEntry::new(
+                    user.id,
+                    format!("invoked `update_post_content` with x value `{id}`"),
+                ))
+                .await?
+            }
+        }
+
+        // ...
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = execute!(
+            &conn,
+            "UPDATE posts SET content = $1 WHERE id = $2",
+            params![&x, &(id as i64)]
+        );
+
+        if let Err(e) = res {
+            return Err(Error::DatabaseError(e.to_string()));
+        }
+
+        // update context
+        y.context.edited = unix_epoch_timestamp() as usize;
+        self.update_post_context(id, user, y.context).await?;
+
+        // return
+        Ok(())
+    }
 
     auto_method!(incr_post_likes() -> "UPDATE posts SET likes = likes + 1 WHERE id = $1" --cache-key-tmpl="atto.post:{}" --incr);
     auto_method!(incr_post_dislikes() -> "UPDATE posts SET dislikes = dislikes + 1 WHERE id = $1" --cache-key-tmpl="atto.post:{}" --incr);

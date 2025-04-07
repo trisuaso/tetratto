@@ -156,6 +156,14 @@ pub async fn posts_request(
         Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
     };
 
+    let pinned = match data.0.get_pinned_posts_by_user(other_user.id).await {
+        Ok(p) => match data.0.fill_posts_with_community(p).await {
+            Ok(p) => p,
+            Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
+        },
+        Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
+    };
+
     let communities = match data.0.get_memberships_by_owner(other_user.id).await {
         Ok(m) => match data.0.fill_communities(m).await {
             Ok(m) => m,
@@ -203,6 +211,7 @@ pub async fn posts_request(
 
     context.insert("posts", &posts);
     context.insert("page", &props.page);
+    context.insert("pinned", &pinned);
     profile_context(
         &mut context,
         &other_user,

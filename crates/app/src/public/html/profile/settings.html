@@ -675,6 +675,21 @@
                         "{{ profile.settings.private_last_seen }}",
                         "checkbox",
                     ],
+                    [
+                        ["theme_hue", "Theme hue (integer 0-255)"],
+                        "{{ profile.settings.theme_hue }}",
+                        "input",
+                    ],
+                    [
+                        ["theme_sat", "Theme sat (percentage 0%-100%)"],
+                        "{{ profile.settings.theme_sat }}",
+                        "input",
+                    ],
+                    [
+                        ["theme_lit", "Theme lit (percentage 0%-100%)"],
+                        "{{ profile.settings.theme_lit }}",
+                        "input",
+                    ],
                 ],
                 settings,
             );

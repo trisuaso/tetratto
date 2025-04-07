@@ -46,6 +46,13 @@
             <span>{{ text "communities:label.replies" }}</span>
         </a>
 
+        {% if user.id == post.owner %}
+        <a href="#/edit" data-tab-button="edit">
+            {{ icon "pen" }}
+            <span>{{ text "communities:label.edit_content" }}</span>
+        </a>
+        {% endif %}
+
         <a href="#/configure" data-tab-button="configure">
             {{ icon "settings" }}
             <span>{{ text "communities:action.configure" }}</span>
@@ -98,6 +105,8 @@
                 ui.refresh_container(element, []);
 
                 const can_manage_pins = "{{ can_manage_pins }}" === "true";
+                const is_owner = "{{ user.id == post.owner }}" === "true";
+
                 const settings_fields = [
                     [
                         [
@@ -117,11 +126,74 @@
                     ]);
                 }
 
+                if (is_owner) {
+                    settings_fields.push([
+                        ["is_profile_pinned", "Pinned to your profile"],
+                        "{{ post.context.is_profile_pinned }}",
+                        "checkbox",
+                    ]);
+                }
+
                 ui.generate_settings_ui(element, settings_fields, settings);
             }, 250);
         </script>
     </div>
-    {% endif %}
+
+    {% if user.id == post.owner %}
+    <div class="card-nest w-full hidden" data-tab="edit">
+        <div class="card small flex items-center gap-2">
+            {{ icon "pen" }}
+            <span>{{ text "communities:label.edit_content" }}</span>
+        </div>
+
+        <form
+            class="card flex flex-col gap-2"
+            onsubmit="edit_post_from_form(event)"
+        >
+            <div class="flex flex-col gap-1">
+                <label for="content"
+                    >{{ text "communities:label.content" }}</label
+                >
+                <textarea
+                    type="text"
+                    name="content"
+                    id="content"
+                    placeholder="content"
+                    required
+                    minlength="2"
+                    maxlength="4096"
+                >
+{{ post.content }}</textarea
+                >
+            </div>
+
+            <button class="primary">{{ text "general:action.save" }}</button>
+        </form>
+    </div>
+
+    <script>
+        async function edit_post_from_form(e) {
+            e.preventDefault();
+            await trigger("atto::debounce", ["posts::edit"]);
+            fetch("/api/v1/posts/{{ post.id }}/content", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    content: e.target.content.value,
+                }),
+            })
+                .then((res) => res.json())
+                .then((res) => {
+                    trigger("atto::toast", [
+                        res.ok ? "success" : "error",
+                        res.message,
+                    ]);
+                });
+        }
+    </script>
+    {% endif %} {% endif %}
 
     <div class="card-nest w-full" data-tab="replies">
         <div class="card small flex items-center gap-2">

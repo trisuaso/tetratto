@@ -143,9 +143,14 @@ show_community and post.community != config.town_square %}
                         >{{ components::full_username(user=owner) }}</span
                     >
 
+                    {% if post.context.edited != 0 %}
+                    <div class="flex">
+                        <span class="fade date">{{ post.context.edited }}</span>
+                        <sup title="Edited">*</sup>
+                    </div>
+                    {% else %}
                     <span class="fade date">{{ post.created }}</span>
-
-                    {% if show_community %}
+                    {% endif %} {% if show_community %}
                     <a href="/api/v1/communities/find/{{ post.community }}">
                         <!-- prettier-ignore -->
                         {% if not community %}
@@ -211,6 +216,23 @@ show_community and post.community != config.town_square %}
                         {% endif %} {% if (user.id == post.owner) or is_helper
                         or can_manage_post %}
                         <b class="title">{{ text "general:action.manage" }}</b>
+                        {% if user.id == post.owner %}
+                        <a href="/post/{{ post.id }}#/edit">
+                            {{ icon "pen" }}
+                            <span
+                                >{{ text "communities:label.edit_content"
+                                }}</span
+                            >
+                        </a>
+                        {% endif %}
+
+                        <a href="/post/{{ post.id }}#/configure">
+                            {{ icon "settings" }}
+                            <span
+                                >{{ text "communities:action.configure" }}</span
+                            >
+                        </a>
+
                         <button
                             class="red"
                             onclick="trigger('me::remove_post', ['{{ post.id }}'])"

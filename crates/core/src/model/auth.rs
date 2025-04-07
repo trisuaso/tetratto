@@ -62,6 +62,12 @@ pub struct UserSettings {
     pub theme_preference: ThemePreference,
     #[serde(default)]
     pub private_last_seen: bool,
+    #[serde(default)]
+    pub theme_hue: String,
+    #[serde(default)]
+    pub theme_sat: String,
+    #[serde(default)]
+    pub theme_lit: String,
 }
 
 impl Default for UserSettings {
@@ -74,6 +80,9 @@ impl Default for UserSettings {
             private_communities: false,
             theme_preference: ThemePreference::default(),
             private_last_seen: false,
+            theme_hue: String::new(),
+            theme_sat: String::new(),
+            theme_lit: String::new(),
         }
     }
 }

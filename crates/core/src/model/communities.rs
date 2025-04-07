@@ -167,6 +167,10 @@ pub struct PostContext {
     pub comments_enabled: bool,
     #[serde(default)]
     pub is_pinned: bool,
+    #[serde(default)]
+    pub is_profile_pinned: bool,
+    #[serde(default)]
+    pub edited: usize,
 }
 
 fn default_comments_enabled() -> bool {
@@ -178,6 +182,8 @@ impl Default for PostContext {
         Self {
             comments_enabled: default_comments_enabled(),
             is_pinned: false,
+            is_profile_pinned: false,
+            edited: 0,
         }
     }
 }
