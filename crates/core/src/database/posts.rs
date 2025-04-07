@@ -144,7 +144,7 @@ impl DataManager {
 
         let res = query_rows!(
             &conn,
-            "SELECT * FROM posts WHERE owner = $1 AND NOT context LIKE '%\"is_profile_pinned\":true%' ORDER BY created DESC LIMIT $2 OFFSET $3",
+            "SELECT * FROM posts WHERE owner = $1 AND NOT context LIKE '%\"is_profile_pinned\":true%' AND NOT context LIKE '%\"is_nsfw\":true%' ORDER BY created DESC LIMIT $2 OFFSET $3",
             &[&(id as i64), &(batch as i64), &((page * batch) as i64)],
             |x| { Self::get_post_from_row(x) }
         );
@@ -248,7 +248,7 @@ impl DataManager {
 
         let res = query_rows!(
             &conn,
-            "SELECT * FROM posts WHERE replying_to = 0 ORDER BY likes DESC, created ASC LIMIT $1 OFFSET $2",
+            "SELECT * FROM posts WHERE replying_to = 0 AND NOT context LIKE '%\"is_nsfw\":true%' ORDER BY likes DESC, created ASC LIMIT $1 OFFSET $2",
             &[&(batch as i64), &((page * batch) as i64)],
             |x| { Self::get_post_from_row(x) }
         );
@@ -357,6 +357,9 @@ impl DataManager {
         if !self.check_can_post(&community, data.owner).await {
             return Err(Error::NotAllowed);
         }
+
+        // mirror nsfw state
+        data.context.is_nsfw = community.context.is_nsfw;
 
         // check if we're blocked
         if let Some(replying_to) = data.replying_to {

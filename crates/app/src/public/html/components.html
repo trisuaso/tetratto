@@ -157,6 +157,14 @@ show_community and post.community != config.town_square %}
                             {{ components::community_avatar(id=post.community) }}
                         {% endif %}
                     </a>
+                    {% endif %} {% if post.context.is_nsfw %}
+                    <span
+                        title="NSFW post"
+                        class="flex items-center"
+                        style="color: var(--color-primary)"
+                    >
+                        {{ icon "square-asterisk" }}
+                    </span>
                     {% endif %}
                 </div>
 
@@ -389,7 +397,7 @@ config.town_square and user %}
 
     <form
         class="card flex flex-col gap-2"
-        onsubmit="create_post_from_form(event)"
+        onsubmit="create_post_from_form_town_square(event)"
     >
         <div class="flex flex-col gap-1">
             <label for="content">{{ text "communities:label.content" }}</label>
@@ -409,7 +417,7 @@ config.town_square and user %}
 </div>
 
 <script>
-    async function create_post_from_form(e) {
+    async function create_post_from_form_town_square(e) {
         e.preventDefault();
         await trigger("atto::debounce", ["posts::create"]);
         fetch("/api/v1/posts", {

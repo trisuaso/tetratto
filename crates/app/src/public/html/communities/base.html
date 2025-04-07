@@ -16,12 +16,25 @@
                         community=community, size="72px") }}
                         <div class="flex flex-col">
                             <div class="flex gap-2 items-center">
-                                <h3 id="title" class="title name shorter">
+                                <h3
+                                    id="title"
+                                    class="title name shorter flex gap-2"
+                                >
                                     <!-- prettier-ignore -->
                                     {% if community.context.display_name %}
                                         {{ community.context.display_name }}
                                     {% else %}
                                         {{ community.title }}
+                                    {% endif %}
+
+                                    {% if community.context.is_nsfw %}
+                                    <span
+                                        title="NSFW community"
+                                        class="flex items-center"
+                                        style="color: var(--color-primary)"
+                                    >
+                                        {{ icon "square-asterisk" }}
+                                    </span>
                                     {% endif %}
                                 </h3>
 

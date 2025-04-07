@@ -72,8 +72,12 @@ impl Community {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct CommunityContext {
+    #[serde(default)]
     pub display_name: String,
+    #[serde(default)]
     pub description: String,
+    #[serde(default)]
+    pub is_nsfw: bool,
 }
 
 impl Default for CommunityContext {
@@ -81,6 +85,7 @@ impl Default for CommunityContext {
         Self {
             display_name: String::new(),
             description: String::new(),
+            is_nsfw: false,
         }
     }
 }
@@ -171,6 +176,8 @@ pub struct PostContext {
     pub is_profile_pinned: bool,
     #[serde(default)]
     pub edited: usize,
+    #[serde(default)]
+    pub is_nsfw: bool,
 }
 
 fn default_comments_enabled() -> bool {
@@ -184,6 +191,7 @@ impl Default for PostContext {
             is_pinned: false,
             is_profile_pinned: false,
             edited: 0,
+            is_nsfw: false,
         }
     }
 }

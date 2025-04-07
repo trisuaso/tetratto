@@ -116,6 +116,11 @@
                         "{{ post.context.comments_enabled }}",
                         "checkbox",
                     ],
+                    [
+                        ["is_nsfw", "Mark as NSFW"],
+                        "{{ community.context.is_nsfw }}",
+                        "checkbox",
+                    ],
                 ];
 
                 if (can_manage_pins) {
