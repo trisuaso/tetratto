@@ -17,7 +17,7 @@ tracing = "0.1.41"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
 tower-http = { version = "0.6.2", features = ["trace", "fs"] }
 axum = { version = "0.8.3", features = ["macros"] }
-tokio = { version = "1.44.1", features = ["macros", "rt-multi-thread"] }
+tokio = { version = "1.44.2", features = ["macros", "rt-multi-thread"] }
 axum-extra = { version = "0.10.1", features = ["cookie", "multipart"] }
 tetratto-shared = { path = "../shared" }
 tetratto-core = { path = "../core", features = [
