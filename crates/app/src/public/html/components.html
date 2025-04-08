@@ -445,4 +445,23 @@ config.town_square and user %}
             });
     }
 </script>
+{% endif %} {%- endmacro %} {% macro theme(user) -%} {% if
+user.settings.theme_hue %}
+<style>
+    :root, * {
+        --hue: {{ user.settings.theme_hue }} !important;
+    }
+</style>
+{% endif %} {% if user.settings.theme_sat %}
+<style>
+    :root, * {
+        --sat: {{ user.settings.theme_sat }} !important;
+    }
+</style>
+{% endif %} {% if user.settings.theme_lit %}
+<style>
+    :root, * {
+        --lit: {{ user.settings.theme_lit }} !important;
+    }
+</style>
 {% endif %} {%- endmacro %}

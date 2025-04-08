@@ -1,4 +1,4 @@
-{% import "macros.html" as macros %} {% extends "root.html" %} {% block head %}
+{% extends "root.html" %} {% block head %}
 <title>{{ profile.username }} - {{ config.name }}</title>
 {% endblock %} {% block body %} {{ macros::nav() }}
 <article>
@@ -211,4 +211,6 @@
         </div>
     </div>
 </article>
-{% endblock %}
+
+{% if not use_user_theme %} {{ components::theme(user=profile) }} {% endif %} {%
+endblock %}

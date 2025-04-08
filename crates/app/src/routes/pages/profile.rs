@@ -72,6 +72,7 @@ pub async fn settings_request(
 
 pub fn profile_context(
     context: &mut Context,
+    user: &Option<User>,
     profile: &User,
     communities: &Vec<Community>,
     is_self: bool,
@@ -90,6 +91,14 @@ pub fn profile_context(
         "is_supporter",
         &profile.permissions.check(FinePermission::SUPPORTER),
     );
+
+    if let Some(ua) = user {
+        if !ua.settings.disable_other_themes | is_self {
+            context.insert("use_user_theme", &false);
+        }
+    } else {
+        context.insert("use_user_theme", &false);
+    }
 }
 
 /// `/@{username}`
@@ -214,6 +223,7 @@ pub async fn posts_request(
     context.insert("pinned", &pinned);
     profile_context(
         &mut context,
+        &user,
         &other_user,
         &communities,
         is_self,
@@ -338,6 +348,7 @@ pub async fn following_request(
     context.insert("page", &props.page);
     profile_context(
         &mut context,
+        &user,
         &other_user,
         &communities,
         is_self,
@@ -464,6 +475,7 @@ pub async fn followers_request(
     context.insert("page", &props.page);
     profile_context(
         &mut context,
+        &user,
         &other_user,
         &communities,
         is_self,

@@ -1,3 +1,5 @@
+{%- import "components.html" as components -%} {%- import "macros.html" as
+macros -%}
 <!doctype html>
 <html lang="en">
     <head>
@@ -315,26 +317,7 @@
                 </div>
             </div>
         </dialog>
-        {% endif %} {% if user %}
-        <!-- theming -->
-        {% if user.settings.theme_hue %}
-        <style>
-            :root, * {
-                --hue: {{ user.settings.theme_hue }} !important;
-            }
-        </style>
-        {% endif %} {% if user.settings.theme_sat %}
-        <style>
-            :root, * {
-                --sat: {{ user.settings.theme_sat }} !important;
-            }
-        </style>
-        {% endif %} {% if user.settings.theme_lit %}
-        <style>
-            :root, * {
-                --lit: {{ user.settings.theme_lit }} !important;
-            }
-        </style>
-        {% endif %} {% endif %}
+        {% endif %} {% if user and use_user_theme %} {{
+        components::theme(user=user) }} {% endif %}
     </body>
 </html>

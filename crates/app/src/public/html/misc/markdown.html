@@ -1,4 +1,4 @@
-{% import "macros.html" as macros %} {% extends "root.html" %} {% block head %}
+{% extends "root.html" %} {% block head %}
 <title>{{ file_name }} - {{ config.name }}</title>
 {% endblock %} {% block body %} {{ macros::nav(selected="notifications") }}
 <main class="flex flex-col gap-2">

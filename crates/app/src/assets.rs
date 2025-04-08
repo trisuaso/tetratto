@@ -240,6 +240,7 @@ pub(crate) async fn initial_context(
     let mut ctx = Context::new();
     ctx.insert("config", &config);
     ctx.insert("user", &user);
+    ctx.insert("use_user_theme", &true);
 
     if let Some(ua) = user {
         ctx.insert("is_helper", &ua.permissions.check_helper());

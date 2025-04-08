@@ -1,4 +1,4 @@
-{% import "macros.html" as macros %} {% extends "root.html" %} {% block head %}
+{% extends "root.html" %} {% block head %}
 <title>Settings - {{ config.name }}</title>
 {% endblock %} {% block body %} {{ macros::nav() }}
 <main class="flex flex-col gap-2">
@@ -689,6 +689,14 @@
                         ["theme_lit", "Theme lit (percentage 0%-100%)"],
                         "{{ profile.settings.theme_lit }}",
                         "input",
+                    ],
+                    [
+                        [
+                            "disable_other_themes",
+                            "Disable the profile theme of other users",
+                        ],
+                        "{{ profile.settings.disable_other_themes }}",
+                        "checkbox",
                     ],
                 ],
                 settings,

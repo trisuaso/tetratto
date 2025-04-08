@@ -68,6 +68,8 @@ pub struct UserSettings {
     pub theme_sat: String,
     #[serde(default)]
     pub theme_lit: String,
+    #[serde(default)]
+    pub disable_other_themes: bool,
 }
 
 impl Default for UserSettings {
@@ -83,6 +85,7 @@ impl Default for UserSettings {
             theme_hue: String::new(),
             theme_sat: String::new(),
             theme_lit: String::new(),
+            disable_other_themes: false,
         }
     }
 }
