@@ -149,6 +149,14 @@ article {
 }
 
 /* typo */
+p {
+    margin-bottom: 1rem;
+}
+
+.no_p_margin p:last-child {
+    margin-bottom: 0;
+}
+
 .name {
     max-width: 200px;
     overflow: hidden;
