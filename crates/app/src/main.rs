@@ -12,7 +12,7 @@ use tera::{Tera, Value};
 use tower_http::trace::{self, TraceLayer};
 use tracing::{Level, info};
 
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, env::var, sync::Arc};
 use tokio::sync::RwLock;
 
 pub(crate) type State = Arc<RwLock<(DataManager, Tera, Client)>>;
@@ -46,6 +46,12 @@ async fn main() {
     let app = Router::new()
         .merge(routes::routes(&config))
         .layer(Extension(Arc::new(RwLock::new((database, tera, client)))))
+        .layer(axum::extract::DefaultBodyLimit::max(
+            var("MAX_BODY_LIMIT")
+                .unwrap_or("8388608".to_string())
+                .parse::<usize>()
+                .unwrap(),
+        ))
         .layer(
             TraceLayer::new_for_http()
                 .make_span_with(trace::DefaultMakeSpan::new().level(Level::INFO))
