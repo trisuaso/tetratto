@@ -52,8 +52,20 @@ pub async fn avatar_request(
     let data = &(data.read().await).0;
 
     let user = match if req.selector_type == AvatarSelectorType::Id {
-        data.get_user_by_id(selector.parse::<usize>().unwrap())
-            .await
+        data.get_user_by_id(match selector.parse::<usize>() {
+            Ok(d) => d,
+            Err(_) => {
+                return (
+                    [("Content-Type", "image/svg+xml")],
+                    Body::from(read_image(PathBufD::current().extend(&[
+                        data.0.dirs.media.as_str(),
+                        "images",
+                        "default-avatar.svg",
+                    ]))),
+                );
+            }
+        })
+        .await
     } else {
         data.get_user_by_username(&selector).await
     } {

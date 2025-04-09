@@ -1,5 +1,35 @@
 {% extends "root.html" %} {% block head %}
 <title>{{ profile.username }} - {{ config.name }}</title>
+
+<meta name="og:title" content="{{ profile.username }}" />
+<meta
+    name="description"
+    content="View @{{ profile.username }}'s profile on {{ config.name }}!"
+/>
+<meta
+    name="og:description"
+    content="View @{{ profile.username }}'s profile on {{ config.name }}!"
+/>
+
+<meta property="og:type" content="profile" />
+<meta property="profile:username" content="{{ profile.username }}" />
+
+<meta
+    name="og:image"
+    content="{{ config.host|safe }}/api/v1/auth/user/{{ profile.username }}/avatar?selector_type=username"
+/>
+
+<meta
+    name="twitter:image"
+    content="{{ config.host|safe }}/api/v1/auth/user/{{ profile.username }}/avatar?selector_type=username"
+/>
+
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="{{ profile.username }}" />
+<meta
+    name="twitter:description"
+    content="View @{{ profile.username }}'s profile on {{ config.name }}!"
+/>
 {% endblock %} {% block body %} {{ macros::nav() }}
 <article>
     <div class="content_container flex flex-col gap-4">

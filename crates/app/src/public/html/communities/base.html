@@ -1,5 +1,35 @@
 {% extends "root.html" %} {% block head %}
 <title>{{ community.context.display_name }} - {{ config.name }}</title>
+
+<meta name="og:title" content="{{ community.title }}" />
+<meta
+    name="description"
+    content='View the "{{ community.title }}" community on {{ config.name }}!'
+/>
+<meta
+    name="og:description"
+    content='View the "{{ community.title }}" community on {{ config.name }}!'
+/>
+
+<meta property="og:type" content="profile" />
+<meta property="profile:username" content="{{ community.title }}" />
+
+<meta
+    name="og:image"
+    content="{{ config.host|safe }}/api/v1/communities/{{ community.id }}/avatar"
+/>
+
+<meta
+    name="twitter:image"
+    content="{{ config.host|safe }}/api/v1/communities/{{ community.id }}/avatar"
+/>
+
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="{{ community.title }}" />
+<meta
+    name="twitter:description"
+    content='View the "{{ community.title }}" community on {{ config.name }}!'
+/>
 {% endblock %} {% block body %} {{ macros::nav() }}
 <article>
     <div class="content_container flex flex-col gap-4">

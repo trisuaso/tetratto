@@ -173,6 +173,10 @@ pub struct Config {
     /// order to prevent a way too easy DOS.
     #[serde(default = "default_banned_hosts")]
     pub banned_hosts: Vec<String>,
+    /// The main public host of the server. **Not** used to check against banned hosts,
+    /// so this host should be included in there as well.
+    #[serde(default = "default_host")]
+    pub host: String,
     /// Database security.
     #[serde(default = "default_security")]
     pub security: SecurityConfig,
@@ -222,6 +226,10 @@ fn default_banned_hosts() -> Vec<String> {
     Vec::new()
 }
 
+fn default_host() -> String {
+    String::new()
+}
+
 fn default_security() -> SecurityConfig {
     SecurityConfig::default()
 }
@@ -268,6 +276,7 @@ impl Default for Config {
             color: default_color(),
             port: default_port(),
             banned_hosts: default_banned_hosts(),
+            host: default_host(),
             database: default_database(),
             security: default_security(),
             dirs: default_dirs(),

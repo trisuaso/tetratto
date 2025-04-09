@@ -423,9 +423,7 @@ impl DataManager {
     pub fn check_totp(&self, ua: &User, code: &str) -> bool {
         let totp = ua.totp(Some(
             self.0
-                .banned_hosts
-                .get(0)
-                .unwrap_or(&"https://tetratto.com".to_string())
+                .host
                 .replace("http://", "")
                 .replace("https://", "")
                 .replace(":", "_"),
@@ -527,9 +525,7 @@ impl DataManager {
         // get totp
         let totp = other_user.totp(Some(
             self.0
-                .banned_hosts
-                .get(0)
-                .unwrap_or(&"https://tetratto.com".to_string())
+                .host
                 .replace("http://", "")
                 .replace("https://", "")
                 .replace(":", "_"),

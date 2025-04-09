@@ -4,6 +4,7 @@ color = "#c9b1bc"
 port = 4118
 banned_hosts = []
 no_track = []
+host = "http://localhost:4118"
 banned_usernames = [
     "admin",
     "owner",
