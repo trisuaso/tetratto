@@ -30,7 +30,7 @@ border_radius="var(--radius)") -%}
     title="{{ username }}'s banner"
     src="/api/v1/auth/user/{{ username }}/banner"
     alt="@{{ username }}'s banner"
-    class="banner shadow"
+    class="banner shadow w-full"
     loading="lazy"
     style="border-radius: {{ border_radius }};"
 />
@@ -294,7 +294,7 @@ show_community and post.community != config.town_square %}
                 {{ icon "check" }}
                 <span>{{ text "notifs:action.mark_as_read" }}</span>
             </button>
-            {% endif %}
+            {% endif %}b
 
             <button
                 class="red tertiary"
@@ -464,4 +464,20 @@ user.settings.theme_hue %}
         --lit: {{ user.settings.theme_lit }} !important;
     }
 </style>
+
+<script>
+    function match_user_theme() {
+        const pref = "{{ profile.settings.theme_preference }}".toLowercase();
+
+        if (pref === "auto") {
+            return;
+        }
+
+        document.documentElement.className = pref;
+    }
+
+    setTimeout(() => {
+        match_user_theme();
+    }, 150);
+</script>
 {% endif %} {%- endmacro %}

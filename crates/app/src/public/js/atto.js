@@ -751,6 +751,11 @@ media_theme_pref();
     });
 
     self.define("render_settings_ui_field", (_, into_element, option) => {
+        if (option.input_element_type === "title") {
+            into_element.innerHTML += `<hr class="margin" /><b>${option.value}</b>`;
+            return;
+        }
+
         if (option.input_element_type === "checkbox") {
             into_element.innerHTML += `<div class="card flex gap-2">
                 <input
