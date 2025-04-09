@@ -47,7 +47,7 @@ async fn main() {
         .merge(routes::routes(&config))
         .layer(Extension(Arc::new(RwLock::new((database, tera, client)))))
         .layer(axum::extract::DefaultBodyLimit::max(
-            var("MAX_BODY_LIMIT")
+            var("BODY_LIMIT")
                 .unwrap_or("8388608".to_string())
                 .parse::<usize>()
                 .unwrap(),

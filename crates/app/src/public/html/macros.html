@@ -38,12 +38,13 @@
 
         <div class="flex nav_side">
             {% if user %}
-            <button
-                onclick="document.getElementById('town_square_post_dialog').showModal()"
+            <a
+                href="javascript:document.getElementById('town_square_post_dialog').showModal()"
+                class="button"
                 title="Create post"
             >
                 {{ icon "square-pen" }}
-            </button>
+            </a>
 
             <a
                 href="/notifs"
