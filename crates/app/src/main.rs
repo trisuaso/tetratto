@@ -2,6 +2,7 @@ mod assets;
 mod avif;
 mod macros;
 mod routes;
+mod sanitize;
 
 use assets::{init_dirs, write_assets};
 pub use tetratto_core::*;

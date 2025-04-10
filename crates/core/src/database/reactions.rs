@@ -26,11 +26,7 @@ impl DataManager {
             owner: get!(x->2(i64)) as usize,
             asset: get!(x->3(i64)) as usize,
             asset_type: serde_json::from_str(&get!(x->4(String))).unwrap(),
-            is_like: if get!(x->5(i32)) as i8 == 1 {
-                true
-            } else {
-                false
-            },
+            is_like: get!(x->5(i32)) as i8 == 1,
         }
     }
 
@@ -80,7 +76,7 @@ impl DataManager {
                 &(data.owner as i64),
                 &(data.asset as i64),
                 &serde_json::to_string(&data.asset_type).unwrap().as_str(),
-                &(if data.is_like { 1 } else { 0 } as i32)
+                &{ if data.is_like { 1 } else { 0 } }
             ]
         );
 
@@ -103,7 +99,7 @@ impl DataManager {
                     let community = self.get_community_by_id_no_void(data.asset).await.unwrap();
 
                     if community.owner != user.id {
-                        if let Err(e) = self
+                        self
                             .create_notification(Notification::new(
                                 "Your community has received a like!".to_string(),
                                 format!(
@@ -112,10 +108,7 @@ impl DataManager {
                                 ),
                                 community.owner,
                             ))
-                            .await
-                        {
-                            return Err(e);
-                        }
+                            .await?
                     }
                 }
             }
@@ -132,19 +125,16 @@ impl DataManager {
                     let post = self.get_post_by_id(data.asset).await.unwrap();
 
                     if post.owner != user.id {
-                        if let Err(e) = self
+                        self
                             .create_notification(Notification::new(
                                 "Your post has received a like!".to_string(),
                                 format!(
-                                    "[@{}](/api/v1/auth/user/find/{}) has liked your post!",
-                                    user.username, user.id
+                                    "[@{}](/api/v1/auth/user/find/{}) has liked your [post](/post/{})!",
+                                    user.username, user.id, data.asset
                                 ),
                                 post.owner,
                             ))
-                            .await
-                        {
-                            return Err(e);
-                        }
+                            .await?
                     }
                 }
             }
@@ -160,10 +150,8 @@ impl DataManager {
     pub async fn delete_reaction(&self, id: usize, user: &User) -> Result<()> {
         let reaction = self.get_reaction_by_id(id).await?;
 
-        if user.id != reaction.owner {
-            if !user.permissions.check(FinePermission::MANAGE_REACTIONS) {
-                return Err(Error::NotAllowed);
-            }
+        if user.id != reaction.owner && !user.permissions.check(FinePermission::MANAGE_REACTIONS) {
+            return Err(Error::NotAllowed);
         }
 
         let conn = match self.connect().await {
@@ -186,26 +174,22 @@ impl DataManager {
         // decr corresponding
         match reaction.asset_type {
             AssetType::Community => {
-                if let Err(e) = {
+                {
                     if reaction.is_like {
                         self.decr_community_likes(reaction.asset).await
                     } else {
                         self.decr_community_dislikes(reaction.asset).await
                     }
-                } {
-                    return Err(e);
-                }
+                }?
             }
             AssetType::Post => {
-                if let Err(e) = {
+                {
                     if reaction.is_like {
                         self.decr_post_likes(reaction.asset).await
                     } else {
                         self.decr_post_dislikes(reaction.asset).await
                     }
-                } {
-                    return Err(e);
-                }
+                }?
             }
             AssetType::User => {
                 return Err(Error::NotAllowed);

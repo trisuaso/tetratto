@@ -71,7 +71,10 @@ pub fn save_avif_buffer(path: &str, bytes: Vec<u8>) -> std::io::Result<()> {
     let file = File::create(path)?;
     let mut writer = BufWriter::new(file);
 
-    if let Err(_) = pre_img_buffer.write_to(&mut writer, image::ImageFormat::Avif) {
+    if pre_img_buffer
+        .write_to(&mut writer, image::ImageFormat::Avif)
+        .is_err()
+    {
         return Err(std::io::Error::new(
             std::io::ErrorKind::Other,
             "Image conversion failed",

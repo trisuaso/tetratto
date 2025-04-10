@@ -47,7 +47,7 @@ pub async fn index_request(
         .get_posts_from_user_communities(user.id, 12, req.page)
         .await
     {
-        Ok(l) => match data.0.fill_posts_with_community(l).await {
+        Ok(l) => match data.0.fill_posts_with_community(l, user.id).await {
             Ok(l) => l,
             Err(e) => return Html(render_error(e, &jar, &data, &Some(user)).await),
         },
@@ -83,7 +83,7 @@ pub async fn following_request(
         .get_posts_from_user_following(user.id, 12, req.page)
         .await
     {
-        Ok(l) => match data.0.fill_posts_with_community(l).await {
+        Ok(l) => match data.0.fill_posts_with_community(l, user.id).await {
             Ok(l) => l,
             Err(e) => return Err(Html(render_error(e, &jar, &data, &Some(user)).await)),
         },
@@ -110,7 +110,11 @@ pub async fn popular_request(
     let user = get_user_from_token!(jar, data.0);
 
     let list = match data.0.get_popular_posts(12, req.page).await {
-        Ok(l) => match data.0.fill_posts_with_community(l).await {
+        Ok(l) => match data
+            .0
+            .fill_posts_with_community(l, if let Some(ref ua) = user { ua.id } else { 0 })
+            .await
+        {
             Ok(l) => l,
             Err(e) => return Html(render_error(e, &jar, &data, &user).await),
         },

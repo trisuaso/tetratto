@@ -32,7 +32,7 @@ impl Serialize for CommunityPermission {
 }
 
 struct CommunityPermissionVisitor;
-impl<'de> Visitor<'de> for CommunityPermissionVisitor {
+impl Visitor<'_> for CommunityPermissionVisitor {
     type Value = CommunityPermission;
 
     fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {

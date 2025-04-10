@@ -317,6 +317,26 @@ macros -%}
                 </div>
             </div>
         </dialog>
+
+        <dialog id="quote_dialog">
+            <div class="inner flex flex-col gap-2">
+                {{ components::quote_form() }}
+
+                <div class="flex justify-between">
+                    <div></div>
+
+                    <div class="flex gap-2">
+                        <button
+                            class="bold red quaternary"
+                            onclick="document.getElementById('quote_dialog').close()"
+                            type="button"
+                        >
+                            {{ icon "x" }} {{ text "dialog:action.close" }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </dialog>
         {% endif %} {% if user and use_user_theme %} {{
         components::theme(user=user) }} {% endif %}
     </body>

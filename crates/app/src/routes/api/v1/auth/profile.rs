@@ -330,7 +330,7 @@ pub async fn disable_totp_request(
     }
 
     // ...
-    match data.update_user_totp(id, &String::new(), &Vec::new()).await {
+    match data.update_user_totp(id, "", &Vec::new()).await {
         Ok(()) => Json(ApiReturn {
             ok: true,
             message: "TOTP disabled".to_string(),

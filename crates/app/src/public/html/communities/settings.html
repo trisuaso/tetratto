@@ -396,10 +396,15 @@
     }, 250);
 </script>
 
+<!-- prettier-ignore -->
+<script type="application/json" id="settings_json">{{ community_context_serde|safe }}</script>
+
 <script>
     setTimeout(() => {
         const ui = ns("ui");
-        const settings = JSON.parse("{{ community_context_serde|safe }}");
+        const settings = JSON.parse(
+            document.getElementById("settings_json").innerHTML,
+        );
 
         globalThis.upload_avatar = (e) => {
             e.preventDefault();

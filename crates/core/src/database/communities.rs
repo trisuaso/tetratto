@@ -224,9 +224,9 @@ impl DataManager {
                 &serde_json::to_string(&data.read_access).unwrap().as_str(),
                 &serde_json::to_string(&data.write_access).unwrap().as_str(),
                 &serde_json::to_string(&data.join_access).unwrap().as_str(),
-                &(0 as i32),
-                &(0 as i32),
-                &(1 as i32)
+                &0_i32,
+                &0_i32,
+                &1_i32
             ]
         );
 

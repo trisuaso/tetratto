@@ -21,11 +21,7 @@ impl DataManager {
             title: get!(x->2(String)),
             content: get!(x->3(String)),
             owner: get!(x->4(i64)) as usize,
-            read: if get!(x->5(i32)) as i8 == 1 {
-                true
-            } else {
-                false
-            },
+            read: get!(x->5(i32)) as i8 == 1,
         }
     }
 
@@ -71,7 +67,7 @@ impl DataManager {
                 &data.title,
                 &data.content,
                 &(data.owner as i64),
-                &(if data.read { 1 } else { 0 } as i32)
+                &{ if data.read { 1 } else { 0 } }
             ]
         );
 
@@ -89,10 +85,8 @@ impl DataManager {
     pub async fn delete_notification(&self, id: usize, user: &User) -> Result<()> {
         let notification = self.get_notification_by_id(id).await?;
 
-        if user.id != notification.owner {
-            if !user.permissions.check(FinePermission::MANAGE_NOTIFICATIONS) {
-                return Err(Error::NotAllowed);
-            }
+        if user.id != notification.owner && !user.permissions.check(FinePermission::MANAGE_NOTIFICATIONS) {
+            return Err(Error::NotAllowed);
         }
 
         let conn = match self.connect().await {
@@ -127,10 +121,8 @@ impl DataManager {
         let notifications = self.get_notifications_by_owner(user.id).await?;
 
         for notification in notifications {
-            if user.id != notification.owner {
-                if !user.permissions.check(FinePermission::MANAGE_NOTIFICATIONS) {
-                    return Err(Error::NotAllowed);
-                }
+            if user.id != notification.owner && !user.permissions.check(FinePermission::MANAGE_NOTIFICATIONS) {
+                return Err(Error::NotAllowed);
             }
 
             self.delete_notification(notification.id, user).await?
@@ -147,10 +139,8 @@ impl DataManager {
     ) -> Result<()> {
         let y = self.get_notification_by_id(id).await?;
 
-        if y.owner != user.id {
-            if !user.permissions.check(FinePermission::MANAGE_NOTIFICATIONS) {
-                return Err(Error::NotAllowed);
-            }
+        if y.owner != user.id && !user.permissions.check(FinePermission::MANAGE_NOTIFICATIONS) {
+            return Err(Error::NotAllowed);
         }
 
         // ...
@@ -162,7 +152,7 @@ impl DataManager {
         let res = execute!(
             &conn,
             "UPDATE notifications SET read = $1 WHERE id = $2",
-            params![&(if new_read { 1 } else { 0 } as i32), &(id as i64)]
+            params![&{ if new_read { 1 } else { 0 } }, &(id as i64)]
         );
 
         if let Err(e) = res {
@@ -171,9 +161,9 @@ impl DataManager {
 
         self.2.remove(format!("atto.notification:{}", id)).await;
 
-        if (y.read == true) && (new_read == false) {
+        if (y.read) && (!new_read) {
             self.incr_user_notifications(user.id).await?;
-        } else if (y.read == false) && (new_read == true) {
+        } else if (!y.read) && (new_read) {
             self.decr_user_notifications(user.id).await?;
         }
 

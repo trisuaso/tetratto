@@ -104,6 +104,45 @@ community %}
     </span>
     {% endif %}
 </div>
+{%- endmacro %} {% macro repost(repost, post, owner, secondary=false,
+community=false, show_community=true, can_manage_post=false) -%}
+<div style="display: contents">
+    <!-- prettier-ignore -->
+    <div style="display: none" id="repost-content:{{ post.id }}">
+        {% if repost %}
+            {{ components::post(post=repost[1], owner=repost[0], secondary=not secondary, community=false, show_community=false, can_manage_post=false) }}
+        {% else %}
+            <div class="card tertiary red flex items-center gap-2">
+                {{ icon "frown" }}
+                <span>Could not find original post...</span>
+            </div>
+        {% endif %}
+    </div>
+
+    {{ components::post(post=post, owner=owner, secondary=secondary,
+    community=community, show_community=show_community,
+    can_manage_post=can_manage_post) }}
+
+    <script>
+        document.getElementById("post-content:{{ post.id }}").innerHTML +=
+            document.getElementById("repost-content:{{ post.id }}").innerHTML;
+        document.getElementById("repost-content:{{ post.id }}").remove();
+
+        document
+            .getElementById("post:{{ post.id }}")
+            .querySelector(".avatar")
+            .setAttribute("style", "--size: 24px");
+
+        document
+            .getElementById("post:{{ post.id }}")
+            .querySelector(".name")
+            .parentElement.prepend(
+                document
+                    .getElementById("post:{{ post.id }}")
+                    .querySelector(".avatar"),
+            );
+    </script>
+</div>
 {%- endmacro %} {% macro post(post, owner, secondary=false, community=false,
 show_community=true, can_manage_post=false) -%} {% if community and
 show_community and post.community != config.town_square %}
@@ -130,6 +169,7 @@ show_community and post.community != config.town_square %}
     {% endif %}
     <div
         class="card flex flex-col gap-2 {% if secondary %}secondary{% endif %}"
+        id="post:{{ post.id }}"
     >
         <div class="w-full flex gap-2">
             <a href="/@{{ owner.username }}">
@@ -150,13 +190,6 @@ show_community and post.community != config.town_square %}
                     </div>
                     {% else %}
                     <span class="fade date">{{ post.created }}</span>
-                    {% endif %} {% if show_community %}
-                    <a href="/api/v1/communities/find/{{ post.community }}">
-                        <!-- prettier-ignore -->
-                        {% if not community %}
-                            {{ components::community_avatar(id=post.community) }}
-                        {% endif %}
-                    </a>
                     {% endif %} {% if post.context.is_nsfw %}
                     <span
                         title="NSFW post"
@@ -164,6 +197,15 @@ show_community and post.community != config.town_square %}
                         style="color: var(--color-primary)"
                     >
                         {{ icon "square-asterisk" }}
+                    </span>
+                    {% endif %} {% if post.context.repost and
+                    post.context.repost.reposting %}
+                    <span
+                        title="Repost"
+                        class="flex items-center"
+                        style="color: var(--color-primary)"
+                    >
+                        {{ icon "repeat-2" }}
                     </span>
                     {% endif %}
                 </div>
@@ -175,7 +217,16 @@ show_community and post.community != config.town_square %}
         </div>
 
         <div class="flex justify-between items-center gap-2 w-full">
-            {% if user %}
+            {% if user %} {% if post.context.repost and
+            post.context.repost.reposting %}
+            <a
+                href="/post/{{ post.context.repost.reposting }}"
+                class="button small camo"
+            >
+                {{ icon "expand" }}
+                <span>{{ text "communities:label.expand_original" }}</span>
+            </a>
+            {% else %}
             <div
                 class="flex gap-1 reactions_box"
                 hook="check_reactions"
@@ -184,7 +235,7 @@ show_community and post.community != config.town_square %}
                 {{ components::likes(id=post.id, asset_type="Post",
                 likes=post.likes, dislikes=post.dislikes) }}
             </div>
-            {% else %}
+            {% endif %} {% else %}
             <div></div>
             {% endif %}
 
@@ -213,7 +264,26 @@ show_community and post.community != config.town_square %}
                     </button>
 
                     <div class="inner">
-                        {% if user.id != post.owner %}
+                        {% if config.town_square and
+                        post.context.reposts_enabled %}
+                        <b class="title">{{ text "general:label.share" }}</b>
+                        <button
+                            onclick="trigger('me::repost', ['{{ post.id }}', '', '{{ config.town_square }}'])"
+                        >
+                            {{ icon "repeat-2" }}
+                            <span>{{ text "communities:label.repost" }}</span>
+                        </button>
+
+                        <button
+                            onclick="window.REPOST_ID = '{{ post.id }}'; document.getElementById('quote_dialog').showModal()"
+                        >
+                            {{ icon "quote" }}
+                            <span
+                                >{{ text "communities:label.quote_post" }}</span
+                            >
+                        </button>
+                        {% endif %} {% if user.id != post.owner %}
+                        <b class="title">{{ text "general:label.safety" }}</b>
                         <button
                             class="red"
                             onclick="trigger('me::report', ['{{ post.id }}', 'post'])"
@@ -483,4 +553,46 @@ user.settings.theme_hue %}
         match_user_theme();
     }, 150);
 </script>
-{% endif %} {% endif %} {% endif %} {%- endmacro %}
+{% endif %} {% endif %} {% endif %} {%- endmacro %} {% macro quote_form() -%} {%
+if config.town_square and user %}
+<div class="card-nest">
+    <div class="card small flex flex-col">
+        <div class="flex items-center gap-2">
+            {{ icon "quote" }}
+            <span>{{ text "communities:label.quote_post" }}</span>
+        </div>
+    </div>
+
+    <form
+        class="card flex flex-col gap-2"
+        onsubmit="create_repost_from_form(event)"
+    >
+        <div class="flex flex-col gap-1">
+            <label for="content">{{ text "communities:label.content" }}</label>
+            <textarea
+                type="text"
+                name="content"
+                id="content"
+                placeholder="content"
+                required
+                minlength="2"
+                maxlength="4096"
+            ></textarea>
+        </div>
+
+        <button class="primary">{{ text "communities:action.create" }}</button>
+    </form>
+</div>
+
+<script>
+    async function create_repost_from_form(e) {
+        e.preventDefault();
+        await trigger("atto::debounce", ["posts::create"]);
+        await trigger("me::repost", [
+            window.REPOST_ID,
+            e.target.content.value,
+            "{{ config.town_square }}",
+        ]);
+    }
+</script>
+{% endif %} {%- endmacro %}

@@ -193,7 +193,7 @@ impl DataManager {
         let mut out: Vec<(UserFollow, User)> = Vec::new();
 
         for userfollow in userfollows {
-            let receiver = userfollow.receiver.clone();
+            let receiver = userfollow.receiver;
             out.push((userfollow, self.get_user_by_id(receiver).await?));
         }
 
@@ -208,7 +208,7 @@ impl DataManager {
         let mut out: Vec<(UserFollow, User)> = Vec::new();
 
         for userfollow in userfollows {
-            let initiator = userfollow.initiator.clone();
+            let initiator = userfollow.initiator;
             out.push((userfollow, self.get_user_by_id(initiator).await?));
         }
 
@@ -254,10 +254,8 @@ impl DataManager {
     pub async fn delete_userfollow(&self, id: usize, user: &User) -> Result<()> {
         let follow = self.get_userfollow_by_id(id).await?;
 
-        if (user.id != follow.initiator) && (user.id != follow.receiver) {
-            if !user.permissions.check(FinePermission::MANAGE_FOLLOWS) {
-                return Err(Error::NotAllowed);
-            }
+        if (user.id != follow.initiator) && (user.id != follow.receiver) && !user.permissions.check(FinePermission::MANAGE_FOLLOWS) {
+            return Err(Error::NotAllowed);
         }
 
         let conn = match self.connect().await {

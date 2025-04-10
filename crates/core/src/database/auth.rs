@@ -34,11 +34,7 @@ impl DataManager {
             settings: serde_json::from_str(&get!(x->5(String)).to_string()).unwrap(),
             tokens: serde_json::from_str(&get!(x->6(String)).to_string()).unwrap(),
             permissions: FinePermission::from_bits(get!(x->7(i32)) as u32).unwrap(),
-            is_verified: if get!(x->8(i32)) as i8 == 1 {
-                true
-            } else {
-                false
-            },
+            is_verified: get!(x->8(i32)) as i8 == 1,
             notification_count: get!(x->9(i32)) as usize,
             follower_count: get!(x->10(i32)) as usize,
             following_count: get!(x->11(i32)) as usize,
@@ -80,7 +76,7 @@ impl DataManager {
     /// # Arguments
     /// * `data` - a mock [`User`] object to insert
     pub async fn create_user(&self, mut data: User) -> Result<()> {
-        if self.0.security.registration_enabled == false {
+        if !self.0.security.registration_enabled {
             return Err(Error::RegistrationDisabled);
         }
 
@@ -124,10 +120,10 @@ impl DataManager {
                 &serde_json::to_string(&data.settings).unwrap(),
                 &serde_json::to_string(&data.tokens).unwrap(),
                 &(FinePermission::DEFAULT.bits() as i32),
-                &(if data.is_verified { 1 as i32 } else { 0 as i32 }),
-                &(0 as i32),
-                &(0 as i32),
-                &(0 as i32),
+                &(if data.is_verified { 1_i32 } else { 0_i32 }),
+                &0_i32,
+                &0_i32,
+                &0_i32,
                 &(data.last_seen as i64),
                 &String::new(),
                 &"[]"
@@ -260,7 +256,7 @@ impl DataManager {
         let res = execute!(
             &conn,
             "UPDATE users SET verified = $1 WHERE id = $2",
-            params![&(if x { 1 } else { 0 } as i32), &(id as i64)]
+            params![&{ if x { 1 } else { 0 } }, &(id as i64)]
         );
 
         if let Err(e) = res {
@@ -327,7 +323,7 @@ impl DataManager {
 
         let res = execute!(
             &conn,
-            "UPDATE users SET username = $1 WHERE id = $3",
+            "UPDATE users SET username = $1 WHERE id = $2",
             params![&to.as_str(), &(id as i64)]
         );
 
@@ -414,7 +410,7 @@ impl DataManager {
             return Err(Error::DatabaseError(e.to_string()));
         }
 
-        self.cache_clear_user(&user).await;
+        self.cache_clear_user(user).await;
 
         Ok(())
     }

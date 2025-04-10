@@ -1,5 +1,5 @@
 use super::{PaginatedQuery, render_error};
-use crate::{State, assets::initial_context, get_lang, get_user_from_token};
+use crate::{assets::initial_context, get_lang, get_user_from_token, sanitize::clean_settings, State};
 use axum::{
     Extension,
     extract::{Path, Query},
@@ -44,19 +44,13 @@ pub async fn settings_request(
         }
     };
 
-    let settings = profile.settings.clone();
     let tokens = profile.tokens.clone();
 
     let lang = get_lang!(jar, data.0);
     let mut context = initial_context(&data.0.0, lang, &Some(user)).await;
 
     context.insert("profile", &profile);
-    context.insert(
-        "user_settings_serde",
-        &serde_json::to_string(&settings)
-            .unwrap()
-            .replace("\"", "\\\""),
-    );
+    context.insert("user_settings_serde", &clean_settings(&profile.settings));
     context.insert(
         "user_tokens_serde",
         &serde_json::to_string(&tokens)
@@ -158,7 +152,11 @@ pub async fn posts_request(
         .get_posts_by_user(other_user.id, 12, props.page)
         .await
     {
-        Ok(p) => match data.0.fill_posts_with_community(p).await {
+        Ok(p) => match data
+            .0
+            .fill_posts_with_community(p, if let Some(ref ua) = user { ua.id } else { 0 })
+            .await
+        {
             Ok(p) => p,
             Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
         },
@@ -166,7 +164,11 @@ pub async fn posts_request(
     };
 
     let pinned = match data.0.get_pinned_posts_by_user(other_user.id).await {
-        Ok(p) => match data.0.fill_posts_with_community(p).await {
+        Ok(p) => match data
+            .0
+            .fill_posts_with_community(p, if let Some(ref ua) = user { ua.id } else { 0 })
+            .await
+        {
             Ok(p) => p,
             Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
         },
@@ -219,8 +221,8 @@ pub async fn posts_request(
     };
 
     context.insert("posts", &posts);
-    context.insert("page", &props.page);
     context.insert("pinned", &pinned);
+    context.insert("page", &props.page);
     profile_context(
         &mut context,
         &user,

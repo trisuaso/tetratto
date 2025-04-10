@@ -50,7 +50,7 @@ pub async fn register_request(
         .to_string();
 
     // check for ip ban
-    if let Ok(_) = data.get_ipban_by_ip(&real_ip).await {
+    if data.get_ipban_by_ip(&real_ip).await.is_ok() {
         return (None, Json(Error::NotAllowed.into()));
     }
 
@@ -126,7 +126,7 @@ pub async fn login_request(
         .to_string();
 
     // check for ip ban
-    if let Ok(_) = data.get_ipban_by_ip(&real_ip).await {
+    if data.get_ipban_by_ip(&real_ip).await.is_ok() {
         return (None, Json(Error::NotAllowed.into()));
     }
 

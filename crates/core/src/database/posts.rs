@@ -33,11 +33,7 @@ impl DataManager {
             owner: get!(x->3(i64)) as usize,
             community: get!(x->4(i64)) as usize,
             context: serde_json::from_str(&get!(x->5(String))).unwrap(),
-            replying_to: if let Some(id) = get!(x->6(Option<i64>)) {
-                Some(id as usize)
-            } else {
-                None
-            },
+            replying_to: get!(x->6(Option<i64>)).map(|id| id as usize),
             // likes
             likes: get!(x->7(i32)) as isize,
             dislikes: get!(x->8(i32)) as isize,
@@ -79,20 +75,52 @@ impl DataManager {
         Ok(res.unwrap())
     }
 
+    /// Get the post the given post is reposting (if some).
+    pub async fn get_post_reposting(&self, post: &Post) -> Option<(User, Post)> {
+        if let Some(ref repost) = post.context.repost {
+            if let Some(reposting) = repost.reposting {
+                let mut x = match self.get_post_by_id(reposting).await {
+                    Ok(p) => p,
+                    Err(_) => return None,
+                };
+
+                x.mark_as_repost();
+                Some((
+                    match self.get_user_by_id(x.owner).await {
+                        Ok(ua) => ua,
+                        Err(_) => return None,
+                    },
+                    x,
+                ))
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
+
     /// Complete a vector of just posts with their owner as well.
-    pub async fn fill_posts(&self, posts: Vec<Post>) -> Result<Vec<(Post, User)>> {
-        let mut out: Vec<(Post, User)> = Vec::new();
+    pub async fn fill_posts(
+        &self,
+        posts: Vec<Post>,
+    ) -> Result<Vec<(Post, User, Option<(User, Post)>)>> {
+        let mut out: Vec<(Post, User, Option<(User, Post)>)> = Vec::new();
 
         let mut users: HashMap<usize, User> = HashMap::new();
         for post in posts {
-            let owner = post.owner.clone();
+            let owner = post.owner;
 
             if let Some(user) = users.get(&owner) {
-                out.push((post, user.clone()));
+                out.push((
+                    post.clone(),
+                    user.clone(),
+                    self.get_post_reposting(&post).await,
+                ));
             } else {
                 let user = self.get_user_by_id(owner).await?;
                 users.insert(owner, user.clone());
-                out.push((post, user));
+                out.push((post.clone(), user, self.get_post_reposting(&post).await));
             }
         }
 
@@ -103,22 +131,62 @@ impl DataManager {
     pub async fn fill_posts_with_community(
         &self,
         posts: Vec<Post>,
-    ) -> Result<Vec<(Post, User, Community)>> {
-        let mut out: Vec<(Post, User, Community)> = Vec::new();
+        user_id: usize,
+    ) -> Result<Vec<(Post, User, Community, Option<(User, Post)>)>> {
+        let mut out: Vec<(Post, User, Community, Option<(User, Post)>)> = Vec::new();
 
         let mut seen_before: HashMap<(usize, usize), (User, Community)> = HashMap::new();
+        let mut seen_user_follow_statuses: HashMap<(usize, usize), bool> = HashMap::new();
+
         for post in posts {
-            let owner = post.owner.clone();
-            let community = post.community.clone();
+            let owner = post.owner;
+            let community = post.community;
 
             if let Some((user, community)) = seen_before.get(&(owner, community)) {
-                out.push((post, user.clone(), community.to_owned()));
+                out.push((
+                    post.clone(),
+                    user.clone(),
+                    community.to_owned(),
+                    self.get_post_reposting(&post).await,
+                ));
             } else {
                 let user = self.get_user_by_id(owner).await?;
-                let community = self.get_community_by_id(community).await?;
 
+                // check relationship
+                if user.settings.private_profile {
+                    if user_id == 0 {
+                        continue;
+                    }
+
+                    if let Some(is_following) = seen_user_follow_statuses.get(&(user.id, user_id)) {
+                        if !is_following {
+                            // post owner is not following us
+                            continue;
+                        }
+                    } else {
+                        if self
+                            .get_userfollow_by_initiator_receiver(user.id, user_id)
+                            .await
+                            .is_err()
+                        {
+                            // post owner is not following us
+                            seen_user_follow_statuses.insert((user.id, user_id), false);
+                            continue;
+                        }
+
+                        seen_user_follow_statuses.insert((user.id, user_id), true);
+                    }
+                }
+
+                // ...
+                let community = self.get_community_by_id(community).await?;
                 seen_before.insert((owner, community.id), (user.clone(), community.clone()));
-                out.push((post, user, community));
+                out.push((
+                    post.clone(),
+                    user,
+                    community,
+                    self.get_post_reposting(&post).await,
+                ));
             }
         }
 
@@ -357,25 +425,13 @@ impl DataManager {
     /// Check if the given `uid` can post in the given `community`.
     pub async fn check_can_post(&self, community: &Community, uid: usize) -> bool {
         match community.write_access {
-            CommunityWriteAccess::Owner => {
-                if uid != community.owner {
-                    false
-                } else {
-                    true
-                }
-            }
+            CommunityWriteAccess::Owner => uid == community.owner,
             CommunityWriteAccess::Joined => {
                 match self
                     .get_membership_by_owner_community(uid, community.id)
                     .await
                 {
-                    Ok(m) => {
-                        if !m.role.check_member() {
-                            false
-                        } else {
-                            true
-                        }
-                    }
+                    Ok(m) => !(!m.role.check_member()),
                     Err(_) => false,
                 }
             }
@@ -388,11 +444,19 @@ impl DataManager {
     /// # Arguments
     /// * `data` - a mock [`JournalEntry`] object to insert
     pub async fn create_post(&self, mut data: Post) -> Result<usize> {
-        // check values
-        if data.content.len() < 2 {
-            return Err(Error::DataTooShort("content".to_string()));
-        } else if data.content.len() > 4096 {
-            return Err(Error::DataTooLong("username".to_string()));
+        // check values (if this isn't reposting something else)
+        let is_reposting = if let Some(ref repost) = data.context.repost {
+            repost.reposting.is_some()
+        } else {
+            false
+        };
+
+        if !is_reposting {
+            if data.content.len() < 2 {
+                return Err(Error::DataTooShort("content".to_string()));
+            } else if data.content.len() > 4096 {
+                return Err(Error::DataTooLong("content".to_string()));
+            }
         }
 
         // check permission in community
@@ -408,10 +472,37 @@ impl DataManager {
         // mirror nsfw state
         data.context.is_nsfw = community.context.is_nsfw;
 
-        // check if we're blocked
-        if let Some(replying_to) = data.replying_to {
+        // check if we're reposting a post
+        let reposting = if let Some(ref repost) = data.context.repost {
+            if let Some(id) = repost.reposting {
+                Some(self.get_post_by_id(id).await?)
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
+        if let Some(ref rt) = reposting {
+            data.context.reposts_enabled = false; // cannot repost reposts
+
+            // make sure we aren't trying to repost a repost
+            if if let Some(ref repost) = rt.context.repost {
+                !(!repost.is_repost)
+            } else {
+                false
+            } {
+                return Err(Error::MiscError("Cannot repost a repost".to_string()));
+            }
+
+            // ...
+            if !rt.context.reposts_enabled {
+                return Err(Error::MiscError("Post has reposts disabled".to_string()));
+            }
+
+            // check blocked status
             if let Ok(_) = self
-                .get_userblock_by_initiator_receiver(replying_to, data.owner)
+                .get_userblock_by_initiator_receiver(rt.owner, data.owner)
                 .await
             {
                 return Err(Error::NotAllowed);
@@ -428,6 +519,14 @@ impl DataManager {
         if let Some(ref rt) = replying_to {
             if !rt.context.comments_enabled {
                 return Err(Error::MiscError("Post has comments disabled".to_string()));
+            }
+
+            // check blocked status
+            if let Ok(_) = self
+                .get_userblock_by_initiator_receiver(rt.owner, data.owner)
+                .await
+            {
+                return Err(Error::NotAllowed);
             }
         }
 
@@ -480,11 +579,11 @@ impl DataManager {
                 &if replying_to_id != "0" {
                     replying_to_id.parse::<i64>().unwrap()
                 } else {
-                    0 as i64
+                    0_i64
                 },
-                &(0 as i32),
-                &(0 as i32),
-                &(0 as i32)
+                &0_i32,
+                &0_i32,
+                &0_i32
             ]
         );
 
@@ -509,7 +608,7 @@ impl DataManager {
                 ))
                 .await?;
 
-                if rt.context.comments_enabled == false {
+                if !rt.context.comments_enabled {
                     return Err(Error::NotAllowed);
                 }
             }
@@ -564,8 +663,14 @@ impl DataManager {
         Ok(())
     }
 
-    pub async fn update_post_context(&self, id: usize, user: User, x: PostContext) -> Result<()> {
+    pub async fn update_post_context(
+        &self,
+        id: usize,
+        user: User,
+        mut x: PostContext,
+    ) -> Result<()> {
         let y = self.get_post_by_id(id).await?;
+        x.repost = y.context.repost; // cannot change repost settings at all
 
         let user_membership = self
             .get_membership_by_owner_community(user.id, y.community)
@@ -588,19 +693,19 @@ impl DataManager {
         }
 
         // check if we can manage pins
-        if x.is_pinned != y.context.is_pinned {
-            if !user_membership.role.check(CommunityPermission::MANAGE_PINS) {
-                // lacking this permission is overtaken by having the MANAGE_POSTS
-                // global permission
-                if !user.permissions.check(FinePermission::MANAGE_POSTS) {
-                    return Err(Error::NotAllowed);
-                } else {
-                    self.create_audit_log_entry(AuditLogEntry::new(
-                        user.id,
-                        format!("invoked `update_post_context(pinned)` with x value `{id}`"),
-                    ))
-                    .await?
-                }
+        if x.is_pinned != y.context.is_pinned
+            && !user_membership.role.check(CommunityPermission::MANAGE_PINS)
+        {
+            // lacking this permission is overtaken by having the MANAGE_POSTS
+            // global permission
+            if !user.permissions.check(FinePermission::MANAGE_POSTS) {
+                return Err(Error::NotAllowed);
+            } else {
+                self.create_audit_log_entry(AuditLogEntry::new(
+                    user.id,
+                    format!("invoked `update_post_context(pinned)` with x value `{id}`"),
+                ))
+                .await?
             }
         }
 

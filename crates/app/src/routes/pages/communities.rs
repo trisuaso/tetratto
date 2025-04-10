@@ -1,5 +1,5 @@
 use super::{PaginatedQuery, render_error};
-use crate::{State, assets::initial_context, get_lang, get_user_from_token};
+use crate::{assets::initial_context, get_lang, get_user_from_token, sanitize::clean_context, State};
 use axum::{
     Extension,
     extract::{Path, Query},
@@ -323,9 +323,7 @@ pub async fn settings_request(
     context.insert("community", &community);
     context.insert(
         "community_context_serde",
-        &serde_json::to_string(&community.context)
-            .unwrap()
-            .replace("\"", "\\\""),
+        &clean_context(&community.context),
     );
 
     // return
@@ -347,13 +345,36 @@ pub async fn post_request(
     let user = get_user_from_token!(jar, data.0);
 
     let post = match data.0.get_post_by_id(id).await {
-        Ok(ua) => ua,
+        Ok(p) => p,
         Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
     };
 
     let community = match data.0.get_community_by_id(post.community).await {
-        Ok(ua) => ua,
+        Ok(c) => c,
         Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
+    };
+
+    // check repost
+    let reposting = if let Some(ref repost) = post.context.repost {
+        if let Some(reposting) = repost.reposting {
+            let mut x = match data.0.get_post_by_id(reposting).await {
+                Ok(p) => p,
+                Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
+            };
+
+            x.mark_as_repost();
+            Some((
+                match data.0.get_user_by_id(x.owner).await {
+                    Ok(ua) => ua,
+                    Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
+                },
+                x,
+            ))
+        } else {
+            None
+        }
+    } else {
+        None
     };
 
     // check permissions
@@ -383,6 +404,7 @@ pub async fn post_request(
     ) = community_context_bools!(data, user, community);
 
     context.insert("post", &post);
+    context.insert("reposting", &reposting);
     context.insert("replies", &feed);
     context.insert("page", &props.page);
     context.insert(

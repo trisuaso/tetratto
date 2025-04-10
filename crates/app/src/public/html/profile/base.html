@@ -67,7 +67,10 @@
                         </div>
                     </div>
 
-                    <div class="card flex flex-col gap-2" id="social">
+                    <div
+                        class="card flex flex-col items-center gap-2"
+                        id="social"
+                    >
                         <div class="w-full flex">
                             <a
                                 href="/@{{ profile.username }}/followers"
@@ -84,6 +87,15 @@
                                 <span>{{ text "auth:label.following" }}</span>
                             </a>
                         </div>
+
+                        {% if is_following_you %}
+                        <b
+                            class="notification chip w-content flex items-center gap-2"
+                        >
+                            {{ icon "heart" }}
+                            <span>Follows you</span>
+                        </b>
+                        {% endif %}
                     </div>
                 </div>
 

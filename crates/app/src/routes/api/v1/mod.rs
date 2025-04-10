@@ -82,6 +82,10 @@ pub fn routes() -> Router {
         .route("/posts", post(communities::posts::create_request))
         .route("/posts/{id}", delete(communities::posts::delete_request))
         .route(
+            "/posts/{id}/repost",
+            post(communities::posts::create_repost_request),
+        )
+        .route(
             "/posts/{id}/content",
             post(communities::posts::update_content_request),
         )
@@ -245,6 +249,12 @@ pub struct CreatePost {
     pub community: String,
     #[serde(default)]
     pub replying_to: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub struct CreateRepost {
+    pub content: String,
+    pub community: String,
 }
 
 #[derive(Deserialize)]

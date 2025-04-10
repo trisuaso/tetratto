@@ -43,7 +43,7 @@ impl Serialize for FinePermission {
 }
 
 struct FinePermissionVisitor;
-impl<'de> Visitor<'de> for FinePermissionVisitor {
+impl Visitor<'_> for FinePermissionVisitor {
     type Value = FinePermission;
 
     fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {

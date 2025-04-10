@@ -47,6 +47,7 @@ impl Default for ThemePreference {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Default)]
 pub struct UserSettings {
     #[serde(default)]
     pub policy_consent: bool,
@@ -72,23 +73,6 @@ pub struct UserSettings {
     pub disable_other_themes: bool,
 }
 
-impl Default for UserSettings {
-    fn default() -> Self {
-        Self {
-            policy_consent: false,
-            display_name: String::new(),
-            biography: String::new(),
-            private_profile: false,
-            private_communities: false,
-            theme_preference: ThemePreference::default(),
-            private_last_seen: false,
-            theme_hue: String::new(),
-            theme_sat: String::new(),
-            theme_lit: String::new(),
-            disable_other_themes: false,
-        }
-    }
-}
 
 impl Default for User {
     fn default() -> Self {
@@ -212,7 +196,7 @@ impl User {
             return None;
         }
 
-        match TOTP::new(
+        TOTP::new(
             totp_rs::Algorithm::SHA1,
             6,
             1,
@@ -220,10 +204,7 @@ impl User {
             self.totp.as_bytes().to_owned(),
             Some(issuer.unwrap_or("tetratto!".to_string())),
             self.username.clone(),
-        ) {
-            Ok(t) => Some(t),
-            Err(_) => None,
-        }
+        ).ok()
     }
 }
 

@@ -54,14 +54,14 @@ impl ToString for Error {
     }
 }
 
-impl<T> Into<ApiReturn<T>> for Error
+impl<T> From<Error> for ApiReturn<T>
 where
     T: Default + Serialize,
 {
-    fn into(self) -> ApiReturn<T> {
+    fn from(val: Error) -> Self {
         ApiReturn {
             ok: false,
-            message: self.to_string(),
+            message: val.to_string(),
             payload: T::default(),
         }
     }

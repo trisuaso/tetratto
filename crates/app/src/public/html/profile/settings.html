@@ -326,10 +326,15 @@
         {% endfor %}
     </div>
 
+    <!-- prettier-ignore -->
+    <script type="application/json" id="settings_json">{{ user_settings_serde|safe }}</script>
+
     <script>
         setTimeout(() => {
             const ui = ns("ui");
-            const settings = JSON.parse("{{ user_settings_serde|safe }}");
+            const settings = JSON.parse(
+                document.getElementById("settings_json").innerHTML,
+            );
             let tokens = JSON.parse("{{ user_tokens_serde|safe }}");
 
             globalThis.remove_token = async (id) => {

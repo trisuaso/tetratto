@@ -149,6 +149,32 @@
             });
     });
 
+    self.define("repost", (_, id, content, community) => {
+        fetch(`/api/v1/posts/${id}/repost`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                content,
+                community,
+            }),
+        })
+            .then((res) => res.json())
+            .then((res) => {
+                trigger("atto::toast", [
+                    res.ok ? "success" : "error",
+                    res.message,
+                ]);
+
+                if (res.ok) {
+                    setTimeout(() => {
+                        window.location.href = `/post/${res.payload}`;
+                    }, 100);
+                }
+            });
+    });
+
     self.define("report", (_, asset, asset_type) => {
         window.open(
             `/mod_panel/file_report?asset=${asset}&asset_type=${asset_type}`,

@@ -7,9 +7,18 @@
         {{ icon "arrow-up" }}
         <span>{{ text "communities:action.continue_thread" }}</span>
     </a>
-    {% endif %} {{ components::post(post=post, owner=owner, community=community,
-    show_community=true, can_manage_post=can_manage_posts) }} {% if user and
-    post.context.comments_enabled %}
+    {% endif %}
+
+    <!-- prettier-ignore -->
+    <div style="display: contents;">
+        {% if post.context.repost and post.context.repost.reposting %}
+            {{ components::repost(repost=reposting, post=post, owner=owner, community=community, show_community=true, can_manage_post=can_manage_posts) }}
+        {% else %}
+            {{ components::post(post=post, owner=owner, community=community, show_community=true, can_manage_post=can_manage_posts) }}
+        {% endif %}
+    </div>
+
+    {% if user and post.context.comments_enabled %}
     <div class="card-nest">
         <div class="card small">
             <b>{{ text "communities:label.create_reply" }}</b>
@@ -114,6 +123,11 @@
                             "Allow people to comment on your post",
                         ],
                         "{{ post.context.comments_enabled }}",
+                        "checkbox",
+                    ],
+                    [
+                        ["reposts_enabled", "Allow people to repost your post"],
+                        "{{ post.context.reposts_enabled }}",
                         "checkbox",
                     ],
                     [

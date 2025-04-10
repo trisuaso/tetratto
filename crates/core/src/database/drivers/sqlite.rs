@@ -21,7 +21,7 @@ pub struct DataManager(
 impl DataManager {
     /// Obtain a connection to the staging database.
     pub(crate) async fn connect(&self) -> Result<Connection> {
-        Ok(Connection::open(&self.0.database.name)?)
+        Connection::open(&self.0.database.name)
     }
 
     /// Create a new [`DataManager`] (and init database).

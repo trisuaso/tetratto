@@ -50,7 +50,7 @@ impl DataManager {
     ) -> Result<Vec<(CommunityMembership, User)>> {
         let mut users: Vec<(CommunityMembership, User)> = Vec::new();
         for membership in list {
-            let owner = membership.owner.clone();
+            let owner = membership.owner;
             users.push((membership, self.get_user_by_id(owner).await?));
         }
         Ok(users)

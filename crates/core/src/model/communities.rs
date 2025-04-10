@@ -70,7 +70,7 @@ impl Community {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct CommunityContext {
     #[serde(default)]
     pub display_name: String,
@@ -78,16 +78,6 @@ pub struct CommunityContext {
     pub description: String,
     #[serde(default)]
     pub is_nsfw: bool,
-}
-
-impl Default for CommunityContext {
-    fn default() -> Self {
-        Self {
-            display_name: String::new(),
-            description: String::new(),
-            is_nsfw: false,
-        }
-    }
 }
 
 /// Who can read a [`Community`].
@@ -166,7 +156,7 @@ impl CommunityMembership {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PostContext {
     #[serde(default = "default_comments_enabled")]
     pub comments_enabled: bool,
@@ -178,9 +168,17 @@ pub struct PostContext {
     pub edited: usize,
     #[serde(default)]
     pub is_nsfw: bool,
+    #[serde(default)]
+    pub repost: Option<RepostContext>,
+    #[serde(default = "default_reposts_enabled")]
+    pub reposts_enabled: bool,
 }
 
 fn default_comments_enabled() -> bool {
+    true
+}
+
+fn default_reposts_enabled() -> bool {
     true
 }
 
@@ -188,15 +186,29 @@ impl Default for PostContext {
     fn default() -> Self {
         Self {
             comments_enabled: default_comments_enabled(),
+            reposts_enabled: true,
             is_pinned: false,
             is_profile_pinned: false,
             edited: 0,
             is_nsfw: false,
+            repost: None,
         }
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct RepostContext {
+    /// Should be `false` is `repost_of` is `Some`.
+    ///
+    /// Declares the post to be a repost of another post.
+    pub is_repost: bool,
+    /// Should be `None` if `is_repost` is true.
+    ///
+    /// Sets the ID of the other post to load.
+    pub reposting: Option<usize>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Post {
     pub id: usize,
     pub created: usize,
@@ -237,5 +249,25 @@ impl Post {
             dislikes: 0,
             comment_count: 0,
         }
+    }
+
+    /// Create a new [`Post`] (as a repost of the given `post_id`).
+    pub fn repost(content: String, community: usize, owner: usize, post_id: usize) -> Self {
+        let mut post = Self::new(content, community, None, owner);
+
+        post.context.repost = Some(RepostContext {
+            is_repost: false,
+            reposting: Some(post_id),
+        });
+
+        post
+    }
+
+    /// Make the given post a reposted post.
+    pub fn mark_as_repost(&mut self) {
+        self.context.repost = Some(RepostContext {
+            is_repost: true,
+            reposting: None,
+        });
     }
 }
