@@ -270,11 +270,13 @@ show_community %}
             <circle cx="12" cy="12" r="6"></circle>
         </svg>
         {% endif %}
-        <b>{{ notification.title|markdown|safe }}</b>
+        <b class="no_p_margin">{{ notification.title|markdown|safe }}</b>
     </div>
 
     <div class="card notif_content flex flex-col gap-2">
-        <span>{{ notification.content|markdown|safe }}</span>
+        <span class="no_p_margin"
+            >{{ notification.content|markdown|safe }}</span
+        >
 
         <div class="card secondary w-full flex flex-wrap gap-2">
             {% if notification.read %}
@@ -293,7 +295,7 @@ show_community %}
                 {{ icon "check" }}
                 <span>{{ text "notifs:action.mark_as_read" }}</span>
             </button>
-            {% endif %}b
+            {% endif %}
 
             <button
                 class="red tertiary"
