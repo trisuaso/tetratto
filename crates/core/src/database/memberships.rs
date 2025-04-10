@@ -86,6 +86,31 @@ impl DataManager {
         Ok(res.unwrap())
     }
 
+    /// Get a community membership by `owner` and `community`.
+    pub async fn get_membership_by_owner_community_no_void(
+        &self,
+        owner: usize,
+        community: usize,
+    ) -> Result<CommunityMembership> {
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = query_row!(
+            &conn,
+            "SELECT * FROM memberships WHERE owner = $1 AND community = $2",
+            &[&(owner as i64), &(community as i64)],
+            |x| { Ok(Self::get_membership_from_row(x)) }
+        );
+
+        if res.is_err() {
+            return Err(Error::GeneralNotFound("community membership".to_string()));
+        }
+
+        Ok(res.unwrap())
+    }
+
     /// Get all community memberships by `owner`.
     pub async fn get_memberships_by_owner(&self, owner: usize) -> Result<Vec<CommunityMembership>> {
         let conn = match self.connect().await {
@@ -149,7 +174,7 @@ impl DataManager {
     pub async fn create_membership(&self, data: CommunityMembership) -> Result<String> {
         // make sure membership doesn't already exist
         if self
-            .get_membership_by_owner_community(data.owner, data.community)
+            .get_membership_by_owner_community_no_void(data.owner, data.community)
             .await
             .is_ok()
         {
@@ -227,7 +252,7 @@ impl DataManager {
         if user.id != y.owner {
             // pull other user's membership status
             if let Ok(z) = self
-                .get_membership_by_owner_community(user.id, y.community)
+                .get_membership_by_owner_community_no_void(user.id, y.community)
                 .await
             {
                 // somebody with MANAGE_ROLES _and_ a higher role number can remove us

@@ -23,7 +23,9 @@
                 </a>
 
                 <div class="card secondary flex flex-col gap-2">
-                    <span>{{ item.content|markdown|safe }}</span>
+                    <span class="no_p_margin"
+                        >{{ item.content|markdown|safe }}</span
+                    >
 
                     <div class="card w-full flex flex-wrap gap-2">
                         <button
