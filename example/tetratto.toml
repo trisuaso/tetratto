@@ -16,7 +16,7 @@ banned_usernames = [
     "post",
     "void",
 ]
-town_square = "166340372315581657"
+town_square = 166340372315581657
 
 [security]
 registration_enabled = true

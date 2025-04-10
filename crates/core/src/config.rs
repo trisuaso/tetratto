@@ -204,7 +204,7 @@ pub struct Config {
     ///
     /// This community **must** have open write access.
     #[serde(default)]
-    pub town_square: String,
+    pub town_square: usize,
 }
 
 fn default_name() -> String {
@@ -284,7 +284,7 @@ impl Default for Config {
             banned_usernames: default_banned_usernames(),
             policies: default_policies(),
             turnstile: default_turnstile(),
-            town_square: String::new(),
+            town_square: 0,
         }
     }
 }
