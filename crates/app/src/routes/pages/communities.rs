@@ -454,7 +454,7 @@ pub async fn members_request(
     // ...
     let list = match data
         .0
-        .get_memberships_by_community(community.id, 12, props.page)
+        .get_memberships_by_community(community.id, community.owner, 12, props.page)
         .await
     {
         Ok(p) => match data.0.fill_users(p).await {

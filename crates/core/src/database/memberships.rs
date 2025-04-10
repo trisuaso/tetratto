@@ -107,6 +107,7 @@ impl DataManager {
     pub async fn get_memberships_by_community(
         &self,
         community: usize,
+        community_owner: usize, // the owner is always shown at the top of the first page
         batch: usize,
         page: usize,
     ) -> Result<Vec<CommunityMembership>> {
@@ -118,9 +119,10 @@ impl DataManager {
         let res = query_rows!(
             &conn,
             // 33 = banned, 65 = pending membership
-            "SELECT * FROM memberships WHERE community = $1 AND NOT role = 33 AND NOT role = 65 ORDER BY created DESC LIMIT $2 OFFSET $3",
+            "SELECT * FROM memberships WHERE community = $1 AND NOT owner = $2 AND NOT role = 33 AND NOT role = 65 ORDER BY created DESC LIMIT $3 OFFSET $4",
             &[
                 &(community as i64),
+                &(community_owner as i64),
                 &(batch as i64),
                 &((page * batch) as i64)
             ],
