@@ -447,7 +447,7 @@ config.town_square and user %}
             });
     }
 </script>
-{% endif %} {%- endmacro %} {% macro theme(user) -%} {% if
+{% endif %} {%- endmacro %} {% macro theme(user) -%} {% if user %} {% if
 user.settings.theme_hue %}
 <style>
     :root, * {
@@ -467,6 +467,7 @@ user.settings.theme_hue %}
     }
 </style>
 
+{% if user.settings.theme_preference %}
 <script>
     function match_user_theme() {
         const pref = "{{ profile.settings.theme_preference }}".toLowercase();
@@ -482,4 +483,4 @@ user.settings.theme_hue %}
         match_user_theme();
     }, 150);
 </script>
-{% endif %} {%- endmacro %}
+{% endif %} {% endif %} {% endif %} {%- endmacro %}
