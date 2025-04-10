@@ -8,11 +8,11 @@ use axum::{
 use axum_extra::extract::CookieJar;
 use tera::Context;
 use tetratto_core::model::{
-    Error,
     auth::User,
-    communities::{Community, CommunityReadAccess},
+    communities::{Community, CommunityMembership, CommunityReadAccess},
     communities_permissions::CommunityPermission,
     permissions::FinePermission,
+    Error,
 };
 
 macro_rules! check_permissions {
@@ -304,7 +304,7 @@ pub async fn settings_request(
         .await
     {
         Ok(m) => m,
-        Err(e) => return Err(Html(render_error(e, &jar, &data, &Some(user)).await)),
+        Err(_) => CommunityMembership::new(user.id, community.id, CommunityPermission::DEFAULT),
     };
 
     if user.id != community.owner
