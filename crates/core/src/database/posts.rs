@@ -144,7 +144,7 @@ impl DataManager {
 
         let res = query_rows!(
             &conn,
-            "SELECT * FROM posts WHERE owner = $1 AND NOT context LIKE '%\"is_profile_pinned\":true%' AND NOT context LIKE '%\"is_nsfw\":true%' ORDER BY created DESC LIMIT $2 OFFSET $3",
+            "SELECT * FROM posts WHERE owner = $1 AND replying_to = 0 AND NOT context LIKE '%\"is_profile_pinned\":true%' AND NOT context LIKE '%\"is_nsfw\":true%' ORDER BY created DESC LIMIT $2 OFFSET $3",
             &[&(id as i64), &(batch as i64), &((page * batch) as i64)],
             |x| { Self::get_post_from_row(x) }
         );

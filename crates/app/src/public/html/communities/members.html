@@ -8,6 +8,17 @@
         </div>
 
         <div class="card flex flex-col gap-4">
+            {% if page == 0 %}
+            <div class="card-nest">
+                <div class="card small flex items-center gap-2">
+                    {{ icon "crown" }}
+                    <span>Owner</span>
+                </div>
+
+                {{ components::user_card(user=owner) }}
+            </div>
+            {% endif %}
+
             <!-- prettier-ignore -->
             {% for item in list %}
             <div class="card-nest">

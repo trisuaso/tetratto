@@ -464,6 +464,12 @@ pub async fn members_request(
         Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
     };
 
+    // get community owner
+    let owner = match data.0.get_user_by_id(community.owner).await {
+        Ok(ua) => ua,
+        Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
+    };
+
     // init context
     let lang = get_lang!(jar, data.0);
     let mut context = initial_context(&data.0.0, lang, &user).await;
@@ -480,6 +486,7 @@ pub async fn members_request(
 
     context.insert("list", &list);
     context.insert("page", &props.page);
+    context.insert("owner", &owner);
     community_context(
         &mut context,
         &community,
