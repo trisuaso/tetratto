@@ -74,6 +74,10 @@ media_theme_pref();
         for (const element of document.querySelectorAll('[selected="false"]')) {
             element.removeAttribute("selected");
         }
+
+        for (const element of document.querySelectorAll('[selected="true"]')) {
+            element.parentElement.value = element.value;
+        }
     });
 
     self.define("rel_date", (_, date) => {
