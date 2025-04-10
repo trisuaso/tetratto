@@ -307,6 +307,53 @@ impl DataManager {
         Ok(res.unwrap())
     }
 
+    /// Get posts from all users the given user is following.
+    ///
+    /// # Arguments
+    /// * `id` - the ID of the user
+    /// * `batch` - the limit of posts in each page
+    /// * `page` - the page number
+    pub async fn get_posts_from_user_following(
+        &self,
+        id: usize,
+        batch: usize,
+        page: usize,
+    ) -> Result<Vec<Post>> {
+        let following = self.get_userfollows_by_initiator_all(id).await?;
+        let mut following = following.iter();
+        let first = match following.next() {
+            Some(f) => f,
+            None => return Ok(Vec::new()),
+        };
+
+        let mut query_string: String = String::new();
+
+        for user in following {
+            query_string.push_str(&format!(" OR owner = {}", user.receiver));
+        }
+
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = query_rows!(
+            &conn,
+            &format!(
+                "SELECT * FROM posts WHERE (owner = {} {query_string}) AND replying_to = 0 ORDER BY created DESC LIMIT $1 OFFSET $2",
+                first.receiver
+            ),
+            &[&(batch as i64), &((page * batch) as i64)],
+            |x| { Self::get_post_from_row(x) }
+        );
+
+        if res.is_err() {
+            return Err(Error::GeneralNotFound("post".to_string()));
+        }
+
+        Ok(res.unwrap())
+    }
+
     /// Check if the given `uid` can post in the given `community`.
     pub async fn check_can_post(&self, community: &Community, uid: usize) -> bool {
         match community.write_access {

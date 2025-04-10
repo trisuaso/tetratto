@@ -5,7 +5,7 @@
     <!-- prettier-ignore -->
     {{ macros::timelines_nav(selected="home") }}
 
-    {% if list|length == 0 %}
+    {% if list|length == 0 and page == 0 %}
     <div class="card-nest">
         <div class="card">
             <b>✨ Welcome to <i>{{ config.name }}</i>!</b>
@@ -21,6 +21,8 @@
         {% for post in list %}
             {{ components::post(post=post[0], owner=post[1], secondary=true, community=post[2], show_community=true) }}
         {% endfor %}
+
+        {{ components::pagination(page=page, items=list|length) }}
     </div>
     {% endif %}
 </main>

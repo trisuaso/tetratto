@@ -106,6 +106,30 @@ impl DataManager {
         Ok(res.unwrap())
     }
 
+    /// Get users the given user is following.
+    ///
+    /// # Arguments
+    /// * `id` - the ID of the user
+    pub async fn get_userfollows_by_initiator_all(&self, id: usize) -> Result<Vec<UserFollow>> {
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = query_rows!(
+            &conn,
+            "SELECT * FROM userfollows WHERE initiator = $1",
+            &[&(id as i64)],
+            |x| { Self::get_userfollow_from_row(x) }
+        );
+
+        if res.is_err() {
+            return Err(Error::GeneralNotFound("user follow".to_string()));
+        }
+
+        Ok(res.unwrap())
+    }
+
     /// Get users following the given user.
     ///
     /// # Arguments
@@ -127,6 +151,30 @@ impl DataManager {
             &conn,
             "SELECT * FROM userfollows WHERE receiver = $1 ORDER BY created DESC LIMIT $2 OFFSET $3",
             &[&(id as i64), &(batch as i64), &((page * batch) as i64)],
+            |x| { Self::get_userfollow_from_row(x) }
+        );
+
+        if res.is_err() {
+            return Err(Error::GeneralNotFound("user follow".to_string()));
+        }
+
+        Ok(res.unwrap())
+    }
+
+    /// Get users following the given user.
+    ///
+    /// # Arguments
+    /// * `id` - the ID of the user
+    pub async fn get_userfollows_by_receiver_all(&self, id: usize) -> Result<Vec<UserFollow>> {
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = query_rows!(
+            &conn,
+            "SELECT * FROM userfollows WHERE receiver = $1",
+            &[&(id as i64)],
             |x| { Self::get_userfollow_from_row(x) }
         );
 

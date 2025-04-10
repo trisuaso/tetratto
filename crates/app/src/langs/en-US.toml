@@ -3,6 +3,7 @@ version = "1.0.0"
 
 [data]
 "general:link.home" = "Home"
+"general:link.following" = "Following"
 "general:link.popular" = "Popular"
 "general:link.communities" = "Communities"
 "general:link.next" = "Next"

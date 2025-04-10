@@ -18,6 +18,7 @@ pub fn routes() -> Router {
     Router::new()
         // misc
         .route("/", get(misc::index_request))
+        .route("/following", get(misc::following_request))
         .route("/popular", get(misc::popular_request))
         .route("/notifs", get(misc::notifications_request))
         .route("/doc/{*file_name}", get(misc::markdown_document_request))

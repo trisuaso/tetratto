@@ -163,6 +163,14 @@
         <span>{{ text "general:link.home" }}</span>
     </a>
 
+    <a
+        href="/following"
+        class="{% if selected == 'following' %}active{% endif %}"
+    >
+        {{ icon "earth" }}
+        <span>{{ text "general:link.following" }}</span>
+    </a>
+
     <a href="/popular" class="{% if selected == 'popular' %}active{% endif %}">
         {{ icon "trending-up" }}
         <span>{{ text "general:link.popular" }}</span>

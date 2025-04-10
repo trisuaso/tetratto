@@ -58,7 +58,46 @@ pub async fn index_request(
     let mut context = initial_context(&data.0.0, lang, &Some(user)).await;
 
     context.insert("list", &list);
+    context.insert("page", &req.page);
     Html(data.1.render("timelines/home.html", &context).unwrap())
+}
+
+/// `/following`
+pub async fn following_request(
+    jar: CookieJar,
+    Extension(data): Extension<State>,
+    Query(req): Query<PaginatedQuery>,
+) -> impl IntoResponse {
+    let data = data.read().await;
+    let user = match get_user_from_token!(jar, data.0) {
+        Some(ua) => ua,
+        None => {
+            return Err(Html(
+                render_error(Error::NotAllowed, &jar, &data, &None).await,
+            ));
+        }
+    };
+
+    let list = match data
+        .0
+        .get_posts_from_user_following(user.id, 12, req.page)
+        .await
+    {
+        Ok(l) => match data.0.fill_posts_with_community(l).await {
+            Ok(l) => l,
+            Err(e) => return Err(Html(render_error(e, &jar, &data, &Some(user)).await)),
+        },
+        Err(e) => return Err(Html(render_error(e, &jar, &data, &Some(user)).await)),
+    };
+
+    let lang = get_lang!(jar, data.0);
+    let mut context = initial_context(&data.0.0, lang, &Some(user)).await;
+
+    context.insert("list", &list);
+    context.insert("page", &req.page);
+    Ok(Html(
+        data.1.render("timelines/following.html", &context).unwrap(),
+    ))
 }
 
 /// `/popular`
@@ -82,6 +121,7 @@ pub async fn popular_request(
     let mut context = initial_context(&data.0.0, lang, &user).await;
 
     context.insert("list", &list);
+    context.insert("page", &req.page);
     Html(data.1.render("timelines/popular.html", &context).unwrap())
 }
 

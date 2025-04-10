@@ -1,8 +1,8 @@
 {% extends "root.html" %} {% block head %}
-<title>Popular - {{ config.name }}</title>
-{% endblock %} {% block body %} {{ macros::nav(selected="popular") }}
+<title>Following - {{ config.name }}</title>
+{% endblock %} {% block body %} {{ macros::nav() }}
 <main class="flex flex-col gap-2">
-    {{ macros::timelines_nav(selected="popular") }}
+    {{ macros::timelines_nav(selected="following") }}
 
     <!-- prettier-ignore -->
     <div class="card w-full flex flex-col gap-2">
