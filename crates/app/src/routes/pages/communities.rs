@@ -9,7 +9,7 @@ use axum_extra::extract::CookieJar;
 use tera::Context;
 use tetratto_core::model::{
     auth::User,
-    communities::{Community, CommunityMembership, CommunityReadAccess},
+    communities::{Community, CommunityReadAccess},
     communities_permissions::CommunityPermission,
     permissions::FinePermission,
     Error,
@@ -304,7 +304,7 @@ pub async fn settings_request(
         .await
     {
         Ok(m) => m,
-        Err(_) => CommunityMembership::new(user.id, community.id, CommunityPermission::DEFAULT),
+        Err(e) => return Err(Html(render_error(e, &jar, &data, &Some(user)).await)),
     };
 
     if user.id != community.owner

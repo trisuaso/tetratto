@@ -75,7 +75,12 @@ impl DataManager {
         );
 
         if res.is_err() {
-            return Err(Error::GeneralNotFound("community membership".to_string()));
+            // return Err(Error::GeneralNotFound("community membership".to_string()));
+            return Ok(CommunityMembership::new(
+                owner,
+                community,
+                CommunityPermission::DEFAULT,
+            ));
         }
 
         Ok(res.unwrap())
