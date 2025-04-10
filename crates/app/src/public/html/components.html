@@ -470,7 +470,7 @@ user.settings.theme_hue %}
 {% if user.settings.theme_preference %}
 <script>
     function match_user_theme() {
-        const pref = "{{ profile.settings.theme_preference }}".toLowerCase();
+        const pref = "{{ user.settings.theme_preference }}".toLowerCase();
 
         if (pref === "auto") {
             return;
