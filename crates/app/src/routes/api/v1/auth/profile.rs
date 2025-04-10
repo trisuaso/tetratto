@@ -64,7 +64,7 @@ pub async fn update_user_settings_request(
     jar: CookieJar,
     Path(id): Path<usize>,
     Extension(data): Extension<State>,
-    Json(req): Json<UserSettings>,
+    Json(mut req): Json<UserSettings>,
 ) -> impl IntoResponse {
     let data = &(data.read().await).0;
     let user = match get_user_from_token!(jar, data) {
@@ -76,6 +76,16 @@ pub async fn update_user_settings_request(
         return Json(Error::NotAllowed.into());
     }
 
+    // check percentage themes
+    if !req.theme_sat.is_empty() && !req.theme_sat.ends_with("%") {
+        req.theme_sat = format!("{}%", req.theme_sat)
+    }
+
+    if !req.theme_lit.is_empty() && !req.theme_lit.ends_with("%") {
+        req.theme_lit = format!("{}%", req.theme_lit)
+    }
+
+    // ...
     match data.update_user_settings(id, req).await {
         Ok(_) => Json(ApiReturn {
             ok: true,
