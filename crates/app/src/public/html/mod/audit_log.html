@@ -23,7 +23,9 @@
                 </a>
 
                 <div class="card secondary">
-                    <span>{{ item.content|markdown|safe }}</span>
+                    <span class="no_p_margin"
+                        >{{ item.content|markdown|safe }}</span
+                    >
                 </div>
             </div>
             {% endfor %}

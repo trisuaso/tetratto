@@ -145,7 +145,7 @@ community=false, show_community=true, can_manage_post=false) -%}
 </div>
 {%- endmacro %} {% macro post(post, owner, secondary=false, community=false,
 show_community=true, can_manage_post=false) -%} {% if community and
-show_community and post.community != config.town_square %}
+show_community %}
 <div class="card-nest">
     <div class="card small">
         <a
@@ -325,8 +325,7 @@ show_community and post.community != config.town_square %}
             </div>
         </div>
     </div>
-    {% if community and show_community and post.community != config.town_square
-    %}
+    {% if community and show_community %}
 </div>
 {% endif %} {%- endmacro %} {% macro notification(notification) -%}
 <div class="w-full card-nest">
