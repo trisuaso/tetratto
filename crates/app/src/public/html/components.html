@@ -392,17 +392,23 @@ show_community and post.community != config.town_square %}
         </div>
     </div>
 </a>
-{%- endmacro %} {% macro pagination(page=0, items=0) -%}
+{%- endmacro %} {% macro pagination(page=0, items=0, key="", value="") -%}
 <div class="flex justify-between gap-2 w-full">
     {% if page > 0 %}
-    <a class="button quaternary" href="?page={{ page - 1 }}">
+    <a
+        class="button quaternary"
+        href="?page={{ page - 1 }}{{ key }}{{ value }}"
+    >
         {{ icon "arrow-left" }}
         <span>{{ text "general:link.previous" }}</span>
     </a>
     {% else %}
     <div></div>
     {% endif %} {% if items != 0 %}
-    <a class="button quaternary" href="?page={{ page + 1 }}">
+    <a
+        class="button quaternary"
+        href="?page={{ page + 1 }}{{ key }}{{ value }}"
+    >
         <span>{{ text "general:link.next" }}</span>
         {{ icon "arrow-right"}}
     </a>

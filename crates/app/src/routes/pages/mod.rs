@@ -45,6 +45,7 @@ pub fn routes() -> Router {
         .route("/@{username}/followers", get(profile::followers_request))
         // communities
         .route("/communities", get(communities::list_request))
+        .route("/communities/search", get(communities::search_request))
         .route("/community/{title}", get(communities::feed_request))
         .route(
             "/community/{title}/manage",
@@ -71,6 +72,14 @@ pub async fn render_error(
 
 #[derive(Deserialize)]
 pub struct PaginatedQuery {
+    #[serde(default)]
+    pub page: usize,
+}
+
+#[derive(Deserialize)]
+pub struct SearchedQuery {
+    #[serde(default)]
+    pub text: String,
     #[serde(default)]
     pub page: usize,
 }

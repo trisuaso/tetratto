@@ -1,0 +1,45 @@
+{% extends "root.html" %} {% block head %}
+<title>Search communities - {{ config.name }}</title>
+{% endblock %} {% block body %} {{ macros::nav(selected="communities") }}
+<main class="flex flex-col gap-2">
+    <div class="card-nest">
+        <div class="card small flex items-center gap-2">
+            {{ icon "search" }}
+            <span>{{ text "communities:label.search" }}</span>
+        </div>
+
+        <form class="card flex flex-col gap-4">
+            <div class="flex flex-col gap-1">
+                <label for="text">{{ text "communities:label.query" }}</label>
+                <input
+                    type="text"
+                    name="text"
+                    id="text"
+                    placeholder="text"
+                    required
+                    maxlength="32"
+                    value="{{ text }}"
+                />
+            </div>
+
+            <button class="primary">{{ text "dialog:action.continue" }}</button>
+        </form>
+    </div>
+
+    <div class="card-nest">
+        <div class="card small flex items-center gap-2">
+            {{ icon "book-marked" }}
+            <span>{{ text "communities:label.search_results" }}</span>
+        </div>
+
+        <!-- prettier-ignore -->
+        <div class="card flex flex-col gap-4">
+            {% for item in list %}
+                {{ components::community_listing_card(community=item) }}
+            {% endfor %}
+
+            {{ components::pagination(page=page, items=list|length, key="&text=", value=text) }}
+        </div>
+    </div>
+</main>
+{% endblock %}

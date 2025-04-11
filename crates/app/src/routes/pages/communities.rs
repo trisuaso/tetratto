@@ -1,4 +1,4 @@
-use super::{PaginatedQuery, render_error};
+use super::{render_error, PaginatedQuery, SearchedQuery};
 use crate::{assets::initial_context, get_lang, get_user_from_token, sanitize::clean_context, State};
 use axum::{
     Extension,
@@ -163,6 +163,44 @@ pub async fn list_request(jar: CookieJar, Extension(data): Extension<State>) -> 
     // return
     Ok(Html(
         data.1.render("communities/list.html", &context).unwrap(),
+    ))
+}
+
+/// `/communities/search`
+pub async fn search_request(
+    jar: CookieJar,
+    Extension(data): Extension<State>,
+    Query(req): Query<SearchedQuery>,
+) -> impl IntoResponse {
+    let data = data.read().await;
+    let user = match get_user_from_token!(jar, data.0) {
+        Some(ua) => ua,
+        None => {
+            return Err(Html(
+                render_error(Error::NotAllowed, &jar, &data, &None).await,
+            ));
+        }
+    };
+
+    let communities = match data
+        .0
+        .get_communities_searched(&req.text, 12, req.page)
+        .await
+    {
+        Ok(p) => p,
+        Err(e) => return Err(Html(render_error(e, &jar, &data, &Some(user)).await)),
+    };
+
+    let lang = get_lang!(jar, data.0);
+    let mut context = initial_context(&data.0.0, lang, &Some(user)).await;
+
+    context.insert("list", &communities);
+    context.insert("page", &req.page);
+    context.insert("text", &req.text);
+
+    // return
+    Ok(Html(
+        data.1.render("communities/search.html", &context).unwrap(),
     ))
 }
 

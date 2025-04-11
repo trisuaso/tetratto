@@ -145,6 +145,33 @@ impl DataManager {
         Ok(res.unwrap())
     }
 
+    /// Get all communities, filtering their title.
+    /// Communities are sorted by popularity first, creation date second.
+    pub async fn get_communities_searched(
+        &self,
+        query: &str,
+        batch: usize,
+        page: usize,
+    ) -> Result<Vec<Community>> {
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = query_rows!(
+            &conn,
+            "SELECT * FROM communities WHERE title LIKE $1 ORDER BY member_count DESC, created DESC LIMIT $2 OFFSET $3",
+            params![&format!("%{query}%"), &(batch as i64), &(page as i64)],
+            |x| { Self::get_community_from_row(x) }
+        );
+
+        if res.is_err() {
+            return Err(Error::GeneralNotFound("communities".to_string()));
+        }
+
+        Ok(res.unwrap())
+    }
+
     /// Create a new community in the database.
     ///
     /// # Arguments

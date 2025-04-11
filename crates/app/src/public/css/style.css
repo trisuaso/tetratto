@@ -157,6 +157,10 @@ p {
     margin-bottom: 0;
 }
 
+.no_p_margin img {
+    display: block !important;
+}
+
 .name {
     max-width: 250px;
     overflow: hidden;
