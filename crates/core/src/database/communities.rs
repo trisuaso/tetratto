@@ -161,7 +161,11 @@ impl DataManager {
         let res = query_rows!(
             &conn,
             "SELECT * FROM communities WHERE title LIKE $1 ORDER BY member_count DESC, created DESC LIMIT $2 OFFSET $3",
-            params![&format!("%{query}%"), &(batch as i64), &(page as i64)],
+            params![
+                &format!("%{query}%"),
+                &(batch as i64),
+                &((page * batch) as i64)
+            ],
             |x| { Self::get_community_from_row(x) }
         );
 
