@@ -46,6 +46,10 @@ pub fn routes() -> Router {
         // communities
         .route("/communities", get(communities::list_request))
         .route("/communities/search", get(communities::search_request))
+        .route(
+            "/communities/intents/post",
+            get(communities::create_post_request),
+        )
         .route("/community/{title}", get(communities::feed_request))
         .route(
             "/community/{title}/manage",
@@ -74,6 +78,14 @@ pub async fn render_error(
 pub struct PaginatedQuery {
     #[serde(default)]
     pub page: usize,
+}
+
+#[derive(Deserialize)]
+pub struct ProfileQuery {
+    #[serde(default)]
+    pub page: usize,
+    #[serde(default)]
+    pub warning: bool,
 }
 
 #[derive(Deserialize)]

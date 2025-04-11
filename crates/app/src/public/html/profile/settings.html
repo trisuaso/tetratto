@@ -18,6 +18,10 @@
             {{ text "settings:tab.profile" }}
         </a>
 
+        <a data-tab-button="theme" href="#/theme">
+            {{ text "settings:tab.theme" }}
+        </a>
+
         <a data-tab-button="sessions" href="#/sessions">
             {{ text "settings:tab.sessions" }}
         </a>
@@ -334,6 +338,46 @@
         {% endfor %}
     </div>
 
+    <div class="w-full hidden flex flex-col gap-2" data-tab="theme">
+        <div class="card tertiary flex flex-col gap-2" id="theme_settings">
+            <div class="card-nest" ui_ident="profile_theme">
+                <div class="card small">
+                    <b>Profile theme</b>
+                </div>
+
+                <div class="card">
+                    <select
+                        onchange="set_setting_field('profile_theme', event.target.selectedOptions[0].value)"
+                    >
+                        <option
+                            value="Auto"
+                            selected="{% if user.settings.profile_theme == 'Auto' %}true{% else %}false{% endif %}"
+                        >
+                            Auto
+                        </option>
+                        <option
+                            value="Light"
+                            selected="{% if user.settings.profile_theme == 'Light' %}true{% else %}false{% endif %}"
+                        >
+                            Light
+                        </option>
+                        <option
+                            value="Dark"
+                            selected="{% if user.settings.profile_theme == 'Dark' %}true{% else %}false{% endif %}"
+                        >
+                            Dark
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="save_settings()" id="save_button">
+            {{ icon "check" }}
+            <span>{{ text "general:action.save" }}</span>
+        </button>
+    </div>
+
     <!-- prettier-ignore -->
     <script type="application/json" id="settings_json">{{ user_settings_serde|safe }}</script>
 
@@ -641,6 +685,7 @@
                 document.getElementById("account_settings");
             const profile_settings =
                 document.getElementById("profile_settings");
+            const theme_settings = document.getElementById("theme_settings");
 
             ui.refresh_container(account_settings, [
                 "change_password",
@@ -652,6 +697,7 @@
                 "change_avatar",
                 "change_banner",
             ]);
+            ui.refresh_container(theme_settings, ["profile_theme"]);
 
             ui.generate_settings_ui(
                 account_settings,
@@ -664,6 +710,11 @@
                     [
                         ["biography", "Biography"],
                         settings.biography,
+                        "textarea",
+                    ],
+                    [
+                        ["warning", "Profile warning"],
+                        settings.warning,
                         "textarea",
                     ],
                 ],
@@ -695,7 +746,14 @@
                         "{{ profile.settings.private_last_seen }}",
                         "checkbox",
                     ],
-                    [[], "Theme", "title"],
+                ],
+                settings,
+            );
+
+            ui.generate_settings_ui(
+                theme_settings,
+                [
+                    [[], "Theme builder", "title"],
                     [
                         ["theme_hue", "Theme hue (integer 0-255)"],
                         "{{ profile.settings.theme_hue }}",
@@ -718,6 +776,137 @@
                         ],
                         "{{ profile.settings.disable_other_themes }}",
                         "checkbox",
+                    ],
+                    [[], "Theme builder", "title"],
+                    [[], "Override individual colors.", "text"],
+                    // surface
+                    [
+                        ["theme_color_surface", "Surface"],
+                        "{{ profile.settings.theme_color_surface }}",
+                        "color",
+                        {
+                            description: "Page background.",
+                        },
+                    ],
+                    [
+                        ["theme_color_text", "Text"],
+                        "{{ profile.settings.theme_color_text }}",
+                        "color",
+                        {
+                            description:
+                                "Text on elements with the surface backgrounds.",
+                        },
+                    ],
+                    // lowered
+                    [[], "", "divider"],
+                    [
+                        ["theme_color_lowered", "Lowered"],
+                        "{{ profile.settings.theme_color_lowered }}",
+                        "color",
+                        {
+                            description:
+                                "Some cards, buttons, or anything else with a darker background color than the surface.",
+                        },
+                    ],
+                    [
+                        ["theme_color_text_lowered", "Text"],
+                        "{{ profile.settings.theme_color_text_lowered }}",
+                        "color",
+                        {
+                            description:
+                                "Text on elements with the lowered backgrounds.",
+                        },
+                    ],
+                    [
+                        ["theme_color_super_lowered", "Super lowered"],
+                        "{{ profile.settings.theme_color_super_lowered }}",
+                        "color",
+                        {
+                            description: "Borders.",
+                        },
+                    ],
+                    // raised
+                    [[], "", "divider"],
+                    [
+                        ["theme_color_raised", "Raised"],
+                        "{{ profile.settings.theme_color_raised }}",
+                        "color",
+                        {
+                            description:
+                                "Some cards, buttons, or anything else with a lighter background color than the surface.",
+                        },
+                    ],
+                    [
+                        ["theme_color_text_raised", "Text"],
+                        "{{ profile.settings.theme_color_text_raised }}",
+                        "color",
+                        {
+                            description:
+                                "Text on elements with the raised backgrounds.",
+                        },
+                    ],
+                    [
+                        ["theme_color_super_raised", "Super raised"],
+                        "{{ profile.settings.theme_color_super_raised }}",
+                        "color",
+                        {
+                            description: "Some borders.",
+                        },
+                    ],
+                    // primary
+                    [[], "", "divider"],
+                    [
+                        ["theme_color_primary", "Primary"],
+                        "{{ profile.settings.theme_color_primary }}",
+                        "color",
+                        {
+                            description:
+                                "Primary color; navigation bar, some buttons, etc.",
+                        },
+                    ],
+                    [
+                        ["theme_color_text_primary", "Text"],
+                        "{{ profile.settings.theme_color_text_primary }}",
+                        "color",
+                        {
+                            description:
+                                "Text on elements with the primary backgrounds.",
+                        },
+                    ],
+                    [
+                        ["theme_color_primary_lowered", "Primary lowered"],
+                        "{{ profile.settings.theme_color_primary_lowered }}",
+                        "color",
+                        {
+                            description: "Hover state for primary buttons.",
+                        },
+                    ],
+                    // secondary
+                    [[], "", "divider"],
+                    [
+                        ["theme_color_secondary", "Secondary"],
+                        "{{ profile.settings.theme_color_secondary }}",
+                        "color",
+                        {
+                            description: "Secondary color.",
+                        },
+                    ],
+                    [
+                        ["theme_color_text_secondary", "Text"],
+                        "{{ profile.settings.theme_color_text_secondary }}",
+                        "color",
+                        {
+                            description:
+                                "Text on elements with the secondary backgrounds.",
+                        },
+                    ],
+                    [
+                        ["theme_color_secondary_lowered", "Secondary lowered"],
+                        "{{ profile.settings.theme_color_secondary_lowered }}",
+                        "color",
+                        {
+                            description: "Hover state for secondary buttons.",
+                        },
                     ],
                 ],
                 settings,

@@ -159,7 +159,7 @@ impl DataManager {
                     }
 
                     if let Some(is_following) = seen_user_follow_statuses.get(&(user.id, user_id)) {
-                        if !is_following {
+                        if !is_following && (user.id != user_id) {
                             // post owner is not following us
                             continue;
                         }
@@ -488,7 +488,7 @@ impl DataManager {
 
             // make sure we aren't trying to repost a repost
             if if let Some(ref repost) = rt.context.repost {
-                !(!repost.is_repost)
+                repost.reposting.is_some()
             } else {
                 false
             } {

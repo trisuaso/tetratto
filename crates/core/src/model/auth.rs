@@ -46,8 +46,7 @@ impl Default for ThemePreference {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[derive(Default)]
+#[derive(Clone, Debug, Serialize, Deserialize, Default)]
 pub struct UserSettings {
     #[serde(default)]
     pub policy_consent: bool,
@@ -56,11 +55,18 @@ pub struct UserSettings {
     #[serde(default)]
     pub biography: String,
     #[serde(default)]
+    pub warning: String,
+    #[serde(default)]
     pub private_profile: bool,
     #[serde(default)]
     pub private_communities: bool,
+    /// The theme shown to the user.
     #[serde(default)]
     pub theme_preference: ThemePreference,
+    /// The theme used on the user's profile. Setting this to `Auto` will use
+    /// the viewing user's `theme_preference` setting.
+    #[serde(default)]
+    pub profile_theme: ThemePreference,
     #[serde(default)]
     pub private_last_seen: bool,
     #[serde(default)]
@@ -69,10 +75,51 @@ pub struct UserSettings {
     pub theme_sat: String,
     #[serde(default)]
     pub theme_lit: String,
+    /// Page background.
+    #[serde(default)]
+    pub theme_color_surface: String,
+    /// Text on elements with the surface backgrounds.
+    #[serde(default)]
+    pub theme_color_text: String,
+    /// Some cards, buttons, or anything else with a darker background color than the surface.
+    #[serde(default)]
+    pub theme_color_lowered: String,
+    /// Text on elements with the lowered backgrounds.
+    #[serde(default)]
+    pub theme_color_text_lowered: String,
+    /// Borders.
+    #[serde(default)]
+    pub theme_color_super_lowered: String,
+    /// Some cards, buttons, or anything else with a lighter background color than the surface.
+    #[serde(default)]
+    pub theme_color_raised: String,
+    /// Text on elements with the raised backgrounds.
+    #[serde(default)]
+    pub theme_color_text_raised: String,
+    /// Some borders.
+    #[serde(default)]
+    pub theme_color_super_raised: String,
+    /// Primary color; navigation bar, some buttons, etc.
+    #[serde(default)]
+    pub theme_color_primary: String,
+    /// Text on elements with the primary backgrounds.
+    #[serde(default)]
+    pub theme_color_text_primary: String,
+    /// Hover state for primary buttons.
+    #[serde(default)]
+    pub theme_color_primary_lowered: String,
+    /// Secondary color.
+    #[serde(default)]
+    pub theme_color_secondary: String,
+    /// Text on elements with the secondary backgrounds.
+    #[serde(default)]
+    pub theme_color_text_secondary: String,
+    /// Hover state for secondary buttons.
+    #[serde(default)]
+    pub theme_color_secondary_lowered: String,
     #[serde(default)]
     pub disable_other_themes: bool,
 }
-
 
 impl Default for User {
     fn default() -> Self {
@@ -204,7 +251,8 @@ impl User {
             self.totp.as_bytes().to_owned(),
             Some(issuer.unwrap_or("tetratto!".to_string())),
             self.username.clone(),
-        ).ok()
+        )
+        .ok()
     }
 }
 

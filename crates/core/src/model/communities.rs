@@ -198,7 +198,7 @@ impl Default for PostContext {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct RepostContext {
-    /// Should be `false` is `repost_of` is `Some`.
+    /// Should be `false` is `reposting` is `Some`.
     ///
     /// Declares the post to be a repost of another post.
     pub is_repost: bool,

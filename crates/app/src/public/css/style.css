@@ -157,10 +157,6 @@ p {
     margin-bottom: 0;
 }
 
-.no_p_margin img {
-    display: block !important;
-}
-
 .name {
     max-width: 250px;
     overflow: hidden;
@@ -313,14 +309,25 @@ img.contain {
 /* avatar/banner */
 .avatar {
     --size: 50px;
+    --size-formula: var(--size);
     border-radius: calc(var(--radius) / 2);
-    width: var(--size);
-    min-width: var(--size);
-    max-width: var(--size);
-    height: var(--size);
-    min-height: var(--size);
-    max-height: var(--size);
+    width: var(--size-formula);
+    min-width: var(--size-formula);
+    max-width: var(--size-formula);
+    height: var(--size-formula);
+    min-height: var(--size-formula);
+    max-height: var(--size-formula);
     object-fit: cover;
+}
+
+@media screen and (max-width: 900px) {
+    .avatar {
+        --size-formula: clamp(24px, calc(var(--size) * 0.75), 64px);
+    }
+
+    textarea {
+        min-height: 12rem !important;
+    }
 }
 
 .banner {

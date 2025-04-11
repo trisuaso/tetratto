@@ -22,6 +22,10 @@ fn render_markdown(value: &Value, _: &HashMap<String, Value>) -> tera::Result<Va
     Ok(tetratto_shared::markdown::render_markdown(value.as_str().unwrap()).into())
 }
 
+fn color_escape(value: &Value, _: &HashMap<String, Value>) -> tera::Result<Value> {
+    Ok(sanitize::color_escape(value.as_str().unwrap()).into())
+}
+
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt()
@@ -41,6 +45,7 @@ async fn main() {
 
     let mut tera = Tera::new(&format!("{html_path}/**/*")).unwrap();
     tera.register_filter("markdown", render_markdown);
+    tera.register_filter("color", color_escape);
 
     let client = Client::new();
 

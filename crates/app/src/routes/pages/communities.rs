@@ -204,6 +204,60 @@ pub async fn search_request(
     ))
 }
 
+/// `/communities/intents/post`
+pub async fn create_post_request(
+    jar: CookieJar,
+    Extension(data): Extension<State>,
+) -> impl IntoResponse {
+    let data = data.read().await;
+    let user = match get_user_from_token!(jar, data.0) {
+        Some(ua) => ua,
+        None => {
+            return Err(Html(
+                render_error(Error::NotAllowed, &jar, &data, &None).await,
+            ));
+        }
+    };
+
+    let town_square = match data.0.get_community_by_id(data.0.0.town_square).await {
+        Ok(p) => p,
+        Err(e) => return Err(Html(render_error(e, &jar, &data, &Some(user)).await)),
+    };
+
+    let memberships = match data.0.get_memberships_by_owner(user.id).await {
+        Ok(p) => p,
+        Err(e) => return Err(Html(render_error(e, &jar, &data, &Some(user)).await)),
+    };
+
+    let mut communities: Vec<Community> = Vec::new();
+    for membership in memberships {
+        if membership.community == data.0.0.town_square {
+            // we already pulled the town square
+            continue;
+        }
+
+        let community = match data.0.get_community_by_id(membership.community).await {
+            Ok(p) => p,
+            Err(e) => return Err(Html(render_error(e, &jar, &data, &Some(user)).await)),
+        };
+
+        communities.push(community)
+    }
+
+    let lang = get_lang!(jar, data.0);
+    let mut context = initial_context(&data.0.0, lang, &Some(user)).await;
+
+    context.insert("town_square", &town_square);
+    context.insert("communities", &communities);
+
+    // return
+    Ok(Html(
+        data.1
+            .render("communities/create_post.html", &context)
+            .unwrap(),
+    ))
+}
+
 pub fn community_context(
     context: &mut Context,
     community: &Community,

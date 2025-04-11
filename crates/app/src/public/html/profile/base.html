@@ -144,20 +144,24 @@
                     </div>
 
                     <div class="card flex gap-2 flex-wrap">
-                        {% if not is_blocking %} {% if not is_following %}
-                        <button onclick="toggle_follow_user()">
+                        {% if not is_blocking %}
+                        <button
+                            onclick="toggle_follow_user(event)"
+                            class="{% if is_following %} hidden{% endif %}"
+                            atto_tag="user.follow"
+                        >
                             {{ icon "user-plus" }}
                             <span>{{ text "auto:action.follow" }}</span>
                         </button>
-                        {% else %}
+
                         <button
-                            onclick="toggle_follow_user()"
-                            class="quaternary red"
+                            onclick="toggle_follow_user(event)"
+                            class="quaternary red{% if not is_following %} hidden{% endif %}"
+                            atto_tag="user.unfollow"
                         >
                             {{ icon "user-minus" }}
                             <span>{{ text "auto:action.unfollow" }}</span>
                         </button>
-                        {% endif %}
 
                         <button
                             onclick="toggle_block_user()"
@@ -185,7 +189,11 @@
                         {% endif %}
 
                         <script>
-                            globalThis.toggle_follow_user = () => {
+                            globalThis.toggle_follow_user = async (e) => {
+                                await trigger("atto::debounce", [
+                                    "users::follow",
+                                ]);
+
                                 fetch(
                                     "/api/v1/auth/user/{{ profile.id }}/follow",
                                     {
@@ -198,6 +206,34 @@
                                             res.ok ? "success" : "error",
                                             res.message,
                                         ]);
+
+                                        if (
+                                            e.target.getAttribute(
+                                                "atto_tag",
+                                            ) === "user.follow"
+                                        ) {
+                                            document
+                                                .querySelector(
+                                                    '[atto_tag="user.follow"]',
+                                                )
+                                                .classList.add("hidden");
+                                            document
+                                                .querySelector(
+                                                    '[atto_tag="user.unfollow"]',
+                                                )
+                                                .classList.remove("hidden");
+                                        } else {
+                                            document
+                                                .querySelector(
+                                                    '[atto_tag="user.unfollow"]',
+                                                )
+                                                .classList.add("hidden");
+                                            document
+                                                .querySelector(
+                                                    '[atto_tag="user.follow"]',
+                                                )
+                                                .classList.remove("hidden");
+                                        }
                                     });
                             };
 
@@ -253,6 +289,16 @@
         </div>
     </div>
 </article>
-
-{% if not use_user_theme %} {{ components::theme(user=profile) }} {% endif %} {%
-endblock %}
+{% if not is_self %}
+<script>
+    setTimeout(() => {
+        // check for warning
+        trigger("warnings::open", [
+            "{{ profile.id }}",
+            "{{ warning_hash }}",
+            "?warning=true",
+        ]);
+    }, 150);
+</script>
+{% endif %} {% if not use_user_theme %} {{ components::theme(user=profile,
+theme_preference=profile.settings.profile_theme) }} {% endif %} {% endblock %}

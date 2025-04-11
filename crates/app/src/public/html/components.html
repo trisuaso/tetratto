@@ -163,7 +163,8 @@ show_community %}
                 {% endif %}
             </b>
 
-            {% if post.context.is_pinned %} {{ icon "pin" }} {% endif %}
+            {% if post.context.is_pinned or post.context.is_profile_pinned %} {{
+            icon "pin" }} {% endif %}
         </a>
     </div>
     {% endif %}
@@ -217,25 +218,28 @@ show_community %}
         </div>
 
         <div class="flex justify-between items-center gap-2 w-full">
-            {% if user %} {% if post.context.repost and
-            post.context.repost.reposting %}
-            <a
-                href="/post/{{ post.context.repost.reposting }}"
-                class="button small camo"
-            >
-                {{ icon "expand" }}
-                <span>{{ text "communities:label.expand_original" }}</span>
-            </a>
-            {% else %}
+            {% if user %}
             <div
                 class="flex gap-1 reactions_box"
                 hook="check_reactions"
                 hook-arg:id="{{ post.id }}"
             >
-                {{ components::likes(id=post.id, asset_type="Post",
-                likes=post.likes, dislikes=post.dislikes) }}
+                <!-- prettier-ignore -->
+                {% if post.content|length > 0 %}
+                    {{ components::likes(id=post.id, asset_type="Post", likes=post.likes, dislikes=post.dislikes) }}
+                {% endif %}
+
+                {% if post.context.repost and post.context.repost.reposting %}
+                <a
+                    href="/post/{{ post.context.repost.reposting }}"
+                    class="button small camo"
+                    title='{{ text "communities:label.expand_original" }}'
+                >
+                    {{ icon "expand" }}
+                </a>
+                {% endif %}
             </div>
-            {% endif %} {% else %}
+            {% else %}
             <div></div>
             {% endif %}
 
@@ -454,76 +458,8 @@ user.settings.private_last_online or is_helper %}
         </svg>
     </div>
 </div>
-{% endif %} {%- endmacro %} {% macro town_square_post_form() -%} {% if
-config.town_square and user %}
-<div class="card-nest">
-    <div class="card small flex flex-col">
-        <div class="flex items-center gap-2">
-            {{ icon "pencil" }}
-            <span>{{ text "communities:label.create_post" }}</span>
-        </div>
-
-        <span class="fade"
-            >Posts created here go to the
-            <a href="/api/v1/communities/find/{{ config.town_square }}"
-                >town square</a
-            >
-            community!</span
-        >
-    </div>
-
-    <form
-        class="card flex flex-col gap-2"
-        onsubmit="create_post_from_form_town_square(event)"
-    >
-        <div class="flex flex-col gap-1">
-            <label for="content">{{ text "communities:label.content" }}</label>
-            <textarea
-                type="text"
-                name="content"
-                id="content"
-                placeholder="content"
-                required
-                minlength="2"
-                maxlength="4096"
-            ></textarea>
-        </div>
-
-        <button class="primary">{{ text "communities:action.create" }}</button>
-    </form>
-</div>
-
-<script>
-    async function create_post_from_form_town_square(e) {
-        e.preventDefault();
-        await trigger("atto::debounce", ["posts::create"]);
-        fetch("/api/v1/posts", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                content: e.target.content.value,
-                community: "{{ config.town_square }}",
-            }),
-        })
-            .then((res) => res.json())
-            .then((res) => {
-                trigger("atto::toast", [
-                    res.ok ? "success" : "error",
-                    res.message,
-                ]);
-
-                if (res.ok) {
-                    setTimeout(() => {
-                        window.location.href = `/post/${res.payload}`;
-                    }, 100);
-                }
-            });
-    }
-</script>
-{% endif %} {%- endmacro %} {% macro theme(user) -%} {% if user %} {% if
-user.settings.theme_hue %}
+{% endif %} {%- endmacro %} {% macro theme(user, theme_preference) -%} {% if
+user %} {% if user.settings.theme_hue %}
 <style>
     :root, * {
         --hue: {{ user.settings.theme_hue }} !important;
@@ -542,10 +478,10 @@ user.settings.theme_hue %}
     }
 </style>
 
-{% if user.settings.theme_preference %}
+{% if theme_preference %}
 <script>
     function match_user_theme() {
-        const pref = "{{ user.settings.theme_preference }}".toLowerCase();
+        const pref = "{{ theme_preference }}".toLowerCase();
 
         if (pref === "auto") {
             return;
@@ -558,8 +494,38 @@ user.settings.theme_hue %}
         match_user_theme();
     }, 150);
 </script>
-{% endif %} {% endif %} {% endif %} {%- endmacro %} {% macro quote_form() -%} {%
-if config.town_square and user %}
+{% endif %} {% endif %}
+<!-- prettier-ignore -->
+<div style="display: none;">
+    {{ components::theme_color(color=user.settings.theme_color_surface, css="color-surface") }}
+    {{ components::theme_color(color=user.settings.theme_color_text, css="color-text") }}
+
+    {{ components::theme_color(color=user.settings.theme_color_lowered, css="color-lowered") }}
+    {{ components::theme_color(color=user.settings.theme_color_text_lowered, css="color-text-lowered") }}
+    {{ components::theme_color(color=user.settings.theme_color_super_lowered, css="color-super-lowered") }}
+
+    {{ components::theme_color(color=user.settings.theme_color_raised, css="color-raised") }}
+    {{ components::theme_color(color=user.settings.theme_color_text_raised, css="color-text-raised") }}
+    {{ components::theme_color(color=user.settings.theme_color_super_raised, css="color-super-raised") }}
+
+    {{ components::theme_color(color=user.settings.theme_color_primary, css="color-primary") }}
+    {{ components::theme_color(color=user.settings.theme_color_text_primary, css="color-text-primary") }}
+    {{ components::theme_color(color=user.settings.theme_color_primary_lowered, css="color-primary-lowered") }}
+
+    {{ components::theme_color(color=user.settings.theme_color_secondary, css="color-secondary") }}
+    {{ components::theme_color(color=user.settings.theme_color_text_secondary, css="color-text-secondary") }}
+    {{ components::theme_color(color=user.settings.theme_color_secondary_lowered, css="color-secondary-lowered") }}
+</div>
+{% endif %} {%- endmacro %} {% macro theme_color(color, css) -%} {% if color %}
+<!-- prettier-ignore -->
+<style>
+    :root,
+    * {
+        --{{ css }}: {{ color|color }} !important;
+    }
+</style>
+{% endif %} {%- endmacro %} {% macro quote_form() -%} {% if config.town_square
+and user %}
 <div class="card-nest">
     <div class="card small flex flex-col">
         <div class="flex items-center gap-2">

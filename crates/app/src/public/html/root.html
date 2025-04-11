@@ -298,26 +298,6 @@ macros -%}
             </div>
         </dialog>
 
-        <dialog id="town_square_post_dialog">
-            <div class="inner flex flex-col gap-2">
-                {{ components::town_square_post_form() }}
-
-                <div class="flex justify-between">
-                    <div></div>
-
-                    <div class="flex gap-2">
-                        <button
-                            class="bold red quaternary"
-                            onclick="document.getElementById('town_square_post_dialog').close()"
-                            type="button"
-                        >
-                            {{ icon "x" }} {{ text "dialog:action.close" }}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </dialog>
-
         <dialog id="quote_dialog">
             <div class="inner flex flex-col gap-2">
                 {{ components::quote_form() }}
@@ -338,6 +318,7 @@ macros -%}
             </div>
         </dialog>
         {% endif %} {% if user and use_user_theme %} {{
-        components::theme(user=user) }} {% endif %}
+        components::theme(user=user,
+        theme_preference=user.settings.theme_preference) }} {% endif %}
     </body>
 </html>

@@ -39,7 +39,7 @@
         <div class="flex nav_side">
             {% if user %}
             <a
-                href="javascript:document.getElementById('town_square_post_dialog').showModal()"
+                href="/communities/intents/post"
                 class="button"
                 title="Create post"
             >
@@ -163,6 +163,7 @@
         <span>{{ text "general:link.home" }}</span>
     </a>
 
+    {% if user %}
     <a
         href="/following"
         class="{% if selected == 'following' %}active{% endif %}"
@@ -170,6 +171,7 @@
         {{ icon "earth" }}
         <span>{{ text "general:link.following" }}</span>
     </a>
+    {% endif %}
 
     <a href="/popular" class="{% if selected == 'popular' %}active{% endif %}">
         {{ icon "trending-up" }}

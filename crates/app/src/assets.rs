@@ -45,6 +45,7 @@ pub const PROFILE_POSTS: &str = include_str!("./public/html/profile/posts.html")
 pub const PROFILE_SETTINGS: &str = include_str!("./public/html/profile/settings.html");
 pub const PROFILE_FOLLOWING: &str = include_str!("./public/html/profile/following.html");
 pub const PROFILE_FOLLOWERS: &str = include_str!("./public/html/profile/followers.html");
+pub const PROFILE_WARNING: &str = include_str!("./public/html/profile/warning.html");
 
 pub const COMMUNITIES_LIST: &str = include_str!("./public/html/communities/list.html");
 pub const COMMUNITIES_BASE: &str = include_str!("./public/html/communities/base.html");
@@ -53,6 +54,8 @@ pub const COMMUNITIES_POST: &str = include_str!("./public/html/communities/post.
 pub const COMMUNITIES_SETTINGS: &str = include_str!("./public/html/communities/settings.html");
 pub const COMMUNITIES_MEMBERS: &str = include_str!("./public/html/communities/members.html");
 pub const COMMUNITIES_SEARCH: &str = include_str!("./public/html/communities/search.html");
+pub const COMMUNITIES_CREATE_POST: &str =
+    include_str!("./public/html/communities/create_post.html");
 
 pub const TIMELINES_HOME: &str = include_str!("./public/html/timelines/home.html");
 pub const TIMELINES_FOLLOWING: &str = include_str!("./public/html/timelines/following.html");
@@ -174,6 +177,7 @@ pub(crate) async fn write_assets(config: &Config) -> PathBufD {
     write_template!(html_path->"profile/settings.html"(crate::assets::PROFILE_SETTINGS) --config=config);
     write_template!(html_path->"profile/following.html"(crate::assets::PROFILE_FOLLOWING) --config=config);
     write_template!(html_path->"profile/followers.html"(crate::assets::PROFILE_FOLLOWERS) --config=config);
+    write_template!(html_path->"profile/warning.html"(crate::assets::PROFILE_WARNING) --config=config);
 
     write_template!(html_path->"communities/list.html"(crate::assets::COMMUNITIES_LIST) -d "communities" --config=config);
     write_template!(html_path->"communities/base.html"(crate::assets::COMMUNITIES_BASE) --config=config);
@@ -182,6 +186,7 @@ pub(crate) async fn write_assets(config: &Config) -> PathBufD {
     write_template!(html_path->"communities/settings.html"(crate::assets::COMMUNITIES_SETTINGS) --config=config);
     write_template!(html_path->"communities/members.html"(crate::assets::COMMUNITIES_MEMBERS) --config=config);
     write_template!(html_path->"communities/search.html"(crate::assets::COMMUNITIES_SEARCH) --config=config);
+    write_template!(html_path->"communities/create_post.html"(crate::assets::COMMUNITIES_CREATE_POST) --config=config);
 
     write_template!(html_path->"timelines/home.html"(crate::assets::TIMELINES_HOME) -d "timelines" --config=config);
     write_template!(html_path->"timelines/following.html"(crate::assets::TIMELINES_FOLLOWING) --config=config);

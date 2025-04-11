@@ -2,19 +2,19 @@ use ammonia::Builder;
 use tetratto_core::model::{auth::UserSettings, communities::CommunityContext};
 
 /// Escape profile colors
-// pub fn color_escape(color: &&&String) -> String {
-//     remove_tags(
-//         &color
-//             .replace(";", "")
-//             .replace("<", "&lt;")
-//             .replace(">", "%gt;")
-//             .replace("}", "")
-//             .replace("{", "")
-//             .replace("url(\"", "url(\"/api/v0/util/ext/image?img=")
-//             .replace("url('", "url('/api/v0/util/ext/image?img=")
-//             .replace("url(https://", "url(/api/v0/util/ext/image?img=https://"),
-//     )
-// }
+pub fn color_escape(color: &str) -> String {
+    remove_tags(
+        &color
+            .replace(";", "")
+            .replace("<", "&lt;")
+            .replace(">", "%gt;")
+            .replace("}", "")
+            .replace("{", "")
+            .replace("url(\"", "url(\"/api/v0/util/ext/image?img=")
+            .replace("url('", "url('/api/v0/util/ext/image?img=")
+            .replace("url(https://", "url(/api/v0/util/ext/image?img=https://"),
+    )
+}
 
 /// Clean profile metadata
 pub fn remove_tags(input: &str) -> String {

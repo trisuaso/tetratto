@@ -1,4 +1,4 @@
-use super::{PaginatedQuery, render_error};
+use super::{render_error, PaginatedQuery, ProfileQuery};
 use crate::{assets::initial_context, get_lang, get_user_from_token, sanitize::clean_settings, State};
 use axum::{
     Extension,
@@ -9,6 +9,7 @@ use axum_extra::extract::CookieJar;
 use serde::Deserialize;
 use tera::Context;
 use tetratto_core::model::{Error, auth::User, communities::Community, permissions::FinePermission};
+use tetratto_shared::hash::hash;
 
 #[derive(Deserialize)]
 pub struct SettingsProps {
@@ -80,6 +81,7 @@ pub fn profile_context(
     context.insert("is_following", &is_following);
     context.insert("is_following_you", &is_following_you);
     context.insert("is_blocking", &is_blocking);
+    context.insert("warning_hash", &hash(profile.settings.warning.clone()));
 
     context.insert(
         "is_supporter",
@@ -99,7 +101,7 @@ pub fn profile_context(
 pub async fn posts_request(
     jar: CookieJar,
     Path(username): Path<String>,
-    Query(props): Query<PaginatedQuery>,
+    Query(props): Query<ProfileQuery>,
     Extension(data): Extension<State>,
 ) -> impl IntoResponse {
     let data = data.read().await;
@@ -144,6 +146,19 @@ pub async fn posts_request(
                 render_error(Error::NotAllowed, &jar, &data, &user).await,
             ));
         }
+    }
+
+    // check for warning
+    if props.warning {
+        let lang = get_lang!(jar, data.0);
+        let mut context = initial_context(&data.0.0, lang, &user).await;
+
+        context.insert("profile", &other_user);
+        context.insert("warning_hash", &hash(other_user.settings.warning.clone()));
+
+        return Ok(Html(
+            data.1.render("profile/warning.html", &context).unwrap(),
+        ));
     }
 
     // fetch data

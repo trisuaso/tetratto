@@ -1,0 +1,138 @@
+{% extends "root.html" %} {% block head %}
+<title>Create post - {{ config.name }}</title>
+{% endblock %} {% block body %} {{ macros::nav(selected="") }}
+<main class="flex flex-col gap-2">
+    <div class="card-nest">
+        <div class="card small flex items-center justify-between gap-2">
+            <span class="flex items-center gap-2">
+                {{ icon "pen" }}
+                <span>{{ text "communities:label.create_post" }}</span>
+            </span>
+
+            <button onclick="cancel_create_post()" class="quaternary small red">
+                {{ icon "x" }}
+                <span>{{ text "dialog:action.cancel" }}</span>
+            </button>
+        </div>
+
+        <div class="card tertiary">
+            <div class="card-nest">
+                <div class="card small flex flex-row gap-2 items-center">
+                    {{ components::community_avatar(id=config.town_square,
+                    community=false, size="32px") }}
+
+                    <select
+                        id="community_to_post_to"
+                        onchange="update_community_avatar(event)"
+                    >
+                        <option value="{{ config.town_square }}" selected>
+                            <!-- prettier-ignore -->
+                            {% if town_square.context.display_name %}
+                                {{ town_square.context.display_name }}
+                            {% else %}
+                                {{ town_square.title }}
+                            {% endif %}
+                        </option>
+
+                        {% for community in communities %}
+                        <option value="{{ community.id }}">
+                            <!-- prettier-ignore -->
+                            {% if community.context.display_name %}
+                                {{ community.context.display_name }}
+                            {% else %}
+                                {{ community.title }}
+                            {% endif %}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <form
+                    class="card flex flex-col gap-2"
+                    onsubmit="create_post_from_form_town_square(event)"
+                >
+                    <div class="flex flex-col gap-1">
+                        <label for="content"
+                            >{{ text "communities:label.content" }}</label
+                        >
+                        <textarea
+                            type="text"
+                            name="content"
+                            id="content"
+                            placeholder="content"
+                            required
+                            minlength="2"
+                            maxlength="4096"
+                        ></textarea>
+                    </div>
+
+                    <button class="primary">
+                        {{ text "communities:action.create" }}
+                    </button>
+                </form>
+            </div>
+
+            <script>
+                async function create_post_from_form_town_square(e) {
+                    e.preventDefault();
+                    await trigger("atto::debounce", ["posts::create"]);
+                    fetch("/api/v1/posts", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            content: e.target.content.value,
+                            community: document.getElementById(
+                                "community_to_post_to",
+                            ).selectedOptions[0].value,
+                        }),
+                    })
+                        .then((res) => res.json())
+                        .then((res) => {
+                            trigger("atto::toast", [
+                                res.ok ? "success" : "error",
+                                res.message,
+                            ]);
+
+                            if (res.ok) {
+                                setTimeout(() => {
+                                    window.location.href = `/post/${res.payload}`;
+                                }, 100);
+                            }
+                        });
+                }
+            </script>
+        </div>
+    </div>
+</main>
+
+<script>
+    function update_community_avatar(e) {
+        const element = e.target.parentElement.querySelector(".avatar");
+        const id = e.target.selectedOptions[0].value;
+
+        element.setAttribute("title", id);
+        element.setAttribute("alt", `${id}'s avatar`);
+
+        element.src = `/api/v1/communities/${id}/avatar`;
+    }
+
+    async function cancel_create_post() {
+        if (
+            !(await trigger("atto::confirm", [
+                "Are you sure you would like to do this? Your post content will be lost.",
+            ]))
+        ) {
+            return;
+        }
+
+        window.history.back();
+
+        setTimeout(() => {
+            // if we couldn't go back after 1 whole second, just go home
+            window.location.href = "/";
+        }, 1000);
+    }
+</script>
+{% endblock %}

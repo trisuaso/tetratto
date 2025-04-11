@@ -755,8 +755,18 @@ media_theme_pref();
     });
 
     self.define("render_settings_ui_field", (_, into_element, option) => {
+        if (option.input_element_type === "divider") {
+            into_element.innerHTML += `<hr class="margin" />`;
+            return;
+        }
+
         if (option.input_element_type === "title") {
             into_element.innerHTML += `<hr class="margin" /><b>${option.value}</b>`;
+            return;
+        }
+
+        if (option.input_element_type === "text") {
+            into_element.innerHTML += `<p>${option.value}</p>`;
             return;
         }
 
@@ -773,6 +783,36 @@ media_theme_pref();
                 />
 
                 <label for="${option.key}"><b>${option.label.replaceAll("_", " ")}</b></label>
+            </div>`;
+
+            return;
+        }
+
+        if (option.input_element_type === "color") {
+            into_element.innerHTML += `<div class="flex flex-col gap-2">
+                <label for="${option.key}"><b>${option.label.replaceAll("_", " ")}</b></label>
+
+                <div class="card flex flex-row gap-2">
+                    <input
+                        type="color"
+                        onchange="window.update_field_with_color('${option.key}', event.target.value)"
+                        value="${option.value}"
+                        id="${option.key}/color"
+                        style="width: 4rem"
+                    />
+
+                    <input
+                        type="text"
+                        onchange="window.set_setting_field('${option.key}', event.target.value); window.update_color_field('${option.key}', event.target.value)"
+                        placeholder="${option.key}"
+                        name="${option.key}"
+                        id="${option.key}"
+                        value="${option.value}"
+                        class="w-full"
+                    />
+                </div>
+
+                <span class="fade">${option.attributes.description}</span>
             </div>`;
 
             return;
@@ -805,6 +845,7 @@ ${option.input_element_type === "textarea" ? `${option.value}</textarea>` : ""}
                     label: Array.isArray(option[0]) ? option[0][1] : option[0],
                     value: option[1],
                     input_element_type: option[2],
+                    attributes: option[3],
                 });
             }
 
@@ -816,6 +857,43 @@ ${option.input_element_type === "textarea" ? `${option.value}</textarea>` : ""}
                 }
 
                 console.log("update", key);
+            };
+
+            window.preview_color = (key, value) => {
+                console.log("preview_color", key);
+                const stylesheet = document.getElementById(
+                    `${key}/color/preview`,
+                );
+
+                const css = `*, :root { --${key.replace("theme_", "").replace("_", "-")}: ${value} !important; }`;
+
+                if (stylesheet) {
+                    stylesheet.innerHTML = css;
+
+                    if (value === "") {
+                        console.log("remove_stylesheet", key);
+                        stylesheet.remove();
+                    }
+                } else {
+                    const stylesheet = document.createElement("style");
+                    stylesheet.innerHTML = css;
+                    stylesheet.id = `${key}/color/preview`;
+                    document.body.appendChild(stylesheet);
+                    console.log("create_stylesheet", key);
+                }
+            };
+
+            window.update_field_with_color = (key, value) => {
+                console.log("sync_color_text", key);
+                document.getElementById(key).value = value;
+                set_setting_field(key, value);
+                preview_color(key, value);
+            };
+
+            window.update_color_field = (key, value) => {
+                console.log("sync_color_color", key);
+                document.getElementById(`${key}/color`).value = value;
+                preview_color(key, value);
             };
         },
     );
@@ -891,4 +969,48 @@ ${option.input_element_type === "textarea" ? `${option.value}</textarea>` : ""}
             return get_permissions_html;
         },
     );
+})();
+
+(() => {
+    const self = reg_ns("warnings");
+
+    const accepted_warnings = JSON.parse(
+        window.localStorage.getItem("atto:accepted_warnings") || "{}",
+    );
+
+    self.define(
+        "open",
+        async ({ $ }, warning_id, warning_hash, warning_page = "") => {
+            // check localStorage for this warning_id
+            if (accepted_warnings[warning_id] !== undefined) {
+                // check hash
+                if (accepted_warnings[warning_id] !== warning_hash) {
+                    // hash is not the same, show dialog again
+                    delete accepted_warnings[warning_id];
+                } else {
+                    // return
+                    return;
+                }
+            }
+
+            // open page
+            if (warning_page !== "") {
+                window.location.href = warning_page;
+                return;
+            }
+        },
+    );
+
+    self.define("accept", ({ _ }, warning_id, warning_hash) => {
+        accepted_warnings[warning_id] = warning_hash;
+
+        window.localStorage.setItem(
+            "atto:accepted_warnings",
+            JSON.stringify(accepted_warnings),
+        );
+
+        setTimeout(() => {
+            window.history.back();
+        }, 100);
+    });
 })();

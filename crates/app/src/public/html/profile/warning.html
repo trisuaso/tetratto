@@ -1,0 +1,37 @@
+{% extends "root.html" %} {% block head %}
+<title>{{ profile.username }} (warning) - {{ config.name }}</title>
+{% endblock %} {% block body %} {{ macros::nav(selected="") }}
+<main class="flex flex-col gap-2">
+    <div class="card-nest">
+        <div class="card small flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+                {{ components::avatar(username=profile.username, size="24px") }}
+                <span>{{ profile.username }}</span>
+            </div>
+
+            <b class="notification chip"
+                >{{ text "auth:label.before_you_view" }}</b
+            >
+        </div>
+
+        <div class="card flex flex-col gap-2">
+            <span class="no_p_margin"
+                >{{ profile.settings.warning|markdown|safe }}</span
+            >
+            <div class="card w-full secondary flex gap-2">
+                <button
+                    onclick="trigger('warnings::accept', ['{{ profile.id }}', '{{ warning_hash }}'])"
+                >
+                    {{ icon "check" }}
+                    <span>{{ text "dialog:action.continue" }}</span>
+                </button>
+
+                <a href="/" class="button red quaternary">
+                    {{ icon "x" }}
+                    <span>{{ text "general:action.back" }}</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}
