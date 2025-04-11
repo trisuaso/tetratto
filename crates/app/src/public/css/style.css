@@ -167,7 +167,7 @@ p {
 
 @media screen and (min-width: 901px) {
     .name.shorter {
-        max-width: 215px;
+        max-width: 200px;
     }
 
     .name.lg\:long {
