@@ -355,7 +355,47 @@ impl DataManager {
         Ok(())
     }
 
-    auto_method!(update_community_title(String)@get_community_by_id_no_void:MANAGE_COMMUNITIES -> "UPDATE communities SET title = $1 WHERE id = $2" --cache-key-tmpl=cache_clear_community);
+    pub async fn update_community_title(&self, id: usize, user: User, title: &str) -> Result<()> {
+        let y = self.get_community_by_id(id).await?;
+
+        if user.id != y.owner {
+            if !user.permissions.check(FinePermission::MANAGE_COMMUNITIES) {
+                return Err(Error::NotAllowed);
+            } else {
+                self.create_audit_log_entry(crate::model::moderation::AuditLogEntry::new(
+                    user.id,
+                    format!("invoked `update_community_title` with x value `{id}`"),
+                ))
+                .await?
+            }
+        }
+
+        // check for existing community
+        if self.get_community_by_title_no_void(title).await.is_ok() {
+            return Err(Error::TitleInUse);
+        }
+
+        // ...
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = execute!(
+            &conn,
+            "UPDATE communities SET title = $1 WHERE id = $2",
+            params![&title, &(id as i64)]
+        );
+
+        if let Err(e) = res {
+            return Err(Error::DatabaseError(e.to_string()));
+        }
+
+        self.cache_clear_community(&y).await;
+
+        Ok(())
+    }
+
     auto_method!(update_community_context(CommunityContext)@get_community_by_id_no_void:MANAGE_COMMUNITIES -> "UPDATE communities SET context = $1 WHERE id = $2" --serde --cache-key-tmpl=cache_clear_community);
     auto_method!(update_community_read_access(CommunityReadAccess)@get_community_by_id_no_void:MANAGE_COMMUNITIES -> "UPDATE communities SET read_access = $1 WHERE id = $2" --serde --cache-key-tmpl=cache_clear_community);
     auto_method!(update_community_write_access(CommunityWriteAccess)@get_community_by_id_no_void:MANAGE_COMMUNITIES -> "UPDATE communities SET write_access = $1 WHERE id = $2" --serde --cache-key-tmpl=cache_clear_community);

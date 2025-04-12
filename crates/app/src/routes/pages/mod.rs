@@ -55,10 +55,7 @@ pub fn routes() -> Router {
             get(communities::create_post_request),
         )
         .route("/community/{title}", get(communities::feed_request))
-        .route(
-            "/community/{title}/manage",
-            get(communities::settings_request),
-        )
+        .route("/community/{id}/manage", get(communities::settings_request))
         .route(
             "/community/{title}/members",
             get(communities::members_request),

@@ -369,10 +369,10 @@ pub async fn feed_request(
     ))
 }
 
-/// `/community/{title}/manage`
+/// `/community/{id}/manage`
 pub async fn settings_request(
     jar: CookieJar,
-    Path(title): Path<String>,
+    Path(id): Path<usize>,
     Extension(data): Extension<State>,
 ) -> impl IntoResponse {
     let data = data.read().await;
@@ -385,7 +385,7 @@ pub async fn settings_request(
         }
     };
 
-    let community = match data.0.get_community_by_title(&title.to_lowercase()).await {
+    let community = match data.0.get_community_by_id_no_void(id).await {
         Ok(ua) => ua,
         Err(e) => return Err(Html(render_error(e, &jar, &data, &Some(user)).await)),
     };

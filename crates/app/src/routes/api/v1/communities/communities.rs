@@ -94,7 +94,7 @@ pub async fn update_title_request(
         None => return Json(Error::NotAllowed.into()),
     };
 
-    match data.update_community_title(id, user, req.title).await {
+    match data.update_community_title(id, user, &req.title).await {
         Ok(_) => Json(ApiReturn {
             ok: true,
             message: "Community updated".to_string(),

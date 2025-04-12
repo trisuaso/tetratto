@@ -31,6 +31,7 @@ pub enum Error {
     DataTooLong(String),
     DataTooShort(String),
     UsernameInUse,
+    TitleInUse,
     Unknown,
 }
 
@@ -49,6 +50,7 @@ impl ToString for Error {
             Self::DataTooLong(name) => format!("Given {name} is too long!"),
             Self::DataTooShort(name) => format!("Given {name} is too short!"),
             Self::UsernameInUse => "Username in use".to_string(),
+            Self::TitleInUse => "Title in use".to_string(),
             _ => format!("An unknown error as occurred: ({:?})", self),
         }
     }
