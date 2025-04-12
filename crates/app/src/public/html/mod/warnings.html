@@ -1,0 +1,132 @@
+{% extends "root.html" %} {% block head %}
+<title>User warnings - {{ config.name }}</title>
+{% endblock %} {% block body %} {{ macros::nav(selected="notifications") }}
+<main class="flex flex-col gap-2">
+    <div class="card-nest">
+        <div class="card small flex items-center justify-between gap-2">
+            <span class="flex items-center gap-2">
+                {{ icon "gavel" }}
+                <span>{{ text "mod_panel:label.create_warning" }}</span>
+            </span>
+
+            <a
+                href="/mod_panel/profile/{{ profile.id }}"
+                class="button quaternary small red"
+            >
+                {{ icon "x" }}
+                <span>{{ text "dialog:action.cancel" }}</span>
+            </a>
+        </div>
+
+        <form
+            class="card flex flex-col gap-2"
+            onsubmit="create_warning_from_form(event)"
+        >
+            <div class="flex flex-col gap-1">
+                <label for="content"
+                    >{{ text "communities:label.content" }}</label
+                >
+                <textarea
+                    type="text"
+                    name="content"
+                    id="content"
+                    placeholder="content"
+                    required
+                    minlength="2"
+                    maxlength="4096"
+                ></textarea>
+            </div>
+
+            <button class="primary">
+                {{ text "communities:action.create" }}
+            </button>
+        </form>
+    </div>
+
+    <div class="card-nest">
+        <div class="card small flex items-center justify-between gap-2">
+            <span class="flex items-center gap-2">
+                {{ icon "message-circle-warning" }}
+                <span>{{ text "mod_panel:label.warnings" }}</span>
+            </span>
+        </div>
+
+        <div class="card flex flex-col gap-4">
+            {% for item in items %}
+            <div class="card-nest">
+                <div class="card small flex items-center justify-between gap-2">
+                    <a
+                        class="flex items-center gap-2 flush"
+                        href="/api/v1/auth/user/find/{{ item.moderator }}"
+                        title="Moderator"
+                    >
+                        <!-- prettier-ignore -->
+                        {{ components::avatar(username=item.moderator, selector_type="id") }}
+                        <span>{{ item.moderator }}</span>
+
+                        <span class="fade date">{{ item.created }}</span>
+                    </a>
+
+                    <button
+                        class="small quaternary red"
+                        onclick="remove_warning('{{ item.id }}')"
+                    >
+                        {{ icon "trash" }}
+                        <span>{{ text "general:action.delete" }}</span>
+                    </button>
+                </div>
+
+                <div class="card secondary flex flex-col gap-2">
+                    <span class="no_p_margin"
+                        >{{ item.content|markdown|safe }}</span
+                    >
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- prettier-ignore -->
+            {{ components::pagination(page=page, items=items|length) }}
+        </div>
+    </div>
+</main>
+
+<script>
+    async function create_warning_from_form(e) {
+        e.preventDefault();
+        await trigger("atto::debounce", ["warnings::create"]);
+        fetch("/api/v1/warnings/{{ profile.id }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                content: e.target.content.value,
+            }),
+        })
+            .then((res) => res.json())
+            .then((res) => {
+                trigger("atto::toast", [
+                    res.ok ? "success" : "error",
+                    res.message,
+                ]);
+
+                if (res.ok) {
+                    e.target.reset();
+                }
+            });
+    }
+
+    function remove_warning(id) {
+        fetch(`/api/v1/warnings/${id}`, {
+            method: "DELETE",
+        })
+            .then((res) => res.json())
+            .then((res) => {
+                trigger("atto::toast", [
+                    res.ok ? "success" : "error",
+                    res.message,
+                ]);
+            });
+    }
+</script>
+{% endblock %}

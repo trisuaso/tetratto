@@ -162,6 +162,12 @@ pub fn routes() -> Router {
             "/auth/user/find_by_ip/{ip}",
             get(auth::profile::redirect_from_ip),
         )
+        // warnings
+        .route("/warnings/{id}", post(auth::user_warnings::create_request))
+        .route(
+            "/warnings/{id}",
+            delete(auth::user_warnings::delete_request),
+        )
         // notifications
         .route(
             "/notifications/my",
@@ -325,4 +331,9 @@ pub struct CreateIpBan {
 #[derive(Deserialize)]
 pub struct DisableTotp {
     pub totp: String,
+}
+
+#[derive(Deserialize)]
+pub struct CreateUserWarning {
+    pub content: String,
 }

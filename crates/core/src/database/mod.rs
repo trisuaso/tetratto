@@ -9,6 +9,7 @@ mod notifications;
 mod posts;
 mod reactions;
 mod reports;
+mod user_warnings;
 mod userblocks;
 mod userfollows;
 

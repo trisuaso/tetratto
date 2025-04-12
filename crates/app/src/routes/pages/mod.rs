@@ -35,6 +35,10 @@ pub fn routes() -> Router {
             "/mod_panel/profile/{id}",
             get(mod_panel::manage_profile_request),
         )
+        .route(
+            "/mod_panel/profile/{id}/warnings",
+            get(mod_panel::manage_profile_warnings_request),
+        )
         // auth
         .route("/auth/register", get(auth::register_request))
         .route("/auth/login", get(auth::login_request))

@@ -2,6 +2,7 @@ pub mod images;
 pub mod ipbans;
 pub mod profile;
 pub mod social;
+pub mod user_warnings;
 
 use super::{LoginProps, RegisterProps};
 use crate::{

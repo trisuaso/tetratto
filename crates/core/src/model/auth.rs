@@ -351,3 +351,28 @@ impl IpBan {
         }
     }
 }
+
+#[derive(Serialize, Deserialize)]
+pub struct UserWarning {
+    pub id: usize,
+    pub created: usize,
+    pub receiver: usize,
+    pub moderator: usize,
+    pub content: String,
+}
+
+impl UserWarning {
+    /// Create a new [`UserWarning`].
+    pub fn new(user: usize, moderator: usize, content: String) -> Self {
+        Self {
+            id: AlmostSnowflake::new(1234567890)
+                .to_string()
+                .parse::<usize>()
+                .unwrap(),
+            created: unix_epoch_timestamp() as usize,
+            receiver: user,
+            moderator,
+            content,
+        }
+    }
+}
