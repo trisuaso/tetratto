@@ -371,6 +371,7 @@ impl DataManager {
         }
 
         // check for existing community
+        let title = &title.to_lowercase();
         if self.get_community_by_title_no_void(title).await.is_ok() {
             return Err(Error::TitleInUse);
         }
