@@ -18,20 +18,15 @@
         <div class="card tertiary">
             <div class="card-nest">
                 <div class="card small flex flex-row gap-2 items-center">
-                    {{ components::community_avatar(id=config.town_square,
-                    community=false, size="32px") }}
+                    {{ components::avatar(username=user.id, size="32px",
+                    selector_type="id") }}
 
                     <select
                         id="community_to_post_to"
                         onchange="update_community_avatar(event)"
                     >
                         <option value="{{ config.town_square }}" selected>
-                            <!-- prettier-ignore -->
-                            {% if town_square.context.display_name %}
-                                {{ town_square.context.display_name }}
-                            {% else %}
-                                {{ town_square.title }}
-                            {% endif %}
+                            {{ text "auth:link.my_profile" }}
                         </option>
 
                         {% for community in communities %}
@@ -108,6 +103,9 @@
 </main>
 
 <script>
+    const town_square = "{{ config.town_square }}";
+    const user_id = "{{ user.id }}";
+
     function update_community_avatar(e) {
         const element = e.target.parentElement.querySelector(".avatar");
         const id = e.target.selectedOptions[0].value;
@@ -115,7 +113,11 @@
         element.setAttribute("title", id);
         element.setAttribute("alt", `${id}'s avatar`);
 
-        element.src = `/api/v1/communities/${id}/avatar`;
+        if (id === town_square) {
+            element.src = `/api/v1/auth/user/${user_id}/avatar?selector_type=id`;
+        } else {
+            element.src = `/api/v1/communities/${id}/avatar`;
+        }
     }
 
     async function cancel_create_post() {

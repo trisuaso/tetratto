@@ -219,11 +219,6 @@ pub async fn create_post_request(
         }
     };
 
-    let town_square = match data.0.get_community_by_id(data.0.0.town_square).await {
-        Ok(p) => p,
-        Err(e) => return Err(Html(render_error(e, &jar, &data, &Some(user)).await)),
-    };
-
     let memberships = match data.0.get_memberships_by_owner(user.id).await {
         Ok(p) => p,
         Err(e) => return Err(Html(render_error(e, &jar, &data, &Some(user)).await)),
@@ -246,8 +241,6 @@ pub async fn create_post_request(
 
     let lang = get_lang!(jar, data.0);
     let mut context = initial_context(&data.0.0, lang, &Some(user)).await;
-
-    context.insert("town_square", &town_square);
     context.insert("communities", &communities);
 
     // return

@@ -145,7 +145,7 @@ community=false, show_community=true, can_manage_post=false) -%}
 </div>
 {%- endmacro %} {% macro post(post, owner, secondary=false, community=false,
 show_community=true, can_manage_post=false) -%} {% if community and
-show_community %}
+show_community and community.id != config.town_square %}
 <div class="card-nest">
     <div class="card small">
         <a
@@ -207,6 +207,14 @@ show_community %}
                         style="color: var(--color-primary)"
                     >
                         {{ icon "repeat-2" }}
+                    </span>
+                    {% endif %} {% if post.community == config.town_square %}
+                    <span
+                        title="Posted to profile"
+                        class="flex items-center"
+                        style="color: var(--color-primary)"
+                    >
+                        {{ icon "user-round" }}
                     </span>
                     {% endif %}
                 </div>
@@ -329,7 +337,7 @@ show_community %}
             </div>
         </div>
     </div>
-    {% if community and show_community %}
+    {% if community and show_community and community.id != config.town_square %}
 </div>
 {% endif %} {%- endmacro %} {% macro notification(notification) -%}
 <div class="w-full card-nest">
@@ -418,7 +426,7 @@ show_community %}
     {% endif %}
 </div>
 {%- endmacro %} {% macro online_indicator(user) -%} {% if not
-user.settings.private_last_online or is_helper %}
+user.settings.private_last_seen or is_helper %}
 <div
     class="online_indicator"
     style="display: contents"
@@ -457,6 +465,17 @@ user.settings.private_last_online or is_helper %}
             <circle cx="12" cy="12" r="6"></circle>
         </svg>
     </div>
+</div>
+{% else %}
+<div title="Offline" style="display: contents">
+    <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        style="fill: hsl(0, 0%, 50%)"
+    >
+        <circle cx="12" cy="12" r="6"></circle>
+    </svg>
 </div>
 {% endif %} {%- endmacro %} {% macro theme(user, theme_preference) -%} {% if
 user %} {% if user.settings.theme_hue %}
