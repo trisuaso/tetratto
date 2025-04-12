@@ -534,6 +534,10 @@ user %} {% if user.settings.theme_hue %}
     {{ components::theme_color(color=user.settings.theme_color_secondary, css="color-secondary") }}
     {{ components::theme_color(color=user.settings.theme_color_text_secondary, css="color-text-secondary") }}
     {{ components::theme_color(color=user.settings.theme_color_secondary_lowered, css="color-secondary-lowered") }}
+
+    {% if user.permissions|has_supporter %}
+    <style>{{ user.settings.theme_custom_css }}</style>
+    {% endif %}
 </div>
 {% endif %} {%- endmacro %} {% macro theme_color(color, css) -%} {% if color %}
 <!-- prettier-ignore -->

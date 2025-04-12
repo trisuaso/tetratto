@@ -308,7 +308,13 @@ impl DataManager {
     /// # Arguments
     /// * `batch` - the limit of posts in each page
     /// * `page` - the page number
-    pub async fn get_popular_posts(&self, batch: usize, page: usize) -> Result<Vec<Post>> {
+    /// * `cutoff` - the maximum number of milliseconds ago the post could have been created
+    pub async fn get_popular_posts(
+        &self,
+        batch: usize,
+        page: usize,
+        cutoff: usize,
+    ) -> Result<Vec<Post>> {
         let conn = match self.connect().await {
             Ok(c) => c,
             Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
@@ -316,7 +322,37 @@ impl DataManager {
 
         let res = query_rows!(
             &conn,
-            "SELECT * FROM posts WHERE replying_to = 0 AND NOT context LIKE '%\"is_nsfw\":true%' ORDER BY likes DESC, created ASC LIMIT $1 OFFSET $2",
+            "SELECT * FROM posts WHERE replying_to = 0 AND NOT context LIKE '%\"is_nsfw\":true%' AND ($1 - created) < $2 ORDER BY likes DESC, created ASC LIMIT $3 OFFSET $4",
+            &[
+                &(unix_epoch_timestamp() as i64),
+                &(cutoff as i64),
+                &(batch as i64),
+                &((page * batch) as i64)
+            ],
+            |x| { Self::get_post_from_row(x) }
+        );
+
+        if res.is_err() {
+            return Err(Error::GeneralNotFound("post".to_string()));
+        }
+
+        Ok(res.unwrap())
+    }
+
+    /// Get posts from all communities, sorted by creation.
+    ///
+    /// # Arguments
+    /// * `batch` - the limit of posts in each page
+    /// * `page` - the page number
+    pub async fn get_latest_posts(&self, batch: usize, page: usize) -> Result<Vec<Post>> {
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = query_rows!(
+            &conn,
+            "SELECT * FROM posts WHERE replying_to = 0 AND NOT context LIKE '%\"is_nsfw\":true%' ORDER BY created DESC LIMIT $1 OFFSET $2",
             &[&(batch as i64), &((page * batch) as i64)],
             |x| { Self::get_post_from_row(x) }
         );

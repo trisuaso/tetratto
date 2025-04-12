@@ -62,6 +62,35 @@ pub async fn index_request(
     Html(data.1.render("timelines/home.html", &context).unwrap())
 }
 
+/// `/popular`
+pub async fn popular_request(
+    jar: CookieJar,
+    Extension(data): Extension<State>,
+    Query(req): Query<PaginatedQuery>,
+) -> impl IntoResponse {
+    let data = data.read().await;
+    let user = get_user_from_token!(jar, data.0);
+
+    let list = match data.0.get_popular_posts(12, req.page, 604_800_000).await {
+        Ok(l) => match data
+            .0
+            .fill_posts_with_community(l, if let Some(ref ua) = user { ua.id } else { 0 })
+            .await
+        {
+            Ok(l) => l,
+            Err(e) => return Html(render_error(e, &jar, &data, &user).await),
+        },
+        Err(e) => return Html(render_error(e, &jar, &data, &user).await),
+    };
+
+    let lang = get_lang!(jar, data.0);
+    let mut context = initial_context(&data.0.0, lang, &user).await;
+
+    context.insert("list", &list);
+    context.insert("page", &req.page);
+    Html(data.1.render("timelines/popular.html", &context).unwrap())
+}
+
 /// `/following`
 pub async fn following_request(
     jar: CookieJar,
@@ -100,8 +129,8 @@ pub async fn following_request(
     ))
 }
 
-/// `/popular`
-pub async fn popular_request(
+/// `/all`
+pub async fn all_request(
     jar: CookieJar,
     Extension(data): Extension<State>,
     Query(req): Query<PaginatedQuery>,
@@ -109,7 +138,7 @@ pub async fn popular_request(
     let data = data.read().await;
     let user = get_user_from_token!(jar, data.0);
 
-    let list = match data.0.get_popular_posts(12, req.page).await {
+    let list = match data.0.get_latest_posts(12, req.page).await {
         Ok(l) => match data
             .0
             .fill_posts_with_community(l, if let Some(ref ua) = user { ua.id } else { 0 })
@@ -126,7 +155,7 @@ pub async fn popular_request(
 
     context.insert("list", &list);
     context.insert("page", &req.page);
-    Html(data.1.render("timelines/popular.html", &context).unwrap())
+    Html(data.1.render("timelines/all.html", &context).unwrap())
 }
 
 /// `/notifs`

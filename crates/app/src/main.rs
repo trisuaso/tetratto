@@ -5,6 +5,7 @@ mod routes;
 mod sanitize;
 
 use assets::{init_dirs, write_assets};
+use tetratto_core::model::permissions::FinePermission;
 pub use tetratto_core::*;
 
 use axum::{Extension, Router};
@@ -24,6 +25,13 @@ fn render_markdown(value: &Value, _: &HashMap<String, Value>) -> tera::Result<Va
 
 fn color_escape(value: &Value, _: &HashMap<String, Value>) -> tera::Result<Value> {
     Ok(sanitize::color_escape(value.as_str().unwrap()).into())
+}
+
+fn check_supporter(value: &Value, _: &HashMap<String, Value>) -> tera::Result<Value> {
+    Ok(FinePermission::from_bits(value.as_u64().unwrap() as u32)
+        .unwrap()
+        .check(FinePermission::SUPPORTER)
+        .into())
 }
 
 #[tokio::main]
@@ -46,6 +54,7 @@ async fn main() {
     let mut tera = Tera::new(&format!("{html_path}/**/*")).unwrap();
     tera.register_filter("markdown", render_markdown);
     tera.register_filter("color", color_escape);
+    tera.register_filter("has_supporter", check_supporter);
 
     let client = Client::new();
 

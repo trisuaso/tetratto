@@ -120,8 +120,13 @@ pub struct UserSettings {
     /// Hover state for secondary buttons.
     #[serde(default)]
     pub theme_color_secondary_lowered: String,
+    /// Custom CSS input.
+    #[serde(default)]
+    pub theme_custom_css: String,
     #[serde(default)]
     pub disable_other_themes: bool,
+    #[serde(default)]
+    pub disable_other_theme_css: bool,
 }
 
 impl Default for User {

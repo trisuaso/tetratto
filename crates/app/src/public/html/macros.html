@@ -163,19 +163,24 @@
         <span>{{ text "general:link.home" }}</span>
     </a>
 
+    <a href="/popular" class="{% if selected == 'popular' %}active{% endif %}">
+        {{ icon "trending-up" }}
+        <span>{{ text "general:link.popular" }}</span>
+    </a>
+
     {% if user %}
     <a
         href="/following"
         class="{% if selected == 'following' %}active{% endif %}"
     >
-        {{ icon "earth" }}
+        {{ icon "rss" }}
         <span>{{ text "general:link.following" }}</span>
     </a>
-    {% endif %}
 
-    <a href="/popular" class="{% if selected == 'popular' %}active{% endif %}">
-        {{ icon "trending-up" }}
-        <span>{{ text "general:link.popular" }}</span>
+    <a href="/all" class="{% if selected == 'all' %}active{% endif %}">
+        {{ icon "earth" }}
+        <span>{{ text "general:link.all" }}</span>
     </a>
+    {% endif %}
 </div>
 {%- endmacro %}

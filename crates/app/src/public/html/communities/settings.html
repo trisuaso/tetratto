@@ -3,17 +3,20 @@
 {% endblock %} {% block body %} {{ macros::nav() }}
 <main class="flex flex-col gap-2">
     <div class="pillmenu">
-        <a href="#/general" data-tab-button="general" class="active"
-            >{{ text "settings:tab.general" }}</a
-        >
+        <a href="#/general" data-tab-button="general" class="active">
+            {{ icon "settings" }}
+            <span>{{ text "settings:tab.general" }}</span>
+        </a>
 
-        <a href="#/profile" data-tab-button="profile"
-            >{{ text "settings:tab.profile" }}</a
-        >
+        <a href="#/images" data-tab-button="images">
+            {{ icon "image" }}
+            <span>{{ text "settings:tab.images" }}</span>
+        </a>
 
-        <a href="#/members" data-tab-button="members"
-            >{{ text "communities:tab.members" }}</a
-        >
+        <a href="#/members" data-tab-button="members">
+            {{ icon "users-round" }}
+            <span>{{ text "communities:tab.members" }}</span>
+        </a>
     </div>
 
     <div class="w-full flex flex-col gap-2" data-tab="general">
@@ -159,7 +162,7 @@
 
     <div
         class="card tertiary w-full hidden flex flex-col gap-2"
-        data-tab="profile"
+        data-tab="images"
     >
         <div class="card-nest" ui_ident="change_avatar">
             <div class="card small">
