@@ -477,8 +477,7 @@ user %} {% if user.settings.theme_hue %}
         --lit: {{ user.settings.theme_lit }} !important;
     }
 </style>
-
-{% if theme_preference %}
+{% endif %} {% if theme_preference %}
 <script>
     function match_user_theme() {
         const pref = "{{ theme_preference }}".toLowerCase();
@@ -494,11 +493,12 @@ user %} {% if user.settings.theme_hue %}
         match_user_theme();
     }, 150);
 </script>
-{% endif %} {% endif %}
+{% endif %}
 <!-- prettier-ignore -->
 <div style="display: none;">
     {{ components::theme_color(color=user.settings.theme_color_surface, css="color-surface") }}
     {{ components::theme_color(color=user.settings.theme_color_text, css="color-text") }}
+    {{ components::theme_color(color=user.settings.theme_color_text_link, css="color-link") }}
 
     {{ components::theme_color(color=user.settings.theme_color_lowered, css="color-lowered") }}
     {{ components::theme_color(color=user.settings.theme_color_text_lowered, css="color-text-lowered") }}

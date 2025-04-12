@@ -81,6 +81,9 @@ pub struct UserSettings {
     /// Text on elements with the surface backgrounds.
     #[serde(default)]
     pub theme_color_text: String,
+    /// Links on all elements.
+    #[serde(default)]
+    pub theme_color_text_link: String,
     /// Some cards, buttons, or anything else with a darker background color than the surface.
     #[serde(default)]
     pub theme_color_lowered: String,

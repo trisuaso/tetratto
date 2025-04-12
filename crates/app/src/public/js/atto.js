@@ -44,6 +44,10 @@ media_theme_pref();
     self.OBSERVERS = [];
 
     // ...
+    self.define("use_theme_preference", () => {
+        media_theme_pref();
+    });
+
     self.define("try_use", (_, ns_name, callback) => {
         // attempt to get existing namespace
         if (globalThis._app_base.ns_store[`$${ns_name}`]) {

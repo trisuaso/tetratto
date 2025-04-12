@@ -319,6 +319,12 @@ macros -%}
         </dialog>
         {% endif %} {% if user and use_user_theme %} {{
         components::theme(user=user,
-        theme_preference=user.settings.theme_preference) }} {% endif %}
+        theme_preference=user.settings.theme_preference) }}
+        <script>
+            setTimeout(() => {
+                trigger("atto::use_theme_preference");
+            }, 150);
+        </script>
+        {% endif %}
     </body>
 </html>
