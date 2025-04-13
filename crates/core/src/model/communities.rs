@@ -176,6 +176,8 @@ pub struct PostContext {
     /// The ID of the question this post is answering.
     #[serde(default)]
     pub answering: usize,
+    #[serde(default = "default_reactions_enabled")]
+    pub reactions_enabled: bool,
 }
 
 fn default_comments_enabled() -> bool {
@@ -186,17 +188,22 @@ fn default_reposts_enabled() -> bool {
     true
 }
 
+fn default_reactions_enabled() -> bool {
+    true
+}
+
 impl Default for PostContext {
     fn default() -> Self {
         Self {
             comments_enabled: default_comments_enabled(),
-            reposts_enabled: true,
+            reposts_enabled: default_reposts_enabled(),
             is_pinned: false,
             is_profile_pinned: false,
             edited: 0,
             is_nsfw: false,
             repost: None,
             answering: 0,
+            reactions_enabled: default_reactions_enabled(),
         }
     }
 }

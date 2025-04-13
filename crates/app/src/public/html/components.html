@@ -235,8 +235,10 @@ and show_community and community.id != config.town_square or question %}
                 hook-arg:id="{{ post.id }}"
             >
                 <!-- prettier-ignore -->
-                {% if post.content|length > 0 %}
-                    {{ components::likes(id=post.id, asset_type="Post", likes=post.likes, dislikes=post.dislikes) }}
+                {% if post.context.reactions_enabled %}
+                    {% if post.content|length > 0 %}
+                        {{ components::likes(id=post.id, asset_type="Post", likes=post.likes, dislikes=post.dislikes) }}
+                    {% endif %}
                 {% endif %}
 
                 {% if post.context.repost and post.context.repost.reposting %}
@@ -617,7 +619,10 @@ show_community=true, secondary=false) -%}
             </span>
 
             {% if question.community > 0 and show_community %}
-            <a href="/api/v1/communities/find/{{ question.community }}">
+            <a
+                href="/api/v1/communities/find/{{ question.community }}"
+                class="flex items-center"
+            >
                 {{ components::community_avatar(id=question.community,
                 size="24px") }}
             </a>
