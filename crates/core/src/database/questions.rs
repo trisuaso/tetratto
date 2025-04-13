@@ -128,6 +128,121 @@ impl DataManager {
         Ok(res.unwrap())
     }
 
+    /// Get all global questions by the given user's following.
+    pub async fn get_questions_from_user_following(
+        &self,
+        id: usize,
+        batch: usize,
+        page: usize,
+    ) -> Result<Vec<Question>> {
+        let following = self.get_userfollows_by_initiator_all(id).await?;
+        let mut following = following.iter();
+        let first = match following.next() {
+            Some(f) => f,
+            None => return Ok(Vec::new()),
+        };
+
+        let mut query_string: String = String::new();
+
+        for user in following {
+            query_string.push_str(&format!(" OR owner = {}", user.receiver));
+        }
+
+        // ...
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = query_rows!(
+            &conn,
+            &format!(
+                "SELECT * FROM questions WHERE (owner = {} {query_string}) AND is_global = 1 ORDER BY created DESC LIMIT $1 OFFSET $2",
+                first.receiver
+            ),
+            &[&(batch as i64), &((page * batch) as i64)],
+            |x| { Self::get_question_from_row(x) }
+        );
+
+        if res.is_err() {
+            return Err(Error::GeneralNotFound("question".to_string()));
+        }
+
+        Ok(res.unwrap())
+    }
+
+    /// Get all global questions posted in the given user's communities.
+    pub async fn get_questions_from_user_communities(
+        &self,
+        id: usize,
+        batch: usize,
+        page: usize,
+    ) -> Result<Vec<Question>> {
+        let memberships = self.get_memberships_by_owner(id).await?;
+        let mut memberships = memberships.iter();
+        let first = match memberships.next() {
+            Some(f) => f,
+            None => return Ok(Vec::new()),
+        };
+
+        let mut query_string: String = String::new();
+
+        for membership in memberships {
+            query_string.push_str(&format!(" OR community = {}", membership.community));
+        }
+
+        // ...
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = query_rows!(
+            &conn,
+            &format!(
+                "SELECT * FROM questions WHERE (community = {} {query_string}) AND is_global = 1 ORDER BY created DESC LIMIT $1 OFFSET $2",
+                first.community
+            ),
+            &[&(batch as i64), &((page * batch) as i64)],
+            |x| { Self::get_question_from_row(x) }
+        );
+
+        if res.is_err() {
+            return Err(Error::GeneralNotFound("question".to_string()));
+        }
+
+        Ok(res.unwrap())
+    }
+
+    /// Get global questions from all communities, sorted by creation.
+    ///
+    /// # Arguments
+    /// * `batch` - the limit of questions in each page
+    /// * `page` - the page number
+    pub async fn get_latest_global_questions(
+        &self,
+        batch: usize,
+        page: usize,
+    ) -> Result<Vec<Question>> {
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = query_rows!(
+            &conn,
+            "SELECT * FROM questions WHERE is_global = 1 ORDER BY created DESC LIMIT $1 OFFSET $2",
+            &[&(batch as i64), &((page * batch) as i64)],
+            |x| { Self::get_question_from_row(x) }
+        );
+
+        if res.is_err() {
+            return Err(Error::GeneralNotFound("question".to_string()));
+        }
+
+        Ok(res.unwrap())
+    }
+
     /// Create a new question in the database.
     ///
     /// # Arguments
@@ -248,6 +363,17 @@ impl DataManager {
             // requests are also deleted when a post is created answering the given question
             // (unless the question is global)
             self.delete_request(y.owner, y.id, user).await?;
+        }
+
+        // delete all posts answering question
+        let res = execute!(
+            &conn,
+            "DELETE FROM posts WHERE context LIKE $1",
+            &[&format!("%\"answering\":{id}%")]
+        );
+
+        if let Err(e) = res {
+            return Err(Error::DatabaseError(e.to_string()));
         }
 
         // return

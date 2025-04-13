@@ -193,6 +193,27 @@
             });
     });
 
+    self.define("remove_question", async (_, id) => {
+        if (
+            !(await trigger("atto::confirm", [
+                "Are you sure you want to do this?",
+            ]))
+        ) {
+            return;
+        }
+
+        fetch(`/api/v1/questions/${id}`, {
+            method: "DELETE",
+        })
+            .then((res) => res.json())
+            .then((res) => {
+                trigger("atto::toast", [
+                    res.ok ? "success" : "error",
+                    res.message,
+                ]);
+            });
+    });
+
     // token switcher
     self.define(
         "set_login_account_tokens",

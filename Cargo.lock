@@ -3155,7 +3155,7 @@ dependencies = [
 
 [[package]]
 name = "tetratto"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "ammonia",
  "axum",
@@ -3180,7 +3180,7 @@ dependencies = [
 
 [[package]]
 name = "tetratto-core"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "async-recursion",
  "bb8-postgres",
@@ -3199,7 +3199,7 @@ dependencies = [
 
 [[package]]
 name = "tetratto-l10n"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "pathbufd",
  "serde",
@@ -3208,7 +3208,7 @@ dependencies = [
 
 [[package]]
 name = "tetratto-shared"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "ammonia",
  "chrono",

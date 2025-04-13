@@ -3,7 +3,8 @@
 {% endblock %} {% block body %} {{ macros::nav(selected="home") }}
 <main class="flex flex-col gap-2">
     <!-- prettier-ignore -->
-    {{ macros::timelines_nav(selected="home") }}
+    {{ macros::timelines_nav(selected="home") }} {{
+    macros::timelines_secondary_nav(posts="/", questions="/questions") }}
 
     {% if list|length == 0 and page == 0 %}
     <div class="card-nest">

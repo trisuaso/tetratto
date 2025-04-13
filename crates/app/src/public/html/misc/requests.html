@@ -69,7 +69,7 @@
 
                     <div class="flex gap-2">
                         <button class="primary">{{ text "requests:label.answer" }}</button>
-                        <button class="red quaternary" onclick="remove_question('{{ question[0].id }}')">{{ text "general:action.delete" }}</button>
+                        <button class="red quaternary" onclick="trigger('me::remove_question', ['{{ question[0].id }}'])">{{ text "general:action.delete" }}</button>
                     </div>
                 </form>
              </div>
@@ -110,27 +110,6 @@
         }
 
         fetch("/api/v1/requests/my", {
-            method: "DELETE",
-        })
-            .then((res) => res.json())
-            .then((res) => {
-                trigger("atto::toast", [
-                    res.ok ? "success" : "error",
-                    res.message,
-                ]);
-            });
-    }
-
-    async function remove_question(id) {
-        if (
-            !(await trigger("atto::confirm", [
-                "Are you sure you want to do this?",
-            ]))
-        ) {
-            return;
-        }
-
-        fetch(`/api/v1/questions/${id}`, {
             method: "DELETE",
         })
             .then((res) => res.json())

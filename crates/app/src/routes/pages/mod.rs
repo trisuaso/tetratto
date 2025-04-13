@@ -16,11 +16,19 @@ use crate::{assets::initial_context, get_lang};
 
 pub fn routes() -> Router {
     Router::new()
-        // misc
+        // timelines
         .route("/", get(misc::index_request))
         .route("/popular", get(misc::popular_request))
         .route("/following", get(misc::following_request))
         .route("/all", get(misc::all_request))
+        // question timelines
+        .route("/questions", get(misc::index_questions_request))
+        .route(
+            "/following/questions",
+            get(misc::following_questions_request),
+        )
+        .route("/all/questions", get(misc::all_questions_request))
+        // misc
         .route("/notifs", get(misc::notifications_request))
         .route("/requests", get(misc::requests_request))
         .route("/doc/{*file_name}", get(misc::markdown_document_request))

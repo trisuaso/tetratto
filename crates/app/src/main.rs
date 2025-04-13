@@ -14,7 +14,7 @@ use tera::{Tera, Value};
 use tower_http::trace::{self, TraceLayer};
 use tracing::{Level, info};
 
-use std::{collections::HashMap, env::var, sync::Arc};
+use std::{collections::HashMap, env::var, process::exit, sync::Arc};
 use tokio::sync::RwLock;
 
 pub(crate) type State = Arc<RwLock<(DataManager, Tera, Client)>>;
@@ -51,7 +51,14 @@ async fn main() {
     let database = DataManager::new(config.clone()).await.unwrap();
     database.init().await.unwrap();
 
-    let mut tera = Tera::new(&format!("{html_path}/**/*")).unwrap();
+    let mut tera = match Tera::new(&format!("{html_path}/**/*")) {
+        Ok(t) => t,
+        Err(e) => {
+            println!("{e}");
+            exit(1);
+        }
+    };
+
     tera.register_filter("markdown", render_markdown);
     tera.register_filter("color", color_escape);
     tera.register_filter("has_supporter", check_supporter);

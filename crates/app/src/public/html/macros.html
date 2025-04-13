@@ -185,8 +185,24 @@
     </a>
     {% endif %}
 </div>
-{%- endmacro %} {% macro community_nav(community, selected="") -%} {% if
-community.context.enable_questions %}
+{%- endmacro %} {% macro timelines_secondary_nav(posts="", questions="",
+selected="posts") -%} {% if user %}
+<div class="pillmenu w-full">
+    <a href="{{ posts }}" class="{% if selected == 'posts' %}active{% endif %}">
+        {{ icon "newspaper" }}
+        <span>{{ text "communities:label.posts" }}</span>
+    </a>
+
+    <a
+        href="{{ questions }}"
+        class="{% if selected == 'questions' %}active{% endif %}"
+    >
+        {{ icon "message-circle-heart" }}
+        <span>{{ text "communities:label.questions" }}</span>
+    </a>
+</div>
+{% endif %} {%- endmacro %} {% macro community_nav(community, selected="") -%}
+{% if community.context.enable_questions %}
 <div class="pillmenu">
     <a
         href="/community/{{ community.title }}"

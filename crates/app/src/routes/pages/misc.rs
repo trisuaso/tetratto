@@ -158,6 +158,113 @@ pub async fn all_request(
     Html(data.1.render("timelines/all.html", &context).unwrap())
 }
 
+/// `/questions`
+pub async fn index_questions_request(
+    jar: CookieJar,
+    Extension(data): Extension<State>,
+    Query(req): Query<PaginatedQuery>,
+) -> impl IntoResponse {
+    let data = data.read().await;
+    let user = match get_user_from_token!(jar, data.0) {
+        Some(ua) => ua,
+        None => {
+            return Html(render_error(Error::NotAllowed, &jar, &data, &None).await);
+        }
+    };
+
+    let list = match data
+        .0
+        .get_questions_from_user_communities(user.id, 12, req.page)
+        .await
+    {
+        Ok(l) => match data.0.fill_questions(l).await {
+            Ok(l) => l,
+            Err(e) => return Html(render_error(e, &jar, &data, &Some(user)).await),
+        },
+        Err(e) => return Html(render_error(e, &jar, &data, &Some(user)).await),
+    };
+
+    let lang = get_lang!(jar, data.0);
+    let mut context = initial_context(&data.0.0, lang, &Some(user)).await;
+
+    context.insert("list", &list);
+    context.insert("page", &req.page);
+    Html(
+        data.1
+            .render("timelines/home_questions.html", &context)
+            .unwrap(),
+    )
+}
+
+/// `/following/questions`
+pub async fn following_questions_request(
+    jar: CookieJar,
+    Extension(data): Extension<State>,
+    Query(req): Query<PaginatedQuery>,
+) -> impl IntoResponse {
+    let data = data.read().await;
+    let user = match get_user_from_token!(jar, data.0) {
+        Some(ua) => ua,
+        None => {
+            return Err(Html(
+                render_error(Error::NotAllowed, &jar, &data, &None).await,
+            ));
+        }
+    };
+
+    let list = match data
+        .0
+        .get_questions_from_user_following(user.id, 12, req.page)
+        .await
+    {
+        Ok(l) => match data.0.fill_questions(l).await {
+            Ok(l) => l,
+            Err(e) => return Err(Html(render_error(e, &jar, &data, &Some(user)).await)),
+        },
+        Err(e) => return Err(Html(render_error(e, &jar, &data, &Some(user)).await)),
+    };
+
+    let lang = get_lang!(jar, data.0);
+    let mut context = initial_context(&data.0.0, lang, &Some(user)).await;
+
+    context.insert("list", &list);
+    context.insert("page", &req.page);
+    Ok(Html(
+        data.1
+            .render("timelines/following_questions.html", &context)
+            .unwrap(),
+    ))
+}
+
+/// `/all/questions`
+pub async fn all_questions_request(
+    jar: CookieJar,
+    Extension(data): Extension<State>,
+    Query(req): Query<PaginatedQuery>,
+) -> impl IntoResponse {
+    let data = data.read().await;
+    let user = get_user_from_token!(jar, data.0);
+
+    let list = match data.0.get_latest_global_questions(12, req.page).await {
+        Ok(l) => match data.0.fill_questions(l).await {
+            Ok(l) => l,
+            Err(e) => return Html(render_error(e, &jar, &data, &user).await),
+        },
+        Err(e) => return Html(render_error(e, &jar, &data, &user).await),
+    };
+
+    let lang = get_lang!(jar, data.0);
+    let mut context = initial_context(&data.0.0, lang, &user).await;
+
+    context.insert("list", &list);
+    context.insert("page", &req.page);
+    Html(
+        data.1
+            .render("timelines/all_questions.html", &context)
+            .unwrap(),
+    )
+}
+
 /// `/notifs`
 pub async fn notifications_request(
     jar: CookieJar,

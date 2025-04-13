@@ -698,4 +698,36 @@ is_global=false) -%}
             });
     }
 </script>
+{%- endmacro %} {% macro global_question(question, can_manage_questions=false,
+secondary=false) -%}
+<div class="card-nest">
+    {{ components::question(question=question[0], owner=question[1],
+    show_community=false) }}
+
+    <div
+        class="card flex flex-wrap gap-2{% if secondary %} secondary{% endif %}"
+    >
+        <a
+            href="/question/{{ question[0].id }}"
+            class="button quaternary small"
+        >
+            {{ icon "external-link" }} {% if user %}
+            <span>{{ text "requests:label.answer" }}</span>
+            {% else %}
+            <span>{{ text "general:action.open" }}</span>
+            {% endif %}
+        </a>
+
+        {% if user %} {% if can_manage_questions or is_helper or question[1].id
+        == user.id %}
+        <button
+            class="quaternary small red"
+            onclick="trigger('me::remove_question', ['{{ question[0].id }}'])"
+        >
+            {{ icon "trash" }}
+            <span>{{ text "general:action.delete" }}</span>
+        </button>
+        {% endif %} {% endif %}
+    </div>
+</div>
 {%- endmacro %}

@@ -20,60 +20,11 @@
         <div class="card tertiary flex flex-col gap-4">
             <!-- prettier-ignore -->
             {% for question in feed %}
-            <div class="card-nest">
-                {{ components::question(question=question[0], owner=question[1],
-                show_community=false) }}
+                {{ components::global_question(question=question, can_manage_questions=can_manage_questions) }}
+            {% endfor %}
 
-                <div class="card flex flex-wrap gap-2">
-                    <a
-                        href="/question/{{ question[0].id }}"
-                        class="button quaternary small"
-                    >
-                        {{ icon "external-link" }} {% if user %}
-                        <span>{{ text "requests:label.answer" }}</span>
-                        {% else %}
-                        <span>{{ text "general:action.open" }}</span>
-                        {% endif %}
-                    </a>
-
-                    {% if user %} {% if can_manage_questions or is_helper or
-                    question[1].id == user.id %}
-                    <button
-                        class="quaternary small red"
-                        onclick="remove_question('{{ question[0].id }}')"
-                    >
-                        {{ icon "trash" }}
-                        <span>{{ text "general:action.delete" }}</span>
-                    </button>
-                    {% endif %} {% endif %}
-                </div>
-            </div>
-            {% endfor %} {{ components::pagination(page=page, items=feed|length)
-            }}
+            {{ components::pagination(page=page, items=feed|length) }}
         </div>
     </div>
 </div>
-
-<script>
-    async function remove_question(id) {
-        if (
-            !(await trigger("atto::confirm", [
-                "Are you sure you want to do this?",
-            ]))
-        ) {
-            return;
-        }
-
-        fetch(`/api/v1/questions/${id}`, {
-            method: "DELETE",
-        })
-            .then((res) => res.json())
-            .then((res) => {
-                trigger("atto::toast", [
-                    res.ok ? "success" : "error",
-                    res.message,
-                ]);
-            });
-    }
-</script>
 {% endblock %}

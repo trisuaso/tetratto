@@ -104,6 +104,7 @@ impl DataManager {
     /// Get the question of a given post.
     pub async fn get_post_question(&self, post: &Post) -> Result<Option<(Question, User)>> {
         if post.context.answering != 0 {
+            dbg!(&post.context.answering);
             let question = self.get_question_by_id(post.context.answering).await?;
             let user = self.get_user_by_id_with_void(question.owner).await?;
             Ok(Some((question, user)))
@@ -483,6 +484,7 @@ impl DataManager {
             query_string.push_str(&format!(" OR community = {}", membership.community));
         }
 
+        // ...
         let conn = match self.connect().await {
             Ok(c) => c,
             Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
@@ -530,6 +532,7 @@ impl DataManager {
             query_string.push_str(&format!(" OR owner = {}", user.receiver));
         }
 
+        // ...
         let conn = match self.connect().await {
             Ok(c) => c,
             Err(e) => return Err(Error::DatabaseConnection(e.to_string())),

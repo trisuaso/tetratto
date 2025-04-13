@@ -1,0 +1,18 @@
+{% extends "root.html" %} {% block head %}
+<title>Following (questions) - {{ config.name }}</title>
+{% endblock %} {% block body %} {{ macros::nav() }}
+<main class="flex flex-col gap-2">
+    {{ macros::timelines_nav(selected="following") }} {{
+    macros::timelines_secondary_nav(posts="/following",
+    questions="/following/questions", selected="questions") }}
+
+    <!-- prettier-ignore -->
+    <div class="card w-full flex flex-col gap-2">
+        {% for question in list %}
+            {{ components::global_question(question=question, can_manage_questions=false, secondary=true) }}
+        {% endfor %}
+
+        {{ components::pagination(page=page, items=list|length) }}
+    </div>
+</main>
+{% endblock %}
