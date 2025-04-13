@@ -66,10 +66,11 @@ community %}
     {% if user.settings.display_name %} {{ user.settings.display_name }} {% else
     %} {{ user.username }} {% endif %}
 </div>
-{%- endmacro %} {% macro likes(id, asset_type, likes=0, dislikes=0) -%}
+{%- endmacro %} {% macro likes(id, asset_type, likes=0, dislikes=0,
+secondary=false) -%}
 <button
     title="Like"
-    class="camo small"
+    class="{% if secondary %}quaternary{% else %}camo{% endif %} small"
     hook_element="reaction.like"
     onclick="trigger('me::react', [event.target, '{{ id }}', '{{ asset_type }}', true])"
 >
@@ -80,7 +81,7 @@ community %}
 
 <button
     title="Dislike"
-    class="camo small"
+    class="{% if secondary %}quaternary{% else %}camo{% endif %} small"
     hook_element="reaction.dislike"
     onclick="trigger('me::react', [event.target, '{{ id }}', '{{ asset_type }}', false])"
 >
@@ -705,29 +706,50 @@ secondary=false, show_community=true) -%}
     show_community=show_community) }}
 
     <div
-        class="card flex flex-wrap gap-2{% if secondary %} secondary{% endif %}"
+        class="small card flex justify-between flex-wrap gap-2{% if secondary %} secondary{% endif %}"
     >
-        <a
-            href="/question/{{ question[0].id }}"
-            class="button quaternary small"
+        <div
+            class="flex gap-1 reactions_box"
+            hook="check_reactions"
+            hook-arg:id="{{ question[0].id }}"
         >
-            {{ icon "external-link" }} {% if user %}
-            <span>{{ text "requests:label.answer" }}</span>
-            {% else %}
-            <span>{{ text "general:action.open" }}</span>
-            {% endif %}
-        </a>
+            {{ components::likes(id=question[0].id, asset_type="Question",
+            likes=question[0].likes, dislikes=question[0].dislikes,
+            secondary=false) }}
+        </div>
 
-        {% if user %} {% if can_manage_questions or is_helper or question[1].id
-        == user.id %}
-        <button
-            class="quaternary small red"
-            onclick="trigger('me::remove_question', ['{{ question[0].id }}'])"
-        >
-            {{ icon "trash" }}
-            <span>{{ text "general:action.delete" }}</span>
-        </button>
-        {% endif %} {% endif %}
+        <div class="flex gap-1 buttons_box">
+            <a href="/question/{{ question[0].id }}" class="button small">
+                {{ icon "external-link" }} {% if user %}
+                <span>{{ text "requests:label.answer" }}</span>
+                {% else %}
+                <span>{{ text "general:action.open" }}</span>
+                {% endif %}
+            </a>
+
+            {% if user %} {% if can_manage_questions or is_helper or
+            question[1].id == user.id %}
+            <div class="dropdown">
+                <button
+                    class="camo small"
+                    onclick="trigger('atto::hooks::dropdown', [event])"
+                    exclude="dropdown"
+                >
+                    {{ icon "ellipsis" }}
+                </button>
+
+                <div class="inner">
+                    <button
+                        class="camo small red"
+                        onclick="trigger('me::remove_question', ['{{ question[0].id }}'])"
+                    >
+                        {{ icon "trash" }}
+                        <span>{{ text "general:action.delete" }}</span>
+                    </button>
+                </div>
+            </div>
+            {% endif %} {% endif %}
+        </div>
     </div>
 </div>
 {%- endmacro %}

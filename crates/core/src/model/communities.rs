@@ -302,6 +302,11 @@ pub struct Question {
     /// The ID of the community this question is asked to. This should only be > 0
     /// if `is_global` is set to true.
     pub community: usize,
+    // likes
+    #[serde(default)]
+    pub likes: isize,
+    #[serde(default)]
+    pub dislikes: isize,
 }
 
 impl Question {
@@ -319,6 +324,8 @@ impl Question {
             is_global,
             answer_count: 0,
             community: 0,
+            likes: 0,
+            dislikes: 0,
         }
     }
 }

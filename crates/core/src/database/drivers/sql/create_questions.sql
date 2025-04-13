@@ -6,5 +6,8 @@ CREATE TABLE IF NOT EXISTS questions (
     content TEXT NOT NULL,
     is_global INT NOT NULL,
     answer_count INT NOT NULL,
-    community BIGINT NOT NULL
+    community BIGINT NOT NULL,
+    -- likes
+    likes INT NOT NULL,
+    dislikes INT NOT NULL
 )

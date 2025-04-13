@@ -33,6 +33,9 @@ impl DataManager {
             is_global: get!(x->5(i32)) as i8 == 1,
             answer_count: get!(x->6(i32)) as usize,
             community: get!(x->7(i64)) as usize,
+            // likes
+            likes: get!(x->8(i32)) as isize,
+            dislikes: get!(x->9(i32)) as isize,
         }
     }
 
@@ -283,7 +286,7 @@ impl DataManager {
 
         let res = execute!(
             &conn,
-            "INSERT INTO questions VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+            "INSERT INTO questions VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
             params![
                 &(data.id as i64),
                 &(data.created as i64),
@@ -292,7 +295,9 @@ impl DataManager {
                 &data.content,
                 &{ if data.is_global { 1 } else { 0 } },
                 &0_i32,
-                &(data.community as i64)
+                &(data.community as i64),
+                &0_i32,
+                &0_i32
             ]
         );
 
@@ -396,4 +401,9 @@ impl DataManager {
 
     auto_method!(incr_question_answer_count() -> "UPDATE questions SET answer_count = answer_count + 1 WHERE id = $1" --cache-key-tmpl="atto.question:{}" --incr);
     auto_method!(decr_question_answer_count() -> "UPDATE questions SET answer_count = answer_count - 1 WHERE id = $1" --cache-key-tmpl="atto.question:{}" --decr);
+
+    auto_method!(incr_question_likes() -> "UPDATE questions SET likes = likes + 1 WHERE id = $1" --cache-key-tmpl="atto.question:{}" --incr);
+    auto_method!(incr_question_dislikes() -> "UPDATE questions SET dislikes = dislikes + 1 WHERE id = $1" --cache-key-tmpl="atto.question:{}" --incr);
+    auto_method!(decr_question_likes() -> "UPDATE questions SET likes = likes - 1 WHERE id = $1" --cache-key-tmpl="atto.question:{}" --decr);
+    auto_method!(decr_question_dislikes() -> "UPDATE questions SET dislikes = dislikes - 1 WHERE id = $1" --cache-key-tmpl="atto.question:{}" --decr);
 }

@@ -125,14 +125,39 @@ impl DataManager {
                     let post = self.get_post_by_id(data.asset).await.unwrap();
 
                     if post.owner != user.id {
+                        self.create_notification(Notification::new(
+                            "Your post has received a like!".to_string(),
+                            format!(
+                                "[@{}](/api/v1/auth/user/find/{}) has liked your [post](/post/{})!",
+                                user.username, user.id, data.asset
+                            ),
+                            post.owner,
+                        ))
+                        .await?
+                    }
+                }
+            }
+            AssetType::Question => {
+                if let Err(e) = {
+                    if data.is_like {
+                        self.incr_question_likes(data.asset).await
+                    } else {
+                        self.incr_question_dislikes(data.asset).await
+                    }
+                } {
+                    return Err(e);
+                } else if data.is_like {
+                    let question = self.get_question_by_id(data.asset).await.unwrap();
+
+                    if question.owner != user.id {
                         self
                             .create_notification(Notification::new(
-                                "Your post has received a like!".to_string(),
+                                "Your question has received a like!".to_string(),
                                 format!(
-                                    "[@{}](/api/v1/auth/user/find/{}) has liked your [post](/post/{})!",
+                                    "[@{}](/api/v1/auth/user/find/{}) has liked your [question](/question/{})!",
                                     user.username, user.id, data.asset
                                 ),
-                                post.owner,
+                                question.owner,
                             ))
                             .await?
                     }
@@ -174,23 +199,26 @@ impl DataManager {
         // decr corresponding
         match reaction.asset_type {
             AssetType::Community => {
-                {
-                    if reaction.is_like {
-                        self.decr_community_likes(reaction.asset).await
-                    } else {
-                        self.decr_community_dislikes(reaction.asset).await
-                    }
-                }?
-            }
+                if reaction.is_like {
+                    self.decr_community_likes(reaction.asset).await
+                } else {
+                    self.decr_community_dislikes(reaction.asset).await
+                }
+            }?,
             AssetType::Post => {
-                {
-                    if reaction.is_like {
-                        self.decr_post_likes(reaction.asset).await
-                    } else {
-                        self.decr_post_dislikes(reaction.asset).await
-                    }
-                }?
-            }
+                if reaction.is_like {
+                    self.decr_post_likes(reaction.asset).await
+                } else {
+                    self.decr_post_dislikes(reaction.asset).await
+                }
+            }?,
+            AssetType::Question => {
+                if reaction.is_like {
+                    self.decr_question_likes(reaction.asset).await
+                } else {
+                    self.decr_question_dislikes(reaction.asset).await
+                }
+            }?,
             AssetType::User => {
                 return Err(Error::NotAllowed);
             }

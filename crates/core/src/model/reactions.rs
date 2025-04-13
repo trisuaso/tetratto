@@ -8,6 +8,8 @@ pub enum AssetType {
     Community,
     #[serde(alias = "post")]
     Post,
+    #[serde(alias = "question")]
+    Question,
     #[serde(alias = "user")]
     User,
 }
