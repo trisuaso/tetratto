@@ -35,6 +35,7 @@ pub const MISC_INDEX: &str = include_str!("./public/html/misc/index.html");
 pub const MISC_ERROR: &str = include_str!("./public/html/misc/error.html");
 pub const MISC_NOTIFICATIONS: &str = include_str!("./public/html/misc/notifications.html");
 pub const MISC_MARKDOWN: &str = include_str!("./public/html/misc/markdown.html");
+pub const MISC_REQUESTS: &str = include_str!("./public/html/misc/requests.html");
 
 pub const AUTH_BASE: &str = include_str!("./public/html/auth/base.html");
 pub const AUTH_LOGIN: &str = include_str!("./public/html/auth/login.html");
@@ -56,6 +57,8 @@ pub const COMMUNITIES_MEMBERS: &str = include_str!("./public/html/communities/me
 pub const COMMUNITIES_SEARCH: &str = include_str!("./public/html/communities/search.html");
 pub const COMMUNITIES_CREATE_POST: &str =
     include_str!("./public/html/communities/create_post.html");
+pub const COMMUNITIES_QUESTION: &str = include_str!("./public/html/communities/question.html");
+pub const COMMUNITIES_QUESTIONS: &str = include_str!("./public/html/communities/questions.html");
 
 pub const TIMELINES_HOME: &str = include_str!("./public/html/timelines/home.html");
 pub const TIMELINES_POPULAR: &str = include_str!("./public/html/timelines/popular.html");
@@ -169,6 +172,7 @@ pub(crate) async fn write_assets(config: &Config) -> PathBufD {
     write_template!(html_path->"misc/error.html"(crate::assets::MISC_ERROR) --config=config);
     write_template!(html_path->"misc/notifications.html"(crate::assets::MISC_NOTIFICATIONS) --config=config);
     write_template!(html_path->"misc/markdown.html"(crate::assets::MISC_MARKDOWN) --config=config);
+    write_template!(html_path->"misc/requests.html"(crate::assets::MISC_REQUESTS) --config=config);
 
     write_template!(html_path->"auth/base.html"(crate::assets::AUTH_BASE) -d "auth" --config=config);
     write_template!(html_path->"auth/login.html"(crate::assets::AUTH_LOGIN) --config=config);
@@ -189,6 +193,8 @@ pub(crate) async fn write_assets(config: &Config) -> PathBufD {
     write_template!(html_path->"communities/members.html"(crate::assets::COMMUNITIES_MEMBERS) --config=config);
     write_template!(html_path->"communities/search.html"(crate::assets::COMMUNITIES_SEARCH) --config=config);
     write_template!(html_path->"communities/create_post.html"(crate::assets::COMMUNITIES_CREATE_POST) --config=config);
+    write_template!(html_path->"communities/question.html"(crate::assets::COMMUNITIES_QUESTION) --config=config);
+    write_template!(html_path->"communities/questions.html"(crate::assets::COMMUNITIES_QUESTIONS) --config=config);
 
     write_template!(html_path->"timelines/home.html"(crate::assets::TIMELINES_HOME) -d "timelines" --config=config);
     write_template!(html_path->"timelines/popular.html"(crate::assets::TIMELINES_POPULAR) --config=config);

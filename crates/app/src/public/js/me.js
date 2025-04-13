@@ -109,7 +109,7 @@
             });
     });
 
-    self.define("update_notification_read_statsu", (_, id, read) => {
+    self.define("update_notification_read_status", (_, id, read) => {
         fetch(`/api/v1/notifications/${id}/read_status`, {
             method: "POST",
             headers: {

@@ -1,7 +1,8 @@
 {% import "components.html" as components %} {% extends "communities/base.html"
 %} {% block content %}
 <div class="flex flex-col gap-4 w-full">
-    {% if user and can_post %}
+    {{ macros::community_nav(community=community, selected="posts") }} {% if
+    user and can_post %}
     <div class="card-nest">
         <div class="card small flex items-center gap-2">
             {{ icon "pencil" }}
@@ -45,7 +46,7 @@
                 {% if post[0].context.repost and post[0].context.repost.reposting %}
                     {{ components::repost(repost=post[2], post=post[0], owner=post[1], secondary=true, show_community=false, can_manage_post=can_manage_posts) }}
                 {% else %}
-                    {{ components::post(post=post[0], owner=post[1], secondary=true, show_community=false, can_manage_post=can_manage_posts) }}
+                    {{ components::post(post=post[0], owner=post[1], question=post[3], secondary=true, show_community=false, can_manage_post=can_manage_posts) }}
                 {% endif %}
             {% endfor %}
         </div>
@@ -64,7 +65,7 @@
                 {% if post[0].context.repost and post[0].context.repost.reposting %}
                     {{ components::repost(repost=post[2], post=post[0], owner=post[1], secondary=true, show_community=false, can_manage_post=can_manage_posts) }}
                 {% else %}
-                    {{ components::post(post=post[0], owner=post[1], secondary=true, show_community=false, can_manage_post=can_manage_posts) }}
+                    {{ components::post(post=post[0], owner=post[1], question=post[3], secondary=true, show_community=false, can_manage_post=can_manage_posts) }}
                 {% endif %}
             {% endfor %}
 

@@ -362,6 +362,93 @@ pub async fn feed_request(
     ))
 }
 
+/// `/community/{title}/questions`
+pub async fn questions_request(
+    jar: CookieJar,
+    Path(title): Path<String>,
+    Query(props): Query<PaginatedQuery>,
+    Extension(data): Extension<State>,
+) -> impl IntoResponse {
+    let data = data.read().await;
+    let user = get_user_from_token!(jar, data.0);
+
+    let community = match data.0.get_community_by_title(&title.to_lowercase()).await {
+        Ok(ua) => ua,
+        Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
+    };
+
+    if community.id == 0 {
+        // don't show page for void community
+        return Err(Html(
+            render_error(
+                Error::GeneralNotFound("community".to_string()),
+                &jar,
+                &data,
+                &user,
+            )
+            .await,
+        ));
+    }
+
+    if !community.context.enable_questions {
+        return Err(Html(
+            render_error(Error::NotAllowed, &jar, &data, &user).await,
+        ));
+    }
+
+    // check permissions
+    let (can_read, _) = check_permissions!(community, jar, data, user);
+
+    // ...
+    let feed = match data
+        .0
+        .get_questions_by_community(community.id, 12, props.page)
+        .await
+    {
+        Ok(p) => match data.0.fill_questions(p).await {
+            Ok(p) => p,
+            Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
+        },
+        Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
+    };
+
+    // init context
+    let lang = get_lang!(jar, data.0);
+    let mut context = initial_context(&data.0.0, lang, &user).await;
+
+    let (
+        is_owner,
+        is_joined,
+        is_pending,
+        can_post,
+        can_manage_posts,
+        can_manage_community,
+        can_manage_roles,
+    ) = community_context_bools!(data, user, community);
+
+    context.insert("feed", &feed);
+    context.insert("page", &props.page);
+    community_context(
+        &mut context,
+        &community,
+        is_owner,
+        is_joined,
+        is_pending,
+        can_post,
+        can_read,
+        can_manage_posts,
+        can_manage_community,
+        can_manage_roles,
+    );
+
+    // return
+    Ok(Html(
+        data.1
+            .render("communities/questions.html", &context)
+            .unwrap(),
+    ))
+}
+
 /// `/community/{id}/manage`
 pub async fn settings_request(
     jar: CookieJar,
@@ -440,26 +527,12 @@ pub async fn post_request(
     };
 
     // check repost
-    let reposting = if let Some(ref repost) = post.context.repost {
-        if let Some(reposting) = repost.reposting {
-            let mut x = match data.0.get_post_by_id(reposting).await {
-                Ok(p) => p,
-                Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
-            };
+    let reposting = data.0.get_post_reposting(&post).await;
 
-            x.mark_as_repost();
-            Some((
-                match data.0.get_user_by_id(x.owner).await {
-                    Ok(ua) => ua,
-                    Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
-                },
-                x,
-            ))
-        } else {
-            None
-        }
-    } else {
-        None
+    // check question
+    let question = match data.0.get_post_question(&post).await {
+        Ok(q) => q,
+        Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
     };
 
     // check permissions
@@ -490,6 +563,7 @@ pub async fn post_request(
 
     context.insert("post", &post);
     context.insert("reposting", &reposting);
+    context.insert("question", &question);
     context.insert("replies", &feed);
     context.insert("page", &props.page);
     context.insert(
@@ -610,5 +684,98 @@ pub async fn members_request(
     // return
     Ok(Html(
         data.1.render("communities/members.html", &context).unwrap(),
+    ))
+}
+
+/// `/question/{id}`
+pub async fn question_request(
+    jar: CookieJar,
+    Path(id): Path<usize>,
+    Query(props): Query<PaginatedQuery>,
+    Extension(data): Extension<State>,
+) -> impl IntoResponse {
+    let data = data.read().await;
+    let user = get_user_from_token!(jar, data.0);
+
+    let question = match data.0.get_question_by_id(id).await {
+        Ok(p) => p,
+        Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
+    };
+
+    let community = match data.0.get_community_by_id(question.community).await {
+        Ok(c) => c,
+        Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
+    };
+
+    let has_answered = if let Some(ref ua) = user {
+        data.0
+            .get_post_by_owner_question(ua.id, question.id)
+            .await
+            .is_ok()
+    } else {
+        false
+    };
+
+    // check permissions
+    let (can_read, _) = check_permissions!(community, jar, data, user);
+
+    // ...
+    let feed = match data
+        .0
+        .get_posts_by_question(question.id, 12, props.page)
+        .await
+    {
+        Ok(p) => match data.0.fill_posts(p).await {
+            Ok(p) => p,
+            Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
+        },
+        Err(e) => return Err(Html(render_error(e, &jar, &data, &user).await)),
+    };
+
+    // init context
+    let lang = get_lang!(jar, data.0);
+    let mut context = initial_context(&data.0.0, lang, &user).await;
+
+    let (
+        is_owner,
+        is_joined,
+        is_pending,
+        can_post,
+        can_manage_posts,
+        can_manage_community,
+        can_manage_roles,
+    ) = community_context_bools!(data, user, community);
+
+    context.insert("question", &question);
+    context.insert("replies", &feed);
+    context.insert("page", &props.page);
+    context.insert(
+        "owner",
+        &data
+            .0
+            .get_user_by_id(question.owner)
+            .await
+            .unwrap_or(User::deleted()),
+    );
+    context.insert("has_answered", &has_answered);
+
+    community_context(
+        &mut context,
+        &community,
+        is_owner,
+        is_joined,
+        is_pending,
+        can_post,
+        can_read,
+        can_manage_posts,
+        can_manage_community,
+        can_manage_roles,
+    );
+
+    // return
+    Ok(Html(
+        data.1
+            .render("communities/question.html", &context)
+            .unwrap(),
     ))
 }

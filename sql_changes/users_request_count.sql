@@ -1,0 +1,2 @@
+ALTER TABLE users
+ADD COLUMN request_count INT NOT NULL DEFAULT 0;

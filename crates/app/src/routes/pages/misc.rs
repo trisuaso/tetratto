@@ -6,7 +6,7 @@ use axum::{
     Extension,
 };
 use axum_extra::extract::CookieJar;
-use tetratto_core::model::Error;
+use tetratto_core::model::{requests::ActionType, Error};
 use std::fs::read_to_string;
 use pathbufd::PathBufD;
 
@@ -186,6 +186,59 @@ pub async fn notifications_request(
     Ok(Html(
         data.1.render("misc/notifications.html", &context).unwrap(),
     ))
+}
+
+/// `/requests`
+pub async fn requests_request(
+    jar: CookieJar,
+    Extension(data): Extension<State>,
+) -> impl IntoResponse {
+    let data = data.read().await;
+    let user = match get_user_from_token!(jar, data.0) {
+        Some(ua) => ua,
+        None => {
+            return Err(Html(
+                render_error(Error::NotAllowed, &jar, &data, &None).await,
+            ));
+        }
+    };
+
+    let requests = match data.0.get_requests_by_owner(user.id).await {
+        Ok(p) => p,
+        Err(e) => return Err(Html(render_error(e, &jar, &data, &Some(user)).await)),
+    };
+
+    let questions = match data
+        .0
+        .fill_questions({
+            let mut q = Vec::new();
+
+            for req in &requests {
+                if req.action_type != ActionType::Answer {
+                    continue;
+                }
+
+                q.push(match data.0.get_question_by_id(req.linked_asset).await {
+                    Ok(p) => p,
+                    Err(e) => return Err(Html(render_error(e, &jar, &data, &Some(user)).await)),
+                });
+            }
+
+            q
+        })
+        .await
+    {
+        Ok(q) => q,
+        Err(e) => return Err(Html(render_error(e, &jar, &data, &Some(user)).await)),
+    };
+
+    let lang = get_lang!(jar, data.0);
+    let mut context = initial_context(&data.0.0, lang, &Some(user)).await;
+    context.insert("requests", &requests);
+    context.insert("questions", &questions);
+
+    // return
+    Ok(Html(data.1.render("misc/requests.html", &context).unwrap()))
 }
 
 /// `/doc/{file_name}`

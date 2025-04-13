@@ -51,7 +51,7 @@ impl DataManager {
     /// Create a new notification in the database.
     ///
     /// # Arguments
-    /// * `data` - a mock [`Reaction`] object to insert
+    /// * `data` - a mock [`Notification`] object to insert
     pub async fn create_notification(&self, data: Notification) -> Result<()> {
         let conn = match self.connect().await {
             Ok(c) => c,
@@ -85,7 +85,9 @@ impl DataManager {
     pub async fn delete_notification(&self, id: usize, user: &User) -> Result<()> {
         let notification = self.get_notification_by_id(id).await?;
 
-        if user.id != notification.owner && !user.permissions.check(FinePermission::MANAGE_NOTIFICATIONS) {
+        if user.id != notification.owner
+            && !user.permissions.check(FinePermission::MANAGE_NOTIFICATIONS)
+        {
             return Err(Error::NotAllowed);
         }
 
@@ -121,7 +123,9 @@ impl DataManager {
         let notifications = self.get_notifications_by_owner(user.id).await?;
 
         for notification in notifications {
-            if user.id != notification.owner && !user.permissions.check(FinePermission::MANAGE_NOTIFICATIONS) {
+            if user.id != notification.owner
+                && !user.permissions.check(FinePermission::MANAGE_NOTIFICATIONS)
+            {
                 return Err(Error::NotAllowed);
             }
 

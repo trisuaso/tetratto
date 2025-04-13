@@ -1,5 +1,9 @@
-{% extends "profile/base.html" %} {% block content %} {% if pinned|length != 0
-%}
+{% extends "profile/base.html" %} {% block content %} {% if
+profile.settings.enable_questions and user %}
+<div style="display: contents">
+    {{ components::create_question_form(receiver=profile.id) }}
+</div>
+{% endif %} {% if pinned|length != 0 %}
 <div class="card-nest">
     <div class="card small flex gap-2 items-center">
         {{ icon "pin" }}
@@ -12,7 +16,7 @@
             {% if post[0].context.repost and post[0].context.repost.reposting %}
                 {{ components::repost(repost=post[3], post=post[0], owner=post[1], secondary=true, community=post[2], show_community=true, can_manage_post=is_self) }}
             {% else %}
-                {{ components::post(post=post[0], owner=post[1], secondary=true, community=post[2], can_manage_post=is_self) }}
+                {{ components::post(post=post[0], owner=post[1], question=post[4], secondary=true, community=post[2], can_manage_post=is_self) }}
             {% endif %}
         {% endfor %}
     </div>
@@ -31,7 +35,7 @@
             {% if post[0].context.repost and post[0].context.repost.reposting %}
                 {{ components::repost(repost=post[3], post=post[0], owner=post[1], secondary=true, community=post[2], show_community=true, can_manage_post=is_self) }}
             {% else %}
-                {{ components::post(post=post[0], owner=post[1], secondary=true, community=post[2], can_manage_post=is_self) }}
+                {{ components::post(post=post[0], owner=post[1], question=post[4], secondary=true, community=post[2], can_manage_post=is_self) }}
             {% endif %}
         {% endfor %}
 

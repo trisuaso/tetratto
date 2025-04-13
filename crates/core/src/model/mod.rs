@@ -4,6 +4,7 @@ pub mod communities_permissions;
 pub mod moderation;
 pub mod permissions;
 pub mod reactions;
+pub mod requests;
 
 use serde::{Deserialize, Serialize};
 
@@ -32,6 +33,7 @@ pub enum Error {
     DataTooShort(String),
     UsernameInUse,
     TitleInUse,
+    QuestionsDisabled,
     Unknown,
 }
 
@@ -51,6 +53,7 @@ impl ToString for Error {
             Self::DataTooShort(name) => format!("Given {name} is too short!"),
             Self::UsernameInUse => "Username in use".to_string(),
             Self::TitleInUse => "Title in use".to_string(),
+            Self::QuestionsDisabled => "You are not allowed to ask questions there".to_string(),
             _ => format!("An unknown error as occurred: ({:?})", self),
         }
     }

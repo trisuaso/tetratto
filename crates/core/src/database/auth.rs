@@ -41,11 +41,38 @@ impl DataManager {
             last_seen: get!(x->12(i64)) as usize,
             totp: get!(x->13(String)),
             recovery_codes: serde_json::from_str(&get!(x->14(String)).to_string()).unwrap(),
+            post_count: get!(x->15(i32)) as usize,
+            request_count: get!(x->16(i32)) as usize,
         }
     }
 
     auto_method!(get_user_by_id(usize as i64)@get_user_from_row -> "SELECT * FROM users WHERE id = $1" --name="user" --returns=User --cache-key-tmpl="atto.user:{}");
     auto_method!(get_user_by_username(&str)@get_user_from_row -> "SELECT * FROM users WHERE username = $1" --name="user" --returns=User --cache-key-tmpl="atto.user:{}");
+
+    /// Get a user given just their ID. Returns the void user if the user doesn't exist.
+    ///
+    /// # Arguments
+    /// * `id` - the ID of the user
+    pub async fn get_user_by_id_with_void(&self, id: usize) -> Result<User> {
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = query_row!(
+            &conn,
+            "SELECT * FROM users WHERE id = $1",
+            &[&(id as i64)],
+            |x| Ok(Self::get_user_from_row(x))
+        );
+
+        if res.is_err() {
+            return Ok(User::deleted());
+            // return Err(Error::UserNotFound);
+        }
+
+        Ok(res.unwrap())
+    }
 
     /// Get a user given just their auth token.
     ///
@@ -110,7 +137,7 @@ impl DataManager {
 
         let res = execute!(
             &conn,
-            "INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)",
+            "INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)",
             params![
                 &(data.id as i64),
                 &(data.created as i64),
@@ -126,7 +153,9 @@ impl DataManager {
                 &0_i32,
                 &(data.last_seen as i64),
                 &String::new(),
-                &"[]"
+                &"[]",
+                &0_i32,
+                &0_i32
             ]
         );
 
@@ -559,4 +588,10 @@ impl DataManager {
 
     auto_method!(incr_user_following_count()@get_user_by_id -> "UPDATE users SET following_count = following_count + 1 WHERE id = $1" --cache-key-tmpl=cache_clear_user --incr);
     auto_method!(decr_user_following_count()@get_user_by_id -> "UPDATE users SET following_count = following_count - 1 WHERE id = $1" --cache-key-tmpl=cache_clear_user --decr);
+
+    auto_method!(incr_user_post_count()@get_user_by_id -> "UPDATE users SET post_count = post_count + 1 WHERE id = $1" --cache-key-tmpl=cache_clear_user --incr);
+    auto_method!(decr_user_post_count()@get_user_by_id -> "UPDATE users SET post_count = post_count - 1 WHERE id = $1" --cache-key-tmpl=cache_clear_user --decr);
+
+    auto_method!(incr_user_request_count()@get_user_by_id -> "UPDATE users SET request_count = request_count + 1 WHERE id = $1" --cache-key-tmpl=cache_clear_user --incr);
+    auto_method!(decr_user_request_count()@get_user_by_id -> "UPDATE users SET request_count = request_count - 1 WHERE id = $1" --cache-key-tmpl=cache_clear_user --decr);
 }

@@ -143,10 +143,12 @@ community=false, show_community=true, can_manage_post=false) -%}
             );
     </script>
 </div>
-{%- endmacro %} {% macro post(post, owner, secondary=false, community=false,
-show_community=true, can_manage_post=false) -%} {% if community and
-show_community and community.id != config.town_square %}
+{%- endmacro %} {% macro post(post, owner, question=false, secondary=false,
+community=false, show_community=true, can_manage_post=false) -%} {% if community
+and show_community and community.id != config.town_square or question %}
 <div class="card-nest">
+    {% if question %} {{ components::question(question=question[0],
+    owner=question[1]) }} {% else %}
     <div class="card small">
         <a
             href="/api/v1/communities/find/{{ post.community }}"
@@ -167,15 +169,15 @@ show_community and community.id != config.town_square %}
             icon "pin" }} {% endif %}
         </a>
     </div>
-    {% endif %}
+    {% endif %} {% endif %}
     <div
         class="card flex flex-col gap-2 {% if secondary %}secondary{% endif %}"
         id="post:{{ post.id }}"
     >
         <div class="w-full flex gap-2">
             <a href="/@{{ owner.username }}">
-                {{ components::avatar(username=post.owner, size="52px",
-                selector_type="id") }}
+                {{ components::avatar(username=owner.username, size="52px",
+                selector_type="username") }}
             </a>
 
             <div class="flex flex-col w-full gap-1">
@@ -337,7 +339,8 @@ show_community and community.id != config.town_square %}
             </div>
         </div>
     </div>
-    {% if community and show_community and community.id != config.town_square %}
+    {% if community and show_community and community.id != config.town_square or
+    question %}
 </div>
 {% endif %} {%- endmacro %} {% macro notification(notification) -%}
 <div class="w-full card-nest">
@@ -364,7 +367,7 @@ show_community and community.id != config.town_square %}
             {% if notification.read %}
             <button
                 class="tertiary"
-                onclick="trigger('me::update_notification_read_statsu', ['{{ notification.id }}', false])"
+                onclick="trigger('me::update_notification_read_status', ['{{ notification.id }}', false])"
             >
                 {{ icon "undo" }}
                 <span>{{ text "notifs:action.mark_as_unread" }}</span>
@@ -372,7 +375,7 @@ show_community and community.id != config.town_square %}
             {% else %}
             <button
                 class="green tertiary"
-                onclick="trigger('me::update_notification_read_statsu', ['{{ notification.id }}', true])"
+                onclick="trigger('me::update_notification_read_status', ['{{ notification.id }}', true])"
             >
                 {{ icon "check" }}
                 <span>{{ text "notifs:action.mark_as_read" }}</span>
@@ -589,4 +592,105 @@ and user %}
         ]);
     }
 </script>
-{% endif %} {%- endmacro %}
+{% endif %} {%- endmacro %} {% macro question(question, owner,
+show_community=true, secondary=false) -%}
+<div class="card{% if secondary %} secondary{% endif %} flex gap-2">
+    <a href="/@{{ owner.username }}">
+        {{ components::avatar(username=owner.username, selector_type="username",
+        size="52px") }}
+    </a>
+
+    <div class="flex flex-col gap-1">
+        <div class="flex items-center gap-2 flex-wrap">
+            <span class="name"
+                >{{ components::full_username(user=owner) }}</span
+            >
+
+            <span class="date">{{ question.created }}</span>
+
+            <span
+                title="Question"
+                class="flex items-center"
+                style="color: var(--color-primary)"
+            >
+                {{ icon "message-circle-heart" }}
+            </span>
+
+            {% if question.community > 0 and show_community %}
+            <a href="/api/v1/communities/find/{{ question.community }}">
+                {{ components::community_avatar(id=question.community,
+                size="24px") }}
+            </a>
+            {% endif %} {% if question.is_global %}
+            <a class="notification chip" href="/question/{{ question.id }}"
+                >{{ question.answer_count }} answers</a
+            >
+            {% endif %}
+        </div>
+
+        <span class="no_p_margin" style="font-weight: 500"
+            >{{ question.content|markdown|safe }}</span
+        >
+
+        <div class="flex gap-2 items-center justify-between"></div>
+    </div>
+</div>
+{%- endmacro %} {% macro create_question_form(receiver="0", community="",
+is_global=false) -%}
+<div class="card-nest">
+    <div class="card small flex items-center gap-2">
+        {{ icon "message-circle-heart" }}
+        <span>{{ text "requests:label.ask_question" }}</span>
+    </div>
+
+    <form
+        class="card flex flex-col gap-2"
+        onsubmit="create_question_from_form(event)"
+    >
+        <div class="flex flex-col gap-1">
+            <label for="content">{{ text "communities:label.content" }}</label>
+            <textarea
+                type="text"
+                name="content"
+                id="content"
+                placeholder="content"
+                required
+                minlength="2"
+                maxlength="4096"
+            ></textarea>
+        </div>
+
+        <button class="primary">{{ text "communities:action.create" }}</button>
+    </form>
+</div>
+
+<script>
+    async function create_question_from_form(e) {
+        e.preventDefault();
+        await trigger("atto::debounce", ["questions::create"]);
+        fetch("/api/v1/questions", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                content: e.target.content.value,
+                receiver: "{{ receiver }}",
+                community: "{{ community }}",
+                is_global: "{{ is_global }}" == "true",
+            }),
+        })
+            .then((res) => res.json())
+            .then((res) => {
+                trigger("atto::toast", [
+                    res.ok ? "success" : "error",
+                    res.message,
+                ]);
+
+                if (res.ok) {
+                    e.target.reset();
+                }
+            });
+    }
+</script>
+{%- endmacro %}

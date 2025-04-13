@@ -1,0 +1,45 @@
+{% import "components.html" as components %} {% extends "communities/base.html"
+%} {% block content %}
+<div class="flex flex-col gap-4 w-full">
+    {{ macros::community_nav(community=community, selected="questions") }}
+
+    <!-- prettier-ignore -->
+    {% if user and can_post %}
+    <div style="display: contents">
+        {{ components::create_question_form(community=community.id,
+        is_global=true) }}
+    </div>
+    {% endif %}
+
+    <div class="card-nest">
+        <div class="card small flex gap-2 items-center">
+            {{ icon "newspaper" }}
+            <span>{{ text "communities:label.questions" }}</span>
+        </div>
+
+        <div class="card tertiary flex flex-col gap-4">
+            <!-- prettier-ignore -->
+            {% for question in feed %}
+            <div class="card-nest">
+                {{ components::question(question=question[0], owner=question[1],
+                show_community=false) }}
+
+                <div class="card flex flex-wrap gap-2">
+                    <a
+                        href="/question/{{ question[0].id }}"
+                        class="button quaternary small"
+                    >
+                        {{ icon "external-link" }} {% if user %}
+                        <span>{{ text "requests:label.answer" }}</span>
+                        {% else %}
+                        <span>{{ text "general:action.open" }}</span>
+                        {% endif %}
+                    </a>
+                </div>
+            </div>
+            {% endfor %} {{ components::pagination(page=page, items=feed|length)
+            }}
+        </div>
+    </div>
+</div>
+{% endblock %}

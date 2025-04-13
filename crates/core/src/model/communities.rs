@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 use tetratto_shared::{snow::AlmostSnowflake, unix_epoch_timestamp};
-
 use super::communities_permissions::CommunityPermission;
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -78,6 +77,8 @@ pub struct CommunityContext {
     pub description: String,
     #[serde(default)]
     pub is_nsfw: bool,
+    #[serde(default)]
+    pub enable_questions: bool,
 }
 
 /// Who can read a [`Community`].
@@ -172,6 +173,9 @@ pub struct PostContext {
     pub repost: Option<RepostContext>,
     #[serde(default = "default_reposts_enabled")]
     pub reposts_enabled: bool,
+    /// The ID of the question this post is answering.
+    #[serde(default)]
+    pub answering: usize,
 }
 
 fn default_comments_enabled() -> bool {
@@ -192,6 +196,7 @@ impl Default for PostContext {
             edited: 0,
             is_nsfw: false,
             repost: None,
+            answering: 0,
         }
     }
 }
@@ -269,5 +274,44 @@ impl Post {
             is_repost: true,
             reposting: None,
         });
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Question {
+    pub id: usize,
+    pub created: usize,
+    pub owner: usize,
+    pub receiver: usize,
+    pub content: String,
+    /// The `is_global` flag allows any (authenticated) user to respond
+    /// to the question. Normally, ownly the `receiver` can do so.
+    ///
+    /// If `is_global` is true, `receiver` should be 0 (and vice versa).
+    pub is_global: bool,
+    /// The number of answers the question has. Should never really be changed
+    /// unless the question has `is_global` set to true.
+    pub answer_count: usize,
+    /// The ID of the community this question is asked to. This should only be > 0
+    /// if `is_global` is set to true.
+    pub community: usize,
+}
+
+impl Question {
+    /// Create a new [`Question`].
+    pub fn new(owner: usize, receiver: usize, content: String, is_global: bool) -> Self {
+        Self {
+            id: AlmostSnowflake::new(1234567890)
+                .to_string()
+                .parse::<usize>()
+                .unwrap(),
+            created: unix_epoch_timestamp() as usize,
+            owner,
+            receiver,
+            content,
+            is_global,
+            answer_count: 0,
+            community: 0,
+        }
     }
 }

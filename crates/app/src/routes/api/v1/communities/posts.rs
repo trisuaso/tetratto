@@ -19,25 +19,32 @@ pub async fn create_request(
         None => return Json(Error::NotAllowed.into()),
     };
 
-    match data
-        .create_post(Post::new(
-            req.content,
-            match req.community.parse::<usize>() {
-                Ok(x) => x,
+    let mut props = Post::new(
+        req.content,
+        match req.community.parse::<usize>() {
+            Ok(x) => x,
+            Err(e) => return Json(Error::MiscError(e.to_string()).into()),
+        },
+        if let Some(rt) = req.replying_to {
+            match rt.parse::<usize>() {
+                Ok(x) => Some(x),
                 Err(e) => return Json(Error::MiscError(e.to_string()).into()),
-            },
-            if let Some(rt) = req.replying_to {
-                match rt.parse::<usize>() {
-                    Ok(x) => Some(x),
-                    Err(e) => return Json(Error::MiscError(e.to_string()).into()),
-                }
-            } else {
-                None
-            },
-            user.id,
-        ))
-        .await
-    {
+            }
+        } else {
+            None
+        },
+        user.id,
+    );
+
+    if !req.answering.is_empty() {
+        // we're answering a question!
+        props.context.answering = match req.answering.parse::<usize>() {
+            Ok(x) => x,
+            Err(e) => return Json(Error::MiscError(e.to_string()).into()),
+        };
+    }
+
+    match data.create_post(props).await {
         Ok(id) => Json(ApiReturn {
             ok: true,
             message: "Post created".to_string(),

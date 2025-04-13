@@ -15,14 +15,6 @@
                 <span class="desktop">{{ text "general:link.home" }}</span>
             </a>
 
-            <a
-                href="/popular"
-                class="button {% if selected == 'popular' %}active{% endif %}"
-            >
-                {{ icon "trending-up" }}
-                <span class="desktop">{{ text "general:link.popular" }}</span>
-            </a>
-
             {% if user %}
             <a
                 href="/communities"
@@ -44,6 +36,16 @@
                 title="Create post"
             >
                 {{ icon "square-pen" }}
+            </a>
+
+            <a
+                href="/requests"
+                class="button {% if selected == 'requests' %}active{% endif %}"
+                title="Requests"
+            >
+                {{ icon "inbox" }} {% if user.request_count > 0 %}
+                <span class="notification tr">{{ user.request_count }}</span>
+                {% endif %}
             </a>
 
             <a
@@ -183,4 +185,23 @@
     </a>
     {% endif %}
 </div>
-{%- endmacro %}
+{%- endmacro %} {% macro community_nav(community, selected="") -%} {% if
+community.context.enable_questions %}
+<div class="pillmenu">
+    <a
+        href="/community/{{ community.title }}"
+        class="{% if selected == 'posts' %}active{% endif %}"
+    >
+        {{ icon "newspaper" }}
+        <span>{{ text "communities:tab.posts" }}</span>
+    </a>
+
+    <a
+        href="/community/{{ community.title }}/questions"
+        class="{% if selected == 'questions' %}active{% endif %}"
+    >
+        {{ icon "message-circle-heart" }}
+        <span>{{ text "communities:tab.questions" }}</span>
+    </a>
+</div>
+{% endif %} {%- endmacro %}

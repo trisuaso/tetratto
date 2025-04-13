@@ -22,6 +22,7 @@ pub fn routes() -> Router {
         .route("/following", get(misc::following_request))
         .route("/all", get(misc::all_request))
         .route("/notifs", get(misc::notifications_request))
+        .route("/requests", get(misc::requests_request))
         .route("/doc/{*file_name}", get(misc::markdown_document_request))
         .fallback_service(get(misc::not_found))
         // mod
@@ -56,12 +57,17 @@ pub fn routes() -> Router {
             get(communities::create_post_request),
         )
         .route("/community/{title}", get(communities::feed_request))
+        .route(
+            "/community/{title}/questions",
+            get(communities::questions_request),
+        )
         .route("/community/{id}/manage", get(communities::settings_request))
         .route(
             "/community/{title}/members",
             get(communities::members_request),
         )
         .route("/post/{id}", get(communities::post_request))
+        .route("/question/{id}", get(communities::question_request))
 }
 
 pub async fn render_error(

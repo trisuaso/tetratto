@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use super::*;
 use crate::cache::Cache;
 use crate::model::auth::Notification;
+use crate::model::communities::Question;
 use crate::model::communities_permissions::CommunityPermission;
 use crate::model::moderation::AuditLogEntry;
 use crate::model::{
@@ -100,12 +101,23 @@ impl DataManager {
         }
     }
 
+    /// Get the question of a given post.
+    pub async fn get_post_question(&self, post: &Post) -> Result<Option<(Question, User)>> {
+        if post.context.answering != 0 {
+            let question = self.get_question_by_id(post.context.answering).await?;
+            let user = self.get_user_by_id_with_void(question.owner).await?;
+            Ok(Some((question, user)))
+        } else {
+            Ok(None)
+        }
+    }
+
     /// Complete a vector of just posts with their owner as well.
     pub async fn fill_posts(
         &self,
         posts: Vec<Post>,
-    ) -> Result<Vec<(Post, User, Option<(User, Post)>)>> {
-        let mut out: Vec<(Post, User, Option<(User, Post)>)> = Vec::new();
+    ) -> Result<Vec<(Post, User, Option<(User, Post)>, Option<(Question, User)>)>> {
+        let mut out: Vec<(Post, User, Option<(User, Post)>, Option<(Question, User)>)> = Vec::new();
 
         let mut users: HashMap<usize, User> = HashMap::new();
         for post in posts {
@@ -116,11 +128,17 @@ impl DataManager {
                     post.clone(),
                     user.clone(),
                     self.get_post_reposting(&post).await,
+                    self.get_post_question(&post).await?,
                 ));
             } else {
                 let user = self.get_user_by_id(owner).await?;
                 users.insert(owner, user.clone());
-                out.push((post.clone(), user, self.get_post_reposting(&post).await));
+                out.push((
+                    post.clone(),
+                    user,
+                    self.get_post_reposting(&post).await,
+                    self.get_post_question(&post).await?,
+                ));
             }
         }
 
@@ -132,8 +150,22 @@ impl DataManager {
         &self,
         posts: Vec<Post>,
         user_id: usize,
-    ) -> Result<Vec<(Post, User, Community, Option<(User, Post)>)>> {
-        let mut out: Vec<(Post, User, Community, Option<(User, Post)>)> = Vec::new();
+    ) -> Result<
+        Vec<(
+            Post,
+            User,
+            Community,
+            Option<(User, Post)>,
+            Option<(Question, User)>,
+        )>,
+    > {
+        let mut out: Vec<(
+            Post,
+            User,
+            Community,
+            Option<(User, Post)>,
+            Option<(Question, User)>,
+        )> = Vec::new();
 
         let mut seen_before: HashMap<(usize, usize), (User, Community)> = HashMap::new();
         let mut seen_user_follow_statuses: HashMap<(usize, usize), bool> = HashMap::new();
@@ -148,6 +180,7 @@ impl DataManager {
                     user.clone(),
                     community.to_owned(),
                     self.get_post_reposting(&post).await,
+                    self.get_post_question(&post).await?,
                 ));
             } else {
                 let user = self.get_user_by_id(owner).await?;
@@ -186,6 +219,7 @@ impl DataManager {
                     user,
                     community,
                     self.get_post_reposting(&post).await,
+                    self.get_post_question(&post).await?,
                 ));
             }
         }
@@ -294,6 +328,66 @@ impl DataManager {
             "SELECT * FROM posts WHERE owner = $1 AND context LIKE '%\"is_profile_pinned\":true%' ORDER BY created DESC",
             &[&(id as i64),],
             |x| { Self::get_post_from_row(x) }
+        );
+
+        if res.is_err() {
+            return Err(Error::GeneralNotFound("post".to_string()));
+        }
+
+        Ok(res.unwrap())
+    }
+
+    /// Get all posts answering the given question (from most recent).
+    ///
+    /// # Arguments
+    /// * `id` - the ID of the question the requested posts belong to
+    /// * `batch` - the limit of posts in each page
+    /// * `page` - the page number
+    pub async fn get_posts_by_question(
+        &self,
+        id: usize,
+        batch: usize,
+        page: usize,
+    ) -> Result<Vec<Post>> {
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = query_rows!(
+            &conn,
+            "SELECT * FROM posts WHERE context LIKE $1 ORDER BY created DESC LIMIT $2 OFFSET $3",
+            params![
+                &format!("%\"answering\":{id}%"),
+                &(batch as i64),
+                &((page * batch) as i64)
+            ],
+            |x| { Self::get_post_from_row(x) }
+        );
+
+        if res.is_err() {
+            return Err(Error::GeneralNotFound("post".to_string()));
+        }
+
+        Ok(res.unwrap())
+    }
+
+    /// Get a post given its owner and question ID.
+    ///
+    /// # Arguments
+    /// * `owner` - the ID of the post owner
+    /// * `question` - the ID of the post question
+    pub async fn get_post_by_owner_question(&self, owner: usize, question: usize) -> Result<Post> {
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = query_row!(
+            &conn,
+            "SELECT * FROM posts WHERE context LIKE $1 AND owner = $2 LIMIT 1",
+            params![&format!("%\"answering\":{question}%"), &(owner as i64),],
+            |x| { Ok(Self::get_post_from_row(x)) }
         );
 
         if res.is_err() {
@@ -508,6 +602,42 @@ impl DataManager {
         // mirror nsfw state
         data.context.is_nsfw = community.context.is_nsfw;
 
+        // remove request if we were answering a question
+        let owner = self.get_user_by_id(data.owner).await?;
+        if data.context.answering != 0 {
+            let question = self.get_question_by_id(data.context.answering).await?;
+
+            // check if we've already answered this
+            if self
+                .get_post_by_owner_question(owner.id, question.id)
+                .await
+                .is_ok()
+            {
+                return Err(Error::MiscError(
+                    "You've already answered this question".to_string(),
+                ));
+            }
+
+            if !question.is_global {
+                self.delete_request(question.owner, question.id, &owner)
+                    .await?;
+            } else {
+                self.incr_question_answer_count(data.context.answering)
+                    .await?;
+            }
+
+            // create notification for question owner
+            self.create_notification(Notification::new(
+                "Your question has received a new answer!".to_string(),
+                format!(
+                    "[@{}](/api/v1/auth/user/find/{}) has answered your [question](/question/{}).",
+                    owner.username, owner.id, question.id
+                ),
+                question.owner,
+            ))
+            .await?;
+        }
+
         // check if we're reposting a post
         let reposting = if let Some(ref repost) = data.context.repost {
             if let Some(id) = repost.reposting {
@@ -650,6 +780,9 @@ impl DataManager {
             }
         }
 
+        // increase user post count
+        self.incr_user_post_count(data.owner).await?;
+
         // return
         Ok(data.id)
     }
@@ -695,6 +828,22 @@ impl DataManager {
             self.decr_post_comments(replying_to).await.unwrap();
         }
 
+        // decr user post count
+        let owner = self.get_user_by_id(y.owner).await?;
+
+        if owner.post_count > 0 {
+            self.decr_user_post_count(y.owner).await?;
+        }
+
+        // decr question answer count
+        if y.context.answering != 0 {
+            let question = self.get_question_by_id(y.context.answering).await?;
+
+            if question.is_global {
+                self.incr_question_answer_count(y.context.answering).await?;
+            }
+        }
+
         // return
         Ok(())
     }
@@ -707,6 +856,7 @@ impl DataManager {
     ) -> Result<()> {
         let y = self.get_post_by_id(id).await?;
         x.repost = y.context.repost; // cannot change repost settings at all
+        x.answering = y.context.answering; // cannot change answering settings at all
 
         let user_membership = self
             .get_membership_by_owner_community(user.id, y.community)

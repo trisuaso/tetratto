@@ -1,0 +1,88 @@
+{% extends "root.html" %} {% block head %}
+<title>Question - {{ config.name }}</title>
+{% endblock %} {% block body %} {{ macros::nav() }}
+<main class="flex flex-col gap-2">
+    <div style="display: contents">
+        {{ components::question(question=question, owner=owner) }}
+    </div>
+
+    {% if user and (user.id == question.receiver or question.is_global) and not
+    has_answered %}
+    <div class="card-nest">
+        <div class="card small flex items-center gap-2">
+            {{ icon "square-pen" }}
+            <b>{{ text "requests:label.answer" }}</b>
+        </div>
+
+        <form
+            class="card flex flex-col gap-2"
+            onsubmit="answer_question_from_form(event, '{{ question.id }}')"
+        >
+            <div class="flex flex-col gap-1">
+                <label for="content"
+                    >{{ text "communities:label.content" }}</label
+                >
+                <textarea
+                    type="text"
+                    name="content"
+                    id="content"
+                    placeholder="content"
+                    required
+                    minlength="2"
+                    maxlength="4096"
+                ></textarea>
+            </div>
+
+            <button class="primary">
+                {{ text "communities:action.create" }}
+            </button>
+        </form>
+    </div>
+    {% endif %}
+
+    <div class="card-nest w-full" data-tab="replies">
+        <div class="card small flex items-center gap-2">
+            {{ icon "newspaper" }}
+            <span>{{ text "communities:label.replies" }}</span>
+        </div>
+
+        <div class="card flex flex-col gap-4">
+            <!-- prettier-ignore -->
+            {% for post in replies %}
+                {{ components::post(post=post[0], owner=post[1], question=false, secondary=true, show_community=false) }}
+            {% endfor %}
+
+            {{ components::pagination(page=page, items=replies|length) }}
+        </div>
+    </div>
+</main>
+
+<script>
+    async function answer_question_from_form(e, answering) {
+        e.preventDefault();
+        await trigger("atto::debounce", ["posts::create"]);
+        fetch("/api/v1/posts", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                content: e.target.content.value,
+                community: "{{ config.town_square }}",
+                answering,
+            }),
+        })
+            .then((res) => res.json())
+            .then((res) => {
+                trigger("atto::toast", [
+                    res.ok ? "success" : "error",
+                    res.message,
+                ]);
+
+                if (res.ok) {
+                    window.location.reload();
+                }
+            });
+    }
+</script>
+{% endblock %}

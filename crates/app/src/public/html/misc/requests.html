@@ -1,0 +1,172 @@
+{% extends "root.html" %} {% block head %}
+<title>Requests - {{ config.name }}</title>
+{% endblock %} {% block body %} {{ macros::nav(selected="requests") }}
+<main class="flex flex-col gap-2">
+    <div class="card-nest">
+        <div class="card small flex items-center justify-between gap-2">
+            <span class="flex items-center gap-2">
+                {{ icon "inbox" }}
+                <span>{{ text "requests:label.requests" }}</span>
+            </span>
+
+            <button onclick="clear_requests()" class="small red quaternary">
+                {{ icon "bomb" }}
+                <span>{{ text "notifs:action.clear" }}</span>
+            </button>
+        </div>
+
+        <div class="card tertiary flex flex-col gap-4">
+            {% for request in requests %} {% if request.action_type ==
+            "CommunityJoin" %}
+            <div class="card-nest">
+                <div class="card small flex items-center gap-2">
+                    {{ icon "user-plus" }}
+                    <span
+                        >{{ text "requests:label.community_join_request"
+                        }}</span
+                    >
+                </div>
+
+                <div class="card flex flex-wrap gap-2">
+                    <a
+                        href="/community/{{ request.linked_asset }}/manage?uid={{ request.id }}#/members"
+                        class="button"
+                    >
+                        {{ icon "external-link" }}
+                        <span>{{ text "requests:label.review" }}</span>
+                    </a>
+
+                    <button
+                        class="quaternary red"
+                        onclick="remove_request('{{ request.id }}', '{{ request.linked_asset }}')"
+                    >
+                        {{ icon "trash" }}
+                        <span>{{ text "general:action.delete" }}</span>
+                    </button>
+                </div>
+            </div>
+            {% endif %} {% endfor %} {% for question in questions %}
+            <!-- prettier-ignore -->
+            <div class="card-nest">
+                {{ components::question(question=question[0], owner=question[1]) }}
+
+                <form
+                    class="card flex flex-col gap-2"
+                    onsubmit="answer_question_from_form(event, '{{ question[0].id }}')"
+                >
+                    <div class="flex flex-col gap-1">
+                        <label for="content">{{ text "communities:label.content" }}</label>
+                        <textarea
+                            type="text"
+                            name="content"
+                            id="content"
+                            placeholder="content"
+                            required
+                            minlength="2"
+                            maxlength="4096"
+                        ></textarea>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button class="primary">{{ text "requests:label.answer" }}</button>
+                        <button class="red quaternary" onclick="remove_question('{{ question[0].id }}')">{{ text "general:action.delete" }}</button>
+                    </div>
+                </form>
+             </div>
+            {% endfor %}
+        </div>
+    </div>
+</main>
+
+<script>
+    async function remove_request(id, linked_asset) {
+        if (
+            !(await trigger("atto::confirm", [
+                "Are you sure you want to do this?",
+            ]))
+        ) {
+            return;
+        }
+
+        fetch(`/api/v1/requests/${id}/${linked_asset}`, {
+            method: "DELETE",
+        })
+            .then((res) => res.json())
+            .then((res) => {
+                trigger("atto::toast", [
+                    res.ok ? "success" : "error",
+                    res.message,
+                ]);
+            });
+    }
+
+    async function clear_requests() {
+        if (
+            !(await trigger("atto::confirm", [
+                "Are you sure you want to do this?",
+            ]))
+        ) {
+            return;
+        }
+
+        fetch("/api/v1/requests/my", {
+            method: "DELETE",
+        })
+            .then((res) => res.json())
+            .then((res) => {
+                trigger("atto::toast", [
+                    res.ok ? "success" : "error",
+                    res.message,
+                ]);
+            });
+    }
+
+    async function remove_question(id) {
+        if (
+            !(await trigger("atto::confirm", [
+                "Are you sure you want to do this?",
+            ]))
+        ) {
+            return;
+        }
+
+        fetch(`/api/v1/questions/${id}`, {
+            method: "DELETE",
+        })
+            .then((res) => res.json())
+            .then((res) => {
+                trigger("atto::toast", [
+                    res.ok ? "success" : "error",
+                    res.message,
+                ]);
+            });
+    }
+
+    async function answer_question_from_form(e, answering) {
+        e.preventDefault();
+        await trigger("atto::debounce", ["posts::create"]);
+        fetch("/api/v1/posts", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                content: e.target.content.value,
+                community: "{{ config.town_square }}",
+                answering,
+            }),
+        })
+            .then((res) => res.json())
+            .then((res) => {
+                trigger("atto::toast", [
+                    res.ok ? "success" : "error",
+                    res.message,
+                ]);
+
+                if (res.ok) {
+                    e.target.parentElement.remove();
+                }
+            });
+    }
+</script>
+{% endblock %}

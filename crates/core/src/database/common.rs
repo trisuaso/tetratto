@@ -25,6 +25,8 @@ impl DataManager {
         execute!(&conn, common::CREATE_TABLE_AUDIT_LOG).unwrap();
         execute!(&conn, common::CREATE_TABLE_REPORTS).unwrap();
         execute!(&conn, common::CREATE_TABLE_USER_WARNINGS).unwrap();
+        execute!(&conn, common::CREATE_TABLE_REQUESTS).unwrap();
+        execute!(&conn, common::CREATE_TABLE_QUESTIONS).unwrap();
 
         Ok(())
     }

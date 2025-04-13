@@ -28,6 +28,8 @@ bitflags! {
         const BANNED = 1 << 17;
         const INFINITE_COMMUNITIES = 1 << 18;
         const SUPPORTER = 1 << 19;
+        const MANAGE_REQUESTS = 1 << 20;
+        const MANAGE_QUESTIONS = 1 << 21;
 
         const _ = !0;
     }

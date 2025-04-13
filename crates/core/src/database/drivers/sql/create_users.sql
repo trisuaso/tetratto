@@ -11,5 +11,9 @@ CREATE TABLE IF NOT EXISTS users (
     notification_count INT NOT NULL,
     follower_count INT NOT NULL,
     following_count INT NOT NULL,
-    last_seen BIGINT NOT NULL
+    last_seen BIGINT NOT NULL,
+    totp TEXT NOT NULL,
+    recovery_codes TEXT NOT NULL,
+    post_count INT NOT NULL,
+    request_count INT NOT NULL
 )

@@ -3,6 +3,7 @@ pub mod communities;
 pub mod notifications;
 pub mod reactions;
 pub mod reports;
+pub mod requests;
 pub mod util;
 
 use axum::{
@@ -92,6 +93,12 @@ pub fn routes() -> Router {
         .route(
             "/posts/{id}/context",
             post(communities::posts::update_context_request),
+        )
+        // questions
+        .route("/questions", post(communities::questions::create_request))
+        .route(
+            "/questions/{id}",
+            delete(communities::questions::delete_request),
         )
         // auth
         // global
@@ -201,6 +208,12 @@ pub fn routes() -> Router {
         // reports
         .route("/reports", post(reports::create_request))
         .route("/reports/{id}", delete(reports::delete_request))
+        // requests
+        .route(
+            "/requests/{id}/{linked_asset}",
+            delete(requests::delete_request),
+        )
+        .route("/requests/my", delete(requests::delete_all_request))
 }
 
 #[derive(Deserialize)]
@@ -255,6 +268,8 @@ pub struct CreatePost {
     pub community: String,
     #[serde(default)]
     pub replying_to: Option<String>,
+    #[serde(default)]
+    pub answering: String,
 }
 
 #[derive(Deserialize)]
@@ -336,4 +351,14 @@ pub struct DisableTotp {
 #[derive(Deserialize)]
 pub struct CreateUserWarning {
     pub content: String,
+}
+
+#[derive(Deserialize)]
+pub struct CreateQuestion {
+    pub content: String,
+    pub is_global: bool,
+    #[serde(default)]
+    pub receiver: String,
+    #[serde(default)]
+    pub community: String,
 }

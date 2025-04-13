@@ -1,7 +1,7 @@
 use super::*;
 use crate::cache::Cache;
-use crate::model::auth::Notification;
 use crate::model::communities::Community;
+use crate::model::requests::{ActionRequest, ActionType};
 use crate::model::{
     Error, Result,
     auth::User,
@@ -191,14 +191,12 @@ impl DataManager {
                     let mut data = data.clone();
                     data.role = CommunityPermission::DEFAULT | CommunityPermission::REQUESTED;
 
-                    // send notification to the owner
-                    self.create_notification(Notification::new(
-                        "You've received a community join request!".to_string(),
-                        format!(
-                            "[Somebody](/api/v1/auth/user/find/{}) is asking to join your [community](/community/{}).\n\n[Click here to review their request](/community/{}/manage?uid={}#/members).",
-                            data.owner, data.community, data.community, data.owner
-                        ),
+                    // create join request
+                    self.create_request(ActionRequest::with_id(
+                        data.owner,
                         community.owner,
+                        ActionType::CommunityJoin,
+                        community.id,
                     ))
                     .await?;
 

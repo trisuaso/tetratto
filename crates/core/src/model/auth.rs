@@ -31,6 +31,10 @@ pub struct User {
     /// The TOTP recovery codes for this profile.
     #[serde(default)]
     pub recovery_codes: Vec<String>,
+    #[serde(default)]
+    pub post_count: usize,
+    #[serde(default)]
+    pub request_count: usize,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -127,6 +131,8 @@ pub struct UserSettings {
     pub disable_other_themes: bool,
     #[serde(default)]
     pub disable_other_theme_css: bool,
+    #[serde(default)]
+    pub enable_questions: bool,
 }
 
 impl Default for User {
@@ -160,6 +166,8 @@ impl User {
             last_seen: unix_epoch_timestamp() as usize,
             totp: String::new(),
             recovery_codes: Vec::new(),
+            post_count: 0,
+            request_count: 0,
         }
     }
 

@@ -121,6 +121,11 @@
                             <span class="date">{{ profile.created }}</span>
                         </div>
 
+                        <div class="w-full flex justify-between items-center">
+                            <span class="notification chip">Posts</span>
+                            <span>{{ profile.post_count }}</span>
+                        </div>
+
                         {% if not profile.settings.private_last_seen or is_self
                         or is_helper %}
                         <div class="w-full flex justify-between items-center">
