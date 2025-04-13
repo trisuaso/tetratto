@@ -699,10 +699,10 @@ is_global=false) -%}
     }
 </script>
 {%- endmacro %} {% macro global_question(question, can_manage_questions=false,
-secondary=false) -%}
+secondary=false, show_community=true) -%}
 <div class="card-nest">
     {{ components::question(question=question[0], owner=question[1],
-    show_community=false) }}
+    show_community=show_community) }}
 
     <div
         class="card flex flex-wrap gap-2{% if secondary %} secondary{% endif %}"

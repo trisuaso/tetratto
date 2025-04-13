@@ -20,7 +20,7 @@
         <div class="card tertiary flex flex-col gap-4">
             <!-- prettier-ignore -->
             {% for question in feed %}
-                {{ components::global_question(question=question, can_manage_questions=can_manage_questions) }}
+                {{ components::global_question(question=question, can_manage_questions=can_manage_questions, show_community=false) }}
             {% endfor %}
 
             {{ components::pagination(page=page, items=feed|length) }}

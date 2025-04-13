@@ -104,7 +104,6 @@ impl DataManager {
     /// Get the question of a given post.
     pub async fn get_post_question(&self, post: &Post) -> Result<Option<(Question, User)>> {
         if post.context.answering != 0 {
-            dbg!(&post.context.answering);
             let question = self.get_question_by_id(post.context.answering).await?;
             let user = self.get_user_by_id_with_void(question.owner).await?;
             Ok(Some((question, user)))
