@@ -23,6 +23,7 @@ pub fn routes() -> Router {
         .route("/all", get(misc::all_request))
         // question timelines
         .route("/questions", get(misc::index_questions_request))
+        .route("/popular/questions", get(misc::popular_questions_request))
         .route(
             "/following/questions",
             get(misc::following_questions_request),

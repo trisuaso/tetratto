@@ -15,6 +15,7 @@ use crate::{auto_method, execute, get, query_row, query_rows, params};
 #[cfg(feature = "sqlite")]
 use rusqlite::Row;
 
+use tetratto_shared::unix_epoch_timestamp;
 #[cfg(feature = "postgres")]
 use tokio_postgres::Row;
 
@@ -236,6 +237,42 @@ impl DataManager {
             &conn,
             "SELECT * FROM questions WHERE is_global = 1 ORDER BY created DESC LIMIT $1 OFFSET $2",
             &[&(batch as i64), &((page * batch) as i64)],
+            |x| { Self::get_question_from_row(x) }
+        );
+
+        if res.is_err() {
+            return Err(Error::GeneralNotFound("question".to_string()));
+        }
+
+        Ok(res.unwrap())
+    }
+
+    /// Get global questions from all communities, sorted by likes.
+    ///
+    /// # Arguments
+    /// * `batch` - the limit of questions in each page
+    /// * `page` - the page number
+    /// * `cutoff` - the maximum number of milliseconds ago the question could have been created
+    pub async fn get_popular_global_questions(
+        &self,
+        batch: usize,
+        page: usize,
+        cutoff: usize,
+    ) -> Result<Vec<Question>> {
+        let conn = match self.connect().await {
+            Ok(c) => c,
+            Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
+        };
+
+        let res = query_rows!(
+            &conn,
+            "SELECT * FROM questions WHERE is_global = 1 AND ($1 - created) < $2 ORDER BY likes DESC, created ASC LIMIT $3 OFFSET $4",
+            &[
+                &(unix_epoch_timestamp() as i64),
+                &(cutoff as i64),
+                &(batch as i64),
+                &((page * batch) as i64)
+            ],
             |x| { Self::get_question_from_row(x) }
         );
 

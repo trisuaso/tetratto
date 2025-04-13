@@ -66,6 +66,8 @@ pub const TIMELINES_FOLLOWING: &str = include_str!("./public/html/timelines/foll
 pub const TIMELINES_ALL: &str = include_str!("./public/html/timelines/all.html");
 pub const TIMELINES_HOME_QUESTIONS: &str =
     include_str!("./public/html/timelines/home_questions.html");
+pub const TIMELINES_POPULAR_QUESTIONS: &str =
+    include_str!("./public/html/timelines/popular_questions.html");
 pub const TIMELINES_FOLLOWING_QUESTIONS: &str =
     include_str!("./public/html/timelines/following_questions.html");
 pub const TIMELINES_ALL_QUESTIONS: &str =
@@ -207,6 +209,7 @@ pub(crate) async fn write_assets(config: &Config) -> PathBufD {
     write_template!(html_path->"timelines/following.html"(crate::assets::TIMELINES_FOLLOWING) --config=config);
     write_template!(html_path->"timelines/all.html"(crate::assets::TIMELINES_ALL) --config=config);
     write_template!(html_path->"timelines/home_questions.html"(crate::assets::TIMELINES_HOME_QUESTIONS) --config=config);
+    write_template!(html_path->"timelines/popular_questions.html"(crate::assets::TIMELINES_POPULAR_QUESTIONS) --config=config);
     write_template!(html_path->"timelines/following_questions.html"(crate::assets::TIMELINES_FOLLOWING_QUESTIONS) --config=config);
     write_template!(html_path->"timelines/all_questions.html"(crate::assets::TIMELINES_ALL_QUESTIONS) --config=config);
 
