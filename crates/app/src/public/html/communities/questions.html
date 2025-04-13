@@ -17,10 +17,10 @@
             <span>{{ text "communities:label.questions" }}</span>
         </div>
 
-        <div class="card tertiary flex flex-col gap-4">
+        <div class="card flex flex-col gap-4">
             <!-- prettier-ignore -->
             {% for question in feed %}
-                {{ components::global_question(question=question, can_manage_questions=can_manage_questions, show_community=false) }}
+                {{ components::global_question(question=question, can_manage_questions=can_manage_questions, show_community=false, secondary=true) }}
             {% endfor %}
 
             {{ components::pagination(page=page, items=feed|length) }}
