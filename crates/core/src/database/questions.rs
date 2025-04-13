@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use super::*;
 use crate::cache::Cache;
+use crate::model::communities_permissions::CommunityPermission;
 use crate::model::{
     Error, Result,
     communities::Question,
@@ -206,7 +207,18 @@ impl DataManager {
             && user.id != y.receiver
             && !user.permissions.check(FinePermission::MANAGE_QUESTIONS)
         {
-            return Err(Error::NotAllowed);
+            if y.community != 0 {
+                // check for MANAGE_QUESTIONS permission
+                let membership = self
+                    .get_membership_by_owner_community_no_void(user.id, y.community)
+                    .await?;
+
+                if !membership.role.check(CommunityPermission::MANAGE_QUESTIONS) {
+                    return Err(Error::NotAllowed);
+                }
+            } else {
+                return Err(Error::NotAllowed);
+            }
         }
 
         let conn = match self.connect().await {

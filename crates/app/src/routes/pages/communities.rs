@@ -112,6 +112,12 @@ macro_rules! community_context_bools {
             false
         };
 
+        let can_manage_questions = if let Some(ref membership) = membership {
+            membership.role.check(CommunityPermission::MANAGE_QUESTIONS)
+        } else {
+            false
+        };
+
         (
             is_owner,
             is_joined,
@@ -120,6 +126,7 @@ macro_rules! community_context_bools {
             can_manage_posts,
             can_manage_community,
             can_manage_roles,
+            can_manage_questions,
         )
     }};
 }
@@ -262,6 +269,7 @@ pub fn community_context(
     can_manage_posts: bool,
     can_manage_community: bool,
     can_manage_roles: bool,
+    can_manage_questions: bool,
 ) {
     context.insert("community", &community);
     context.insert("is_owner", &is_owner);
@@ -272,6 +280,7 @@ pub fn community_context(
     context.insert("can_manage_posts", &can_manage_posts);
     context.insert("can_manage_community", &can_manage_community);
     context.insert("can_manage_roles", &can_manage_roles);
+    context.insert("can_manage_questions", &can_manage_questions);
 }
 
 /// `/community/{title}`
@@ -338,6 +347,7 @@ pub async fn feed_request(
         can_manage_posts,
         can_manage_community,
         can_manage_roles,
+        can_manage_questions,
     ) = community_context_bools!(data, user, community);
 
     context.insert("feed", &feed);
@@ -354,6 +364,7 @@ pub async fn feed_request(
         can_manage_posts,
         can_manage_community,
         can_manage_roles,
+        can_manage_questions,
     );
 
     // return
@@ -424,6 +435,7 @@ pub async fn questions_request(
         can_manage_posts,
         can_manage_community,
         can_manage_roles,
+        can_manage_questions,
     ) = community_context_bools!(data, user, community);
 
     context.insert("feed", &feed);
@@ -439,6 +451,7 @@ pub async fn questions_request(
         can_manage_posts,
         can_manage_community,
         can_manage_roles,
+        can_manage_questions,
     );
 
     // return
@@ -559,6 +572,7 @@ pub async fn post_request(
         can_manage_posts,
         can_manage_community,
         can_manage_roles,
+        can_manage_questions,
     ) = community_context_bools!(data, user, community);
 
     context.insert("post", &post);
@@ -593,6 +607,7 @@ pub async fn post_request(
         can_manage_posts,
         can_manage_community,
         can_manage_roles,
+        can_manage_questions,
     );
 
     // return
@@ -663,6 +678,7 @@ pub async fn members_request(
         can_manage_posts,
         can_manage_community,
         can_manage_roles,
+        can_manage_questions,
     ) = community_context_bools!(data, user, community);
 
     context.insert("list", &list);
@@ -679,6 +695,7 @@ pub async fn members_request(
         can_manage_posts,
         can_manage_community,
         can_manage_roles,
+        can_manage_questions,
     );
 
     // return
@@ -744,6 +761,7 @@ pub async fn question_request(
         can_manage_posts,
         can_manage_community,
         can_manage_roles,
+        can_manage_questions,
     ) = community_context_bools!(data, user, community);
 
     context.insert("question", &question);
@@ -770,6 +788,7 @@ pub async fn question_request(
         can_manage_posts,
         can_manage_community,
         can_manage_roles,
+        can_manage_questions,
     );
 
     // return

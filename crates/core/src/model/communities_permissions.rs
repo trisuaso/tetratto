@@ -17,6 +17,7 @@ bitflags! {
         const REQUESTED = 1 << 6;
         const MANAGE_PINS = 1 << 7;
         const MANAGE_COMMUNITY = 1 << 8;
+        const MANAGE_QUESTIONS = 1 << 9;
 
         const _ = !0;
     }

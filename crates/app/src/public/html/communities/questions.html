@@ -35,6 +35,17 @@
                         <span>{{ text "general:action.open" }}</span>
                         {% endif %}
                     </a>
+
+                    {% if user %} {% if can_manage_questions or is_helper or
+                    question[1].id == user.id %}
+                    <button
+                        class="quaternary small red"
+                        onclick="remove_question('{{ question[0].id }}')"
+                    >
+                        {{ icon "trash" }}
+                        <span>{{ text "general:action.delete" }}</span>
+                    </button>
+                    {% endif %} {% endif %}
                 </div>
             </div>
             {% endfor %} {{ components::pagination(page=page, items=feed|length)
@@ -42,4 +53,27 @@
         </div>
     </div>
 </div>
+
+<script>
+    async function remove_question(id) {
+        if (
+            !(await trigger("atto::confirm", [
+                "Are you sure you want to do this?",
+            ]))
+        ) {
+            return;
+        }
+
+        fetch(`/api/v1/questions/${id}`, {
+            method: "DELETE",
+        })
+            .then((res) => res.json())
+            .then((res) => {
+                trigger("atto::toast", [
+                    res.ok ? "success" : "error",
+                    res.message,
+                ]);
+            });
+    }
+</script>
 {% endblock %}
