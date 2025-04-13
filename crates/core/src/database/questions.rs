@@ -247,7 +247,7 @@ impl DataManager {
         {
             // requests are also deleted when a post is created answering the given question
             // (unless the question is global)
-            self.delete_request(y.owner, y.id, &user).await?;
+            self.delete_request(y.owner, y.id, user).await?;
         }
 
         // return

@@ -652,6 +652,11 @@ impl DataManager {
         if let Some(ref rt) = reposting {
             data.context.reposts_enabled = false; // cannot repost reposts
 
+            // mirror nsfw status
+            if rt.context.is_nsfw {
+                data.context.is_nsfw = true;
+            }
+
             // make sure we aren't trying to repost a repost
             if if let Some(ref repost) = rt.context.repost {
                 repost.reposting.is_some()
