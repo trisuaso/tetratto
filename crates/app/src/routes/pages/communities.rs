@@ -19,8 +19,16 @@ macro_rules! check_permissions {
     ($community:ident, $jar:ident, $data:ident, $user:ident) => {{
         let mut is_member: bool = false;
         let mut can_manage_pins: bool = false;
+        let mut can_manage_communities: bool = false;
 
         if let Some(ref ua) = $user {
+            if ua
+                .permissions
+                .check(tetratto_core::model::permissions::FinePermission::MANAGE_COMMUNITIES)
+            {
+                can_manage_communities = true;
+            }
+
             if let Ok(membership) = $data
                 .0
                 .get_membership_by_owner_community(ua.id, $community.id)
@@ -44,10 +52,14 @@ macro_rules! check_permissions {
 
         match $community.read_access {
             CommunityReadAccess::Joined => {
-                if !is_member {
-                    (false, can_manage_pins)
+                if !can_manage_communities {
+                    if !is_member {
+                        (false, can_manage_pins)
+                    } else {
+                        (true, can_manage_pins)
+                    }
                 } else {
-                    (true, can_manage_pins)
+                    (true, true)
                 }
             }
             _ => (true, can_manage_pins),
