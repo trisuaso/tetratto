@@ -164,6 +164,8 @@ impl DataManager {
             }
         }
 
+        self.update_user_request_count(user.id, 0).await?;
+
         Ok(())
     }
 }

@@ -592,6 +592,7 @@ impl DataManager {
     auto_method!(incr_user_post_count()@get_user_by_id -> "UPDATE users SET post_count = post_count + 1 WHERE id = $1" --cache-key-tmpl=cache_clear_user --incr);
     auto_method!(decr_user_post_count()@get_user_by_id -> "UPDATE users SET post_count = post_count - 1 WHERE id = $1" --cache-key-tmpl=cache_clear_user --decr);
 
+    auto_method!(update_user_request_count(i64)@get_user_by_id -> "UPDATE users SET request_count = $1 WHERE id = $2" --cache-key-tmpl=cache_clear_user);
     auto_method!(incr_user_request_count()@get_user_by_id -> "UPDATE users SET request_count = request_count + 1 WHERE id = $1" --cache-key-tmpl=cache_clear_user --incr);
     auto_method!(decr_user_request_count()@get_user_by_id -> "UPDATE users SET request_count = request_count - 1 WHERE id = $1" --cache-key-tmpl=cache_clear_user --decr);
 }

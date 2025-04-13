@@ -231,7 +231,7 @@
         <div class="card flex flex-col gap-4">
             <!-- prettier-ignore -->
             {% for post in replies %}
-                {{ components::post(post=post[0], owner=post[1], question=post[4], secondary=true, show_community=false) }}
+                {{ components::post(post=post[0], owner=post[1], question=post[3], secondary=true, show_community=false) }}
             {% endfor %}
 
             {{ components::pagination(page=page, items=replies|length) }}

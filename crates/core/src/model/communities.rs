@@ -285,7 +285,7 @@ pub struct Question {
     pub receiver: usize,
     pub content: String,
     /// The `is_global` flag allows any (authenticated) user to respond
-    /// to the question. Normally, ownly the `receiver` can do so.
+    /// to the question. Normally, only the `receiver` can do so.
     ///
     /// If `is_global` is true, `receiver` should be 0 (and vice versa).
     pub is_global: bool,
