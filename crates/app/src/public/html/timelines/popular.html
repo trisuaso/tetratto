@@ -7,10 +7,12 @@
     <!-- prettier-ignore -->
     <div class="card w-full flex flex-col gap-2">
         {% for post in list %}
-            {% if post[0].context.repost and post[0].context.repost.reposting %}
-                {{ components::repost(repost=post[3], post=post[0], owner=post[1], secondary=true, community=post[2], show_community=true) }}
-            {% else %}
-                {{ components::post(post=post[0], owner=post[1], question=post[4], secondary=true, community=post[2]) }}
+            {% if post[2].read_access == "Everybody" %}
+                {% if post[0].context.repost and post[0].context.repost.reposting %}
+                    {{ components::repost(repost=post[3], post=post[0], owner=post[1], secondary=true, community=post[2], show_community=true) }}
+                {% else %}
+                    {{ components::post(post=post[0], owner=post[1], question=post[4], secondary=true, community=post[2]) }}
+                {% endif %}
             {% endif %}
         {% endfor %}
 

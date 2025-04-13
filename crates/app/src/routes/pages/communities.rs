@@ -551,6 +551,12 @@ pub async fn post_request(
     // check permissions
     let (can_read, can_manage_pins) = check_permissions!(community, jar, data, user);
 
+    if !can_read {
+        return Err(Html(
+            render_error(Error::NotAllowed, &jar, &data, &user).await,
+        ));
+    }
+
     // ...
     let feed = match data.0.get_post_comments(post.id, 12, props.page).await {
         Ok(p) => match data.0.fill_posts(p).await {
@@ -735,6 +741,12 @@ pub async fn question_request(
 
     // check permissions
     let (can_read, _) = check_permissions!(community, jar, data, user);
+
+    if !can_read {
+        return Err(Html(
+            render_error(Error::NotAllowed, &jar, &data, &user).await,
+        ));
+    }
 
     // ...
     let feed = match data
