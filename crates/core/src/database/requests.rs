@@ -142,7 +142,10 @@ impl DataManager {
         self.2.remove(format!("atto.request:{}", id)).await;
 
         // decr request count
-        self.decr_user_request_count(y.owner).await.unwrap();
+        let owner = self.get_user_by_id(y.owner).await?;
+        if owner.request_count > 0 {
+            self.decr_user_request_count(y.owner).await.unwrap();
+        }
 
         // return
         Ok(())
