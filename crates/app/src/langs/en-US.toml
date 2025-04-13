@@ -114,6 +114,8 @@ version = "1.0.0"
 "settings:label.theme_hue" = "Theme hue"
 "settings:label.theme_sat" = "Theme sat"
 "settings:label.theme_lit" = "Theme lit"
+"settings:label.import" = "Import"
+"settings:label.export" = "Export"
 
 "mod_panel:label.open_reported_content" = "Open reported content"
 "mod_panel:label.manage_profile" = "Manage profile"

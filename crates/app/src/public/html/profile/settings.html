@@ -313,6 +313,21 @@
 
     <div class="w-full hidden flex flex-col gap-2" data-tab="theme">
         <div class="card tertiary flex flex-col gap-2" id="theme_settings">
+            <div
+                class="card w-full flex flex-wrap gap-2"
+                ui_ident="import_export"
+            >
+                <button class="primary" onclick="import_theme_settings()">
+                    {{ icon "upload" }}
+                    <span>{{ text "settings:label.import" }}</span>
+                </button>
+
+                <button class="secondary" onclick="export_theme_settings()">
+                    {{ icon "download" }}
+                    <span>{{ text "settings:label.export" }}</span>
+                </button>
+            </div>
+
             <div class="card-nest" ui_ident="theme_preference">
                 <div class="card small">
                     <b>Theme preference</b>
@@ -710,6 +725,7 @@
                 "change_banner",
             ]);
             ui.refresh_container(theme_settings, [
+                "import_export",
                 "theme_preference",
                 "profile_theme",
             ]);
@@ -773,181 +789,251 @@
                 settings,
             );
 
-            ui.generate_settings_ui(
-                theme_settings,
+            const can_use_custom_css =
+                "{{ user.permissions|has_supporter }}" === "true";
+
+            const theme_settings_ui_json = [
                 [
                     [
-                        [
-                            "disable_other_themes",
-                            "Disable the profile theme of other users",
-                        ],
-                        "{{ profile.settings.disable_other_themes }}",
-                        "checkbox",
+                        "disable_other_themes",
+                        "Disable the profile theme of other users",
                     ],
-                    [[], "Theme builder", "title"],
-                    [
-                        [],
-                        "Allow the site to build the theme for you given a base hue, saturation, and lightness. Scroll down to the next section to manually build the theme.",
-                        "text",
-                    ],
-
-                    [
-                        ["theme_hue", "Theme hue (integer 0-255)"],
-                        "{{ profile.settings.theme_hue }}",
-                        "input",
-                    ],
-                    [
-                        ["theme_sat", "Theme sat (percentage 0%-100%)"],
-                        "{{ profile.settings.theme_sat }}",
-                        "input",
-                    ],
-                    [
-                        ["theme_lit", "Theme lit (percentage 0%-100%)"],
-                        "{{ profile.settings.theme_lit }}",
-                        "input",
-                    ],
-                    [[], "Manual theme builder", "title"],
-                    [[], "Override individual colors.", "text"],
-                    // surface
-                    [
-                        ["theme_color_surface", "Surface"],
-                        "{{ profile.settings.theme_color_surface }}",
-                        "color",
-                        {
-                            description: "Page background.",
-                        },
-                    ],
-                    [
-                        ["theme_color_text", "Text"],
-                        "{{ profile.settings.theme_color_text }}",
-                        "color",
-                        {
-                            description:
-                                "Text on elements with the surface backgrounds.",
-                        },
-                    ],
-                    [
-                        ["theme_color_text_link", "Links"],
-                        "{{ profile.settings.theme_color_text_link }}",
-                        "color",
-                        {
-                            description: "Links on all elements.",
-                        },
-                    ],
-                    // lowered
-                    [[], "", "divider"],
-                    [
-                        ["theme_color_lowered", "Lowered"],
-                        "{{ profile.settings.theme_color_lowered }}",
-                        "color",
-                        {
-                            description:
-                                "Some cards, buttons, or anything else with a darker background color than the surface.",
-                        },
-                    ],
-                    [
-                        ["theme_color_text_lowered", "Text"],
-                        "{{ profile.settings.theme_color_text_lowered }}",
-                        "color",
-                        {
-                            description:
-                                "Text on elements with the lowered backgrounds.",
-                        },
-                    ],
-                    [
-                        ["theme_color_super_lowered", "Super lowered"],
-                        "{{ profile.settings.theme_color_super_lowered }}",
-                        "color",
-                        {
-                            description: "Borders.",
-                        },
-                    ],
-                    // raised
-                    [[], "", "divider"],
-                    [
-                        ["theme_color_raised", "Raised"],
-                        "{{ profile.settings.theme_color_raised }}",
-                        "color",
-                        {
-                            description:
-                                "Some cards, buttons, or anything else with a lighter background color than the surface.",
-                        },
-                    ],
-                    [
-                        ["theme_color_text_raised", "Text"],
-                        "{{ profile.settings.theme_color_text_raised }}",
-                        "color",
-                        {
-                            description:
-                                "Text on elements with the raised backgrounds.",
-                        },
-                    ],
-                    [
-                        ["theme_color_super_raised", "Super raised"],
-                        "{{ profile.settings.theme_color_super_raised }}",
-                        "color",
-                        {
-                            description: "Some borders.",
-                        },
-                    ],
-                    // primary
-                    [[], "", "divider"],
-                    [
-                        ["theme_color_primary", "Primary"],
-                        "{{ profile.settings.theme_color_primary }}",
-                        "color",
-                        {
-                            description:
-                                "Primary color; navigation bar, some buttons, etc.",
-                        },
-                    ],
-                    [
-                        ["theme_color_text_primary", "Text"],
-                        "{{ profile.settings.theme_color_text_primary }}",
-                        "color",
-                        {
-                            description:
-                                "Text on elements with the primary backgrounds.",
-                        },
-                    ],
-                    [
-                        ["theme_color_primary_lowered", "Lowered"],
-                        "{{ profile.settings.theme_color_primary_lowered }}",
-                        "color",
-                        {
-                            description: "Hover state for primary buttons.",
-                        },
-                    ],
-                    // secondary
-                    [[], "", "divider"],
-                    [
-                        ["theme_color_secondary", "Secondary"],
-                        "{{ profile.settings.theme_color_secondary }}",
-                        "color",
-                        {
-                            description: "Secondary color.",
-                        },
-                    ],
-                    [
-                        ["theme_color_text_secondary", "Text"],
-                        "{{ profile.settings.theme_color_text_secondary }}",
-                        "color",
-                        {
-                            description:
-                                "Text on elements with the secondary backgrounds.",
-                        },
-                    ],
-                    [
-                        ["theme_color_secondary_lowered", "Lowered"],
-                        "{{ profile.settings.theme_color_secondary_lowered }}",
-                        "color",
-                        {
-                            description: "Hover state for secondary buttons.",
-                        },
-                    ],
+                    "{{ profile.settings.disable_other_themes }}",
+                    "checkbox",
                 ],
+                [[], "Theme builder", "title"],
+                [
+                    [],
+                    "Allow the site to build the theme for you given a base hue, saturation, and lightness. Scroll down to the next section to manually build the theme.",
+                    "text",
+                ],
+
+                [
+                    ["theme_hue", "Theme hue (integer 0-255)"],
+                    "{{ profile.settings.theme_hue }}",
+                    "input",
+                ],
+                [
+                    ["theme_sat", "Theme sat (percentage 0%-100%)"],
+                    "{{ profile.settings.theme_sat }}",
+                    "input",
+                ],
+                [
+                    ["theme_lit", "Theme lit (percentage 0%-100%)"],
+                    "{{ profile.settings.theme_lit }}",
+                    "input",
+                ],
+                [[], "Manual theme builder", "title"],
+                [[], "Override individual colors.", "text"],
+                // surface
+                [
+                    ["theme_color_surface", "Surface"],
+                    "{{ profile.settings.theme_color_surface }}",
+                    "color",
+                    {
+                        description: "Page background.",
+                    },
+                ],
+                [
+                    ["theme_color_text", "Text"],
+                    "{{ profile.settings.theme_color_text }}",
+                    "color",
+                    {
+                        description:
+                            "Text on elements with the surface backgrounds.",
+                    },
+                ],
+                [
+                    ["theme_color_text_link", "Links"],
+                    "{{ profile.settings.theme_color_text_link }}",
+                    "color",
+                    {
+                        description: "Links on all elements.",
+                    },
+                ],
+                // lowered
+                [[], "", "divider"],
+                [
+                    ["theme_color_lowered", "Lowered"],
+                    "{{ profile.settings.theme_color_lowered }}",
+                    "color",
+                    {
+                        description:
+                            "Some cards, buttons, or anything else with a darker background color than the surface.",
+                    },
+                ],
+                [
+                    ["theme_color_text_lowered", "Text"],
+                    "{{ profile.settings.theme_color_text_lowered }}",
+                    "color",
+                    {
+                        description:
+                            "Text on elements with the lowered backgrounds.",
+                    },
+                ],
+                [
+                    ["theme_color_super_lowered", "Super lowered"],
+                    "{{ profile.settings.theme_color_super_lowered }}",
+                    "color",
+                    {
+                        description: "Borders.",
+                    },
+                ],
+                // raised
+                [[], "", "divider"],
+                [
+                    ["theme_color_raised", "Raised"],
+                    "{{ profile.settings.theme_color_raised }}",
+                    "color",
+                    {
+                        description:
+                            "Some cards, buttons, or anything else with a lighter background color than the surface.",
+                    },
+                ],
+                [
+                    ["theme_color_text_raised", "Text"],
+                    "{{ profile.settings.theme_color_text_raised }}",
+                    "color",
+                    {
+                        description:
+                            "Text on elements with the raised backgrounds.",
+                    },
+                ],
+                [
+                    ["theme_color_super_raised", "Super raised"],
+                    "{{ profile.settings.theme_color_super_raised }}",
+                    "color",
+                    {
+                        description: "Some borders.",
+                    },
+                ],
+                // primary
+                [[], "", "divider"],
+                [
+                    ["theme_color_primary", "Primary"],
+                    "{{ profile.settings.theme_color_primary }}",
+                    "color",
+                    {
+                        description:
+                            "Primary color; navigation bar, some buttons, etc.",
+                    },
+                ],
+                [
+                    ["theme_color_text_primary", "Text"],
+                    "{{ profile.settings.theme_color_text_primary }}",
+                    "color",
+                    {
+                        description:
+                            "Text on elements with the primary backgrounds.",
+                    },
+                ],
+                [
+                    ["theme_color_primary_lowered", "Lowered"],
+                    "{{ profile.settings.theme_color_primary_lowered }}",
+                    "color",
+                    {
+                        description: "Hover state for primary buttons.",
+                    },
+                ],
+                // secondary
+                [[], "", "divider"],
+                [
+                    ["theme_color_secondary", "Secondary"],
+                    "{{ profile.settings.theme_color_secondary }}",
+                    "color",
+                    {
+                        description: "Secondary color.",
+                    },
+                ],
+                [
+                    ["theme_color_text_secondary", "Text"],
+                    "{{ profile.settings.theme_color_text_secondary }}",
+                    "color",
+                    {
+                        description:
+                            "Text on elements with the secondary backgrounds.",
+                    },
+                ],
+                [
+                    ["theme_color_secondary_lowered", "Lowered"],
+                    "{{ profile.settings.theme_color_secondary_lowered }}",
+                    "color",
+                    {
+                        description: "Hover state for secondary buttons.",
+                    },
+                ],
+            ];
+
+            if (can_use_custom_css) {
+                theme_settings_ui_json.push([[], "Advanced", "title"]);
+                theme_settings_ui_json.push([
+                    ["theme_custom_css", "Custom CSS"],
+                    settings.theme_custom_css,
+                    "textarea",
+                    {
+                        description:
+                            "Custom CSS input embedded into your theme.",
+                    },
+                ]);
+            }
+
+            ui.generate_settings_ui(
+                theme_settings,
+                theme_settings_ui_json,
                 settings,
             );
+
+            globalThis.import_theme_settings = () => {
+                const input = document.createElement("input");
+                input.type = "file";
+                input.accept = "application/json";
+                document.body.appendChild(input);
+
+                input.addEventListener("change", async (e) => {
+                    const json = JSON.parse(await e.target.files[0].text());
+
+                    for (const setting of Object.entries(json)) {
+                        settings[setting[0]] = setting[1];
+                    }
+
+                    input.remove();
+                    save_settings();
+
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 150);
+                });
+
+                input.click();
+            };
+
+            globalThis.export_theme_settings = () => {
+                const theme_settings = {
+                    profile_theme: settings.profile_theme,
+                };
+
+                for (const setting of Object.entries(settings)) {
+                    if (setting[0].startsWith("theme_")) {
+                        theme_settings[setting[0]] = setting[1];
+                    }
+                }
+
+                const blob = new Blob(
+                    [JSON.stringify(theme_settings, null, 4)],
+                    {
+                        type: "appliction/json",
+                    },
+                );
+                const url = URL.createObjectURL(blob);
+
+                const anchor = document.createElement("a");
+                anchor.href = url;
+                anchor.setAttribute("download", "theme.json");
+
+                document.body.appendChild(anchor);
+                anchor.click();
+                anchor.remove();
+            };
         });
     </script>
 </main>
