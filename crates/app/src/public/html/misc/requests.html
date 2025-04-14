@@ -45,6 +45,47 @@
                     </button>
                 </div>
             </div>
+            {% elif request.action_type == "Follow" %}
+            <div class="card-nest">
+                <div class="card small flex items-center gap-2">
+                    {{ icon "user-plus" }}
+                    <span>{{ text "requests:label.user_follow_request" }}</span>
+                </div>
+
+                <div class="card flex flex-col gap-2">
+                    <span>
+                        {{ text "requests:label.user_follow_request_message" }}
+                    </span>
+
+                    <div class="card flex w-full secondary gap-2">
+                        <a
+                            href="/api/v1/auth/user/find/{{ request.id }}"
+                            class="button"
+                        >
+                            {{ icon "external-link" }}
+                            <span
+                                >{{ text "requests:action.view_profile" }}</span
+                            >
+                        </a>
+
+                        <button
+                            class="quaternary green"
+                            onclick="accept_follow_request(event, '{{ request.id }}')"
+                        >
+                            {{ icon "check" }}
+                            <span>{{ text "general:action.accept" }}</span>
+                        </button>
+
+                        <button
+                            class="quaternary red"
+                            onclick="remove_request('{{ request.id }}', '{{ request.linked_asset }}')"
+                        >
+                            {{ icon "trash" }}
+                            <span>{{ text "general:action.delete" }}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
             {% endif %} {% endfor %} {% for question in questions %}
             <!-- prettier-ignore -->
             <div class="card-nest">
@@ -147,5 +188,49 @@
                 }
             });
     }
+
+    globalThis.accept_follow_request = async (e, id) => {
+        await trigger("atto::debounce", ["users::follow"]);
+
+        if (
+            !(await trigger("atto::confirm", [
+                "Are you sure you would like to do this?",
+            ]))
+        ) {
+            return;
+        }
+
+        fetch(`/api/v1/auth/user/${id}/follow/accept`, {
+            method: "POST",
+        })
+            .then((res) => res.json())
+            .then(async (res) => {
+                trigger("atto::toast", [
+                    res.ok ? "success" : "error",
+                    res.message,
+                ]);
+
+                if (res.ok) {
+                    e.target.parentElement.parentElement.parentElement.parentElement.remove();
+
+                    if (
+                        await trigger("atto::confirm", [
+                            "Would you like to follow this user back? This will allow them to view your profile.",
+                        ])
+                    ) {
+                        fetch(`/api/v1/auth/user/${id}/follow`, {
+                            method: "POST",
+                        })
+                            .then((res) => res.json())
+                            .then((res) => {
+                                trigger("atto::toast", [
+                                    res.ok ? "success" : "error",
+                                    res.message,
+                                ]);
+                            });
+                    }
+                }
+            });
+    };
 </script>
 {% endblock %}

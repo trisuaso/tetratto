@@ -37,6 +37,8 @@ impl DataManager {
             // likes
             likes: get!(x->8(i32)) as isize,
             dislikes: get!(x->9(i32)) as isize,
+            // ...
+            context: serde_json::from_str(&get!(x->10(String))).unwrap(),
         }
     }
 
@@ -300,6 +302,9 @@ impl DataManager {
                 {
                     return Err(Error::QuestionsDisabled);
                 }
+
+                // inherit nsfw status
+                data.context.is_nsfw = community.context.is_nsfw;
             } else {
                 let receiver = self.get_user_by_id(data.receiver).await?;
 
@@ -323,7 +328,7 @@ impl DataManager {
 
         let res = execute!(
             &conn,
-            "INSERT INTO questions VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)",
+            "INSERT INTO questions VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
             params![
                 &(data.id as i64),
                 &(data.created as i64),
@@ -334,7 +339,8 @@ impl DataManager {
                 &0_i32,
                 &(data.community as i64),
                 &0_i32,
-                &0_i32
+                &0_i32,
+                &serde_json::to_string(&data.context).unwrap()
             ]
         );
 
@@ -404,7 +410,7 @@ impl DataManager {
         {
             // requests are also deleted when a post is created answering the given question
             // (unless the question is global)
-            self.delete_request(y.owner, y.id, user).await?;
+            self.delete_request(y.owner, y.id, user, false).await?;
         }
 
         // delete all posts answering question

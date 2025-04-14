@@ -119,13 +119,21 @@ impl DataManager {
         Ok(())
     }
 
-    pub async fn delete_request(&self, id: usize, linked_asset: usize, user: &User) -> Result<()> {
+    pub async fn delete_request(
+        &self,
+        id: usize,
+        linked_asset: usize,
+        user: &User,
+        force: bool,
+    ) -> Result<()> {
         let y = self
             .get_request_by_id_linked_asset(id, linked_asset)
             .await?;
 
-        if user.id != y.owner && !user.permissions.check(FinePermission::MANAGE_REQUESTS) {
-            return Err(Error::NotAllowed);
+        if !force {
+            if user.id != y.owner && !user.permissions.check(FinePermission::MANAGE_REQUESTS) {
+                return Err(Error::NotAllowed);
+            }
         }
 
         let conn = match self.connect().await {
@@ -133,13 +141,21 @@ impl DataManager {
             Err(e) => return Err(Error::DatabaseConnection(e.to_string())),
         };
 
-        let res = execute!(&conn, "DELETE FROM requests WHERE id = $1", &[&(id as i64)]);
+        let res = execute!(
+            &conn,
+            "DELETE FROM requests WHERE id = $1",
+            &[&(y.id as i64)]
+        );
 
         if let Err(e) = res {
             return Err(Error::DatabaseError(e.to_string()));
         }
 
-        self.2.remove(format!("atto.request:{}", id)).await;
+        self.2.remove(format!("atto.request:{}", y.id)).await;
+
+        self.2
+            .remove(format!("atto.request:{}:{}", id, linked_asset))
+            .await;
 
         // decr request count
         let owner = self.get_user_by_id(y.owner).await?;
@@ -159,7 +175,8 @@ impl DataManager {
                 return Err(Error::NotAllowed);
             }
 
-            self.delete_request(x.id, x.linked_asset, user).await?;
+            self.delete_request(x.id, x.linked_asset, user, false)
+                .await?;
 
             // delete question
             if x.action_type == ActionType::Answer {

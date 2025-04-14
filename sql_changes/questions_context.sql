@@ -1,0 +1,2 @@
+ALTER TABLE questions
+ADD COLUMN context TEXT NOT NULL DEFAULT '{}';

@@ -47,6 +47,7 @@ pub const PROFILE_SETTINGS: &str = include_str!("./public/html/profile/settings.
 pub const PROFILE_FOLLOWING: &str = include_str!("./public/html/profile/following.html");
 pub const PROFILE_FOLLOWERS: &str = include_str!("./public/html/profile/followers.html");
 pub const PROFILE_WARNING: &str = include_str!("./public/html/profile/warning.html");
+pub const PROFILE_PRIVATE: &str = include_str!("./public/html/profile/private.html");
 
 pub const COMMUNITIES_LIST: &str = include_str!("./public/html/communities/list.html");
 pub const COMMUNITIES_BASE: &str = include_str!("./public/html/communities/base.html");
@@ -192,6 +193,7 @@ pub(crate) async fn write_assets(config: &Config) -> PathBufD {
     write_template!(html_path->"profile/following.html"(crate::assets::PROFILE_FOLLOWING) --config=config);
     write_template!(html_path->"profile/followers.html"(crate::assets::PROFILE_FOLLOWERS) --config=config);
     write_template!(html_path->"profile/warning.html"(crate::assets::PROFILE_WARNING) --config=config);
+    write_template!(html_path->"profile/private.html"(crate::assets::PROFILE_PRIVATE) --config=config);
 
     write_template!(html_path->"communities/list.html"(crate::assets::COMMUNITIES_LIST) -d "communities" --config=config);
     write_template!(html_path->"communities/base.html"(crate::assets::COMMUNITIES_BASE) --config=config);

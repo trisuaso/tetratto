@@ -14,7 +14,7 @@ pub async fn delete_request(
         None => return Json(Error::NotAllowed.into()),
     };
 
-    match data.delete_request(id, linked_asset, &user).await {
+    match data.delete_request(id, linked_asset, &user, false).await {
         Ok(_) => Json(ApiReturn {
             ok: true,
             message: "Request deleted".to_string(),

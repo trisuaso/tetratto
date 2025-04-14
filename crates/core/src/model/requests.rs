@@ -11,6 +11,10 @@ pub enum ActionType {
     ///
     /// `questions` table.
     Answer,
+    /// A request follow a private account.
+    ///
+    /// `users` table.
+    Follow,
 }
 
 #[derive(Serialize, Deserialize)]

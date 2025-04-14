@@ -307,6 +307,8 @@ pub struct Question {
     pub likes: isize,
     #[serde(default)]
     pub dislikes: isize,
+    #[serde(default)]
+    pub context: QuestionContext,
 }
 
 impl Question {
@@ -326,6 +328,19 @@ impl Question {
             community: 0,
             likes: 0,
             dislikes: 0,
+            context: QuestionContext::default(),
         }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct QuestionContext {
+    #[serde(default)]
+    pub is_nsfw: bool,
+}
+
+impl Default for QuestionContext {
+    fn default() -> Self {
+        Self { is_nsfw: false }
     }
 }

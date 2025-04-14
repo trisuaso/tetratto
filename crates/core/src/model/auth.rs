@@ -322,6 +322,14 @@ impl UserFollow {
     }
 }
 
+#[derive(Serialize, Deserialize, PartialEq, Eq)]
+pub enum FollowResult {
+    /// Request sent to follow other user.
+    Requested,
+    /// Successfully followed other user.
+    Followed,
+}
+
 #[derive(Serialize, Deserialize)]
 pub struct UserBlock {
     pub id: usize,

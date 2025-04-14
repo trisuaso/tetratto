@@ -137,13 +137,41 @@ pub async fn posts_request(
                     .await
                     .is_err()
             {
-                return Err(Html(
-                    render_error(Error::NotAllowed, &jar, &data, &user).await,
+                let lang = get_lang!(jar, data.0);
+                let mut context = initial_context(&data.0.0, lang, &user).await;
+
+                context.insert("profile", &other_user);
+                context.insert(
+                    "follow_requested",
+                    &data
+                        .0
+                        .get_request_by_id_linked_asset(ua.id, other_user.id)
+                        .await
+                        .is_ok(),
+                );
+                context.insert(
+                    "is_following",
+                    &data
+                        .0
+                        .get_userfollow_by_initiator_receiver(ua.id, other_user.id)
+                        .await
+                        .is_ok(),
+                );
+
+                return Ok(Html(
+                    data.1.render("profile/private.html", &context).unwrap(),
                 ));
             }
         } else {
-            return Err(Html(
-                render_error(Error::NotAllowed, &jar, &data, &user).await,
+            let lang = get_lang!(jar, data.0);
+            let mut context = initial_context(&data.0.0, lang, &user).await;
+
+            context.insert("profile", &other_user);
+            context.insert("follow_requested", &false);
+            context.insert("is_following", &false);
+
+            return Ok(Html(
+                data.1.render("profile/private.html", &context).unwrap(),
             ));
         }
     }

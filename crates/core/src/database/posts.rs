@@ -621,7 +621,7 @@ impl DataManager {
             }
 
             if !question.is_global {
-                self.delete_request(question.owner, question.id, &owner)
+                self.delete_request(question.owner, question.id, &owner, false)
                     .await?;
             } else {
                 self.incr_question_answer_count(data.context.answering)
@@ -629,15 +629,23 @@ impl DataManager {
             }
 
             // create notification for question owner
-            self.create_notification(Notification::new(
-                "Your question has received a new answer!".to_string(),
-                format!(
-                    "[@{}](/api/v1/auth/user/find/{}) has answered your [question](/question/{}).",
-                    owner.username, owner.id, question.id
-                ),
-                question.owner,
-            ))
-            .await?;
+            // (if the current user isn't the owner)
+            if question.owner != data.owner {
+                self.create_notification(Notification::new(
+                    "Your question has received a new answer!".to_string(),
+                    format!(
+                        "[@{}](/api/v1/auth/user/find/{}) has answered your [question](/question/{}).",
+                        owner.username, owner.id, question.id
+                    ),
+                    question.owner,
+                ))
+                .await?;
+            }
+
+            // inherit nsfw status if we didn't get it from the community
+            if question.context.is_nsfw {
+                data.context.is_nsfw = question.context.is_nsfw;
+            }
         }
 
         // check if we're reposting a post

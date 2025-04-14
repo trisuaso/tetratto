@@ -118,6 +118,14 @@ pub fn routes() -> Router {
         .route("/auth/user/{id}/avatar", get(auth::images::avatar_request))
         .route("/auth/user/{id}/banner", get(auth::images::banner_request))
         .route("/auth/user/{id}/follow", post(auth::social::follow_request))
+        .route(
+            "/auth/user/{id}/follow/cancel",
+            post(auth::social::cancel_follow_request),
+        )
+        .route(
+            "/auth/user/{id}/follow/accept",
+            post(auth::social::accept_follow_request),
+        )
         .route("/auth/user/{id}/block", post(auth::social::block_request))
         .route(
             "/auth/user/{id}/settings",

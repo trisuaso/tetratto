@@ -619,7 +619,15 @@ show_community=true, secondary=false) -%}
                 {{ icon "message-circle-heart" }}
             </span>
 
-            {% if question.community > 0 and show_community %}
+            {% if question.context.is_nsfw %}
+            <span
+                title="NSFW community"
+                class="flex items-center"
+                style="color: var(--color-primary)"
+            >
+                {{ icon "square-asterisk" }}
+            </span>
+            {% endif %} {% if question.community > 0 and show_community %}
             <a
                 href="/api/v1/communities/find/{{ question.community }}"
                 class="flex items-center"

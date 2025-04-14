@@ -58,6 +58,7 @@
 </main>
 
 <script>
+    const community = "{{ question.community }}";
     async function answer_question_from_form(e, answering) {
         e.preventDefault();
         await trigger("atto::debounce", ["posts::create"]);
@@ -68,7 +69,7 @@
             },
             body: JSON.stringify({
                 content: e.target.content.value,
-                community: "{{ config.town_square }}",
+                community: community ? community : "{{ config.town_square }}",
                 answering,
             }),
         })
