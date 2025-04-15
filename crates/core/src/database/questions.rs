@@ -71,7 +71,7 @@ impl DataManager {
 
         let res = query_rows!(
             &conn,
-            "SELECT * FROM questions WHERE owner = $1 ORDER BY created DESC",
+            "SELECT * FROM questions WHERE owner = $1 AND NOT context LIKE '%\"is_nsfw\":true%' ORDER BY created DESC",
             &[&(owner as i64)],
             |x| { Self::get_question_from_row(x) }
         );
@@ -206,7 +206,7 @@ impl DataManager {
         let res = query_rows!(
             &conn,
             &format!(
-                "SELECT * FROM questions WHERE (community = {} {query_string}) AND is_global = 1 ORDER BY created DESC LIMIT $1 OFFSET $2",
+                "SELECT * FROM questions WHERE (community = {} {query_string}) AND is_global = 1 AND NOT context LIKE '%\"is_nsfw\":true%' ORDER BY created DESC LIMIT $1 OFFSET $2",
                 first.community
             ),
             &[&(batch as i64), &((page * batch) as i64)],
@@ -268,7 +268,7 @@ impl DataManager {
 
         let res = query_rows!(
             &conn,
-            "SELECT * FROM questions WHERE is_global = 1 AND ($1 - created) < $2 ORDER BY likes DESC, created ASC LIMIT $3 OFFSET $4",
+            "SELECT * FROM questions WHERE is_global = 1 AND NOT context LIKE '%\"is_nsfw\":true%' AND ($1 - created) < $2 ORDER BY likes DESC, created ASC LIMIT $3 OFFSET $4",
             &[
                 &(unix_epoch_timestamp() as i64),
                 &(cutoff as i64),
