@@ -466,7 +466,7 @@ button,
 
 button.small,
 .button.small {
-    min-height: max-content;
+    /* min-height: max-content; */
     padding: 0.25rem 0.5rem;
     height: 24px;
     font-size: 16px;
