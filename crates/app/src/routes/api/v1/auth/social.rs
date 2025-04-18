@@ -20,7 +20,7 @@ pub async fn follow_request(
 
     if let Ok(userfollow) = data.get_userfollow_by_initiator_receiver(user.id, id).await {
         // delete
-        match data.delete_userfollow(userfollow.id, &user).await {
+        match data.delete_userfollow(userfollow.id, &user, false).await {
             Ok(_) => Json(ApiReturn {
                 ok: true,
                 message: "User unfollowed".to_string(),
@@ -164,7 +164,7 @@ pub async fn block_request(
                 if let Ok(userfollow) = data.get_userfollow_by_initiator_receiver(user.id, id).await
                 {
                     // automatically unfollow
-                    match data.delete_userfollow(userfollow.id, &user).await {
+                    match data.delete_userfollow(userfollow.id, &user, false).await {
                         Ok(_) => Json(ApiReturn {
                             ok: true,
                             message: "User blocked".to_string(),
@@ -176,7 +176,7 @@ pub async fn block_request(
                     data.get_userfollow_by_receiver_initiator(user.id, id).await
                 {
                     // automatically unfollow
-                    match data.delete_userfollow(userfollow.id, &user).await {
+                    match data.delete_userfollow(userfollow.id, &user, false).await {
                         Ok(_) => Json(ApiReturn {
                             ok: true,
                             message: "User blocked".to_string(),

@@ -196,7 +196,13 @@ impl DataManager {
 
         for userfollow in userfollows {
             let receiver = userfollow.receiver;
-            out.push((userfollow, self.get_user_by_id(receiver).await?));
+            out.push((
+                userfollow,
+                match self.get_user_by_id(receiver).await {
+                    Ok(u) => u,
+                    Err(_) => continue,
+                },
+            ));
         }
 
         Ok(out)
@@ -211,7 +217,13 @@ impl DataManager {
 
         for userfollow in userfollows {
             let initiator = userfollow.initiator;
-            out.push((userfollow, self.get_user_by_id(initiator).await?));
+            out.push((
+                userfollow,
+                match self.get_user_by_id(initiator).await {
+                    Ok(u) => u,
+                    Err(_) => continue,
+                },
+            ));
         }
 
         Ok(out)
@@ -272,12 +284,18 @@ impl DataManager {
         Ok(FollowResult::Followed)
     }
 
-    pub async fn delete_userfollow(&self, id: usize, user: &User) -> Result<()> {
+    pub async fn delete_userfollow(
+        &self,
+        id: usize,
+        user: &User,
+        is_deleting_user: bool,
+    ) -> Result<()> {
         let follow = self.get_userfollow_by_id(id).await?;
 
         if (user.id != follow.initiator)
             && (user.id != follow.receiver)
             && !user.permissions.check(FinePermission::MANAGE_FOLLOWS)
+            && !is_deleting_user
         {
             return Err(Error::NotAllowed);
         }
@@ -299,14 +317,18 @@ impl DataManager {
 
         self.2.remove(format!("atto.userfollow:{}", id)).await;
 
-        // decr counts
-        self.decr_user_following_count(follow.initiator)
-            .await
-            .unwrap();
+        // decr counts (if we aren't deleting the user OR the user id isn't the deleted user id)
+        if !is_deleting_user | (follow.initiator != user.id) {
+            self.decr_user_following_count(follow.initiator)
+                .await
+                .unwrap();
+        }
 
-        self.decr_user_follower_count(follow.receiver)
-            .await
-            .unwrap();
+        if !is_deleting_user | (follow.receiver != user.id) {
+            self.decr_user_follower_count(follow.receiver)
+                .await
+                .unwrap();
+        }
 
         // return
         Ok(())

@@ -226,6 +226,39 @@ impl DataManager {
             return Err(Error::DatabaseError(e.to_string()));
         }
 
+        // delete requests
+        let res = execute!(
+            &conn,
+            "DELETE FROM requests WHERE owner = $1",
+            &[&(id as i64)]
+        );
+
+        if let Err(e) = res {
+            return Err(Error::DatabaseError(e.to_string()));
+        }
+
+        // delete warnings
+        let res = execute!(
+            &conn,
+            "DELETE FROM user_warnings WHERE receiver = $1",
+            &[&(id as i64)]
+        );
+
+        if let Err(e) = res {
+            return Err(Error::DatabaseError(e.to_string()));
+        }
+
+        // delete blocks
+        let res = execute!(
+            &conn,
+            "DELETE FROM userblocks WHERE initiator = $1 OR receiver = $1",
+            &[&(id as i64)]
+        );
+
+        if let Err(e) = res {
+            return Err(Error::DatabaseError(e.to_string()));
+        }
+
         // delete reactions
         // reactions counts will remain the same :)
         let res = execute!(
@@ -243,6 +276,15 @@ impl DataManager {
 
         if let Err(e) = res {
             return Err(Error::DatabaseError(e.to_string()));
+        }
+
+        // delete user follows... individually since it requires updating user counts
+        for follow in self.get_userfollows_by_receiver_all(id).await? {
+            self.delete_userfollow(follow.id, &user, true).await?;
+        }
+
+        for follow in self.get_userfollows_by_initiator_all(id).await? {
+            self.delete_userfollow(follow.id, &user, true).await?;
         }
 
         // remove images

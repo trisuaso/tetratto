@@ -26,7 +26,7 @@ impl DataManager {
         }
     }
 
-    auto_method!(get_user_warning_by_ip(&str)@get_user_warning_from_row -> "SELECT * FROM user_warning WHERE ip = $1" --name="user warning" --returns=UserWarning --cache-key-tmpl="atto.user_warning:{}");
+    auto_method!(get_user_warning_by_ip(&str)@get_user_warning_from_row -> "SELECT * FROM user_warnings WHERE ip = $1" --name="user warning" --returns=UserWarning --cache-key-tmpl="atto.user_warning:{}");
 
     /// Get all user warnings by user (paginated).
     ///
