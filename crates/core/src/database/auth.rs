@@ -569,7 +569,7 @@ impl DataManager {
         };
 
         // return
-        Ok((secret, qr, recovery))
+        Ok((totp.get_secret_base32(), qr, recovery))
     }
 
     pub async fn cache_clear_user(&self, user: &User) {
