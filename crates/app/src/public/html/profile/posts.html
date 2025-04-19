@@ -1,7 +1,8 @@
 {% extends "profile/base.html" %} {% block content %} {% if
 profile.settings.enable_questions and user %}
 <div style="display: contents">
-    {{ components::create_question_form(receiver=profile.id) }}
+    {{ components::create_question_form(receiver=profile.id,
+    header=profile.settings.motivational_header) }}
 </div>
 {% endif %} {% if pinned|length != 0 %}
 <div class="card-nest">

@@ -650,11 +650,18 @@ show_community=true, secondary=false) -%}
     </div>
 </div>
 {%- endmacro %} {% macro create_question_form(receiver="0", community="",
-is_global=false) -%}
+header="", is_global=false) -%}
 <div class="card-nest">
     <div class="card small flex items-center gap-2">
         {{ icon "message-circle-heart" }}
-        <span>{{ text "requests:label.ask_question" }}</span>
+        <span class="no_p_margin">
+            <!-- prettier-ignore -->
+            {% if header %}
+                {{ header|markdown|safe }}
+            {% else %}
+                {{ text "requests:label.ask_question" }}
+            {% endif %}
+        </span>
     </div>
 
     <form

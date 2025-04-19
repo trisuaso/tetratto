@@ -133,6 +133,9 @@ pub struct UserSettings {
     pub disable_other_theme_css: bool,
     #[serde(default)]
     pub enable_questions: bool,
+    /// A header shown in the place of "Ask question" if `enable_questions` is true.
+    #[serde(default)]
+    pub motivational_header: String,
 }
 
 impl Default for User {

@@ -748,14 +748,7 @@
                         settings.warning,
                         "textarea",
                     ],
-                ],
-                settings,
-            );
-
-            ui.generate_settings_ui(
-                profile_settings,
-                [
-                    [[], "Privacy", "title"],
+                    [[], "Questions", "title"],
                     [
                         [
                             "enable_questions",
@@ -764,6 +757,19 @@
                         "{{ profile.settings.enable_questions }}",
                         "checkbox",
                     ],
+                    [
+                        ["motivational_header", "Motivational header"],
+                        settings.motivational_header,
+                        "input",
+                    ],
+                ],
+                settings,
+            );
+
+            ui.generate_settings_ui(
+                profile_settings,
+                [
+                    [[], "Privacy", "title"],
                     [
                         [
                             "private_profile",
