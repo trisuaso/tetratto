@@ -26,6 +26,7 @@ pub fn routes() -> Router {
         // misc
         .route("/util/proxy", get(util::proxy_request))
         .route("/util/lang", get(util::set_langfile_request))
+        .route("/util/ip", get(util::ip_test_request))
         // reactions
         .route("/reactions", post(reactions::create_request))
         .route("/reactions/{id}", get(reactions::get_request))

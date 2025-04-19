@@ -1,6 +1,12 @@
 use super::auth::images::read_image;
 use crate::State;
-use axum::{Extension, body::Body, extract::Query, http::HeaderMap, response::IntoResponse};
+use axum::{
+    body::Body,
+    extract::Query,
+    http::{HeaderMap, HeaderValue},
+    response::IntoResponse,
+    Extension,
+};
 use pathbufd::PathBufD;
 use serde::Deserialize;
 
@@ -130,4 +136,17 @@ pub async fn set_langfile_request(Query(props): Query<LangFileQuery>) -> impl In
         },
         "Language changed",
     )
+}
+
+pub async fn ip_test_request(
+    headers: HeaderMap,
+    Extension(data): Extension<State>,
+) -> impl IntoResponse {
+    let data = &(data.read().await).0;
+    headers
+        .get(data.0.security.real_ip_header.to_owned())
+        .unwrap_or(&HeaderValue::from_static(""))
+        .to_str()
+        .unwrap_or("")
+        .to_string()
 }
