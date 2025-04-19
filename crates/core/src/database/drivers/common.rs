@@ -12,3 +12,4 @@ pub const CREATE_TABLE_REPORTS: &str = include_str!("./sql/create_reports.sql");
 pub const CREATE_TABLE_USER_WARNINGS: &str = include_str!("./sql/create_user_warnings.sql");
 pub const CREATE_TABLE_REQUESTS: &str = include_str!("./sql/create_requests.sql");
 pub const CREATE_TABLE_QUESTIONS: &str = include_str!("./sql/create_questions.sql");
+pub const CREATE_TABLE_IPBLOCKS: &str = include_str!("./sql/create_ipblocks.sql");

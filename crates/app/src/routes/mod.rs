@@ -20,6 +20,10 @@ pub fn routes(config: &Config) -> Router {
             get_service(tower_http::services::ServeDir::new(&config.dirs.assets)),
         )
         .route("/public/favicon.svg", get(assets::favicon_request))
+        .route_service(
+            "/robots.txt",
+            tower_http::services::ServeFile::new(format!("{}/robots.txt", config.dirs.assets)),
+        )
         // api
         .nest("/api/v1", api::v1::routes())
         // pages

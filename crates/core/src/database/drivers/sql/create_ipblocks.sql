@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS ipblocks (
+    id BIGINT NOT NULL PRIMARY KEY,
+    created BIGINT NOT NULL,
+    initiator BIGINT NOT NULL,
+    receiver TEXT NOT NULL
+)

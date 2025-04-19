@@ -4,6 +4,7 @@ mod common;
 mod communities;
 mod drivers;
 mod ipbans;
+mod ipblocks;
 mod memberships;
 mod notifications;
 mod posts;

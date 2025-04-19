@@ -307,13 +307,23 @@ pub struct Question {
     pub likes: isize,
     #[serde(default)]
     pub dislikes: isize,
+    // ...
     #[serde(default)]
     pub context: QuestionContext,
+    /// The IP of the question creator for IP blocking and identifying anonymous users.
+    #[serde(default)]
+    pub ip: String,
 }
 
 impl Question {
     /// Create a new [`Question`].
-    pub fn new(owner: usize, receiver: usize, content: String, is_global: bool) -> Self {
+    pub fn new(
+        owner: usize,
+        receiver: usize,
+        content: String,
+        is_global: bool,
+        ip: String,
+    ) -> Self {
         Self {
             id: AlmostSnowflake::new(1234567890)
                 .to_string()
@@ -329,18 +339,15 @@ impl Question {
             likes: 0,
             dislikes: 0,
             context: QuestionContext::default(),
+            ip,
         }
     }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Default)]
 pub struct QuestionContext {
     #[serde(default)]
     pub is_nsfw: bool,
 }
 
-impl Default for QuestionContext {
-    fn default() -> Self {
-        Self { is_nsfw: false }
-    }
-}

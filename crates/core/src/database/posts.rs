@@ -105,7 +105,12 @@ impl DataManager {
     pub async fn get_post_question(&self, post: &Post) -> Result<Option<(Question, User)>> {
         if post.context.answering != 0 {
             let question = self.get_question_by_id(post.context.answering).await?;
-            let user = self.get_user_by_id_with_void(question.owner).await?;
+            let user = if question.owner == 0 {
+                User::anonymous()
+            } else {
+                self.get_user_by_id_with_void(question.owner).await?
+            };
+
             Ok(Some((question, user)))
         } else {
             Ok(None)
@@ -563,7 +568,7 @@ impl DataManager {
                     .get_membership_by_owner_community(uid, community.id)
                     .await
                 {
-                    Ok(m) => !(!m.role.check_member()),
+                    Ok(m) => m.role.check_member(),
                     Err(_) => false,
                 }
             }
@@ -630,7 +635,7 @@ impl DataManager {
 
             // create notification for question owner
             // (if the current user isn't the owner)
-            if question.owner != data.owner {
+            if (question.owner != data.owner) && (question.owner != 0) {
                 self.create_notification(Notification::new(
                     "Your question has received a new answer!".to_string(),
                     format!(
@@ -682,9 +687,10 @@ impl DataManager {
             }
 
             // check blocked status
-            if let Ok(_) = self
+            if self
                 .get_userblock_by_initiator_receiver(rt.owner, data.owner)
                 .await
+                .is_ok()
             {
                 return Err(Error::NotAllowed);
             }
@@ -703,9 +709,10 @@ impl DataManager {
             }
 
             // check blocked status
-            if let Ok(_) = self
+            if self
                 .get_userblock_by_initiator_receiver(rt.owner, data.owner)
                 .await
+                .is_ok()
             {
                 return Err(Error::NotAllowed);
             }

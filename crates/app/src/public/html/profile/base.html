@@ -156,7 +156,7 @@
                             atto_tag="user.follow"
                         >
                             {{ icon "user-plus" }}
-                            <span>{{ text "auto:action.follow" }}</span>
+                            <span>{{ text "auth:action.follow" }}</span>
                         </button>
 
                         <button
@@ -165,7 +165,7 @@
                             atto_tag="user.unfollow"
                         >
                             {{ icon "user-minus" }}
-                            <span>{{ text "auto:action.unfollow" }}</span>
+                            <span>{{ text "auth:action.unfollow" }}</span>
                         </button>
 
                         <button
@@ -173,7 +173,7 @@
                             class="quaternary red"
                         >
                             {{ icon "shield" }}
-                            <span>{{ text "auto:action.block" }}</span>
+                            <span>{{ text "auth:action.block" }}</span>
                         </button>
                         {% else %}
                         <button
@@ -181,7 +181,7 @@
                             class="quaternary red"
                         >
                             {{ icon "shield-off" }}
-                            <span>{{ text "auto:action.unblock" }}</span>
+                            <span>{{ text "auth:action.unblock" }}</span>
                         </button>
                         {% endif %} {% if is_helper %}
                         <a

@@ -6,6 +6,8 @@ pub mod permissions;
 pub mod reactions;
 pub mod requests;
 
+use std::fmt::Display;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize)]
@@ -37,9 +39,9 @@ pub enum Error {
     Unknown,
 }
 
-impl ToString for Error {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&match self {
             Self::MiscError(msg) => msg.to_owned(),
             Self::DatabaseConnection(msg) => msg.to_owned(),
             Self::DatabaseError(msg) => format!("Database error: {msg}"),
@@ -55,7 +57,7 @@ impl ToString for Error {
             Self::TitleInUse => "Title in use".to_string(),
             Self::QuestionsDisabled => "You are not allowed to ask questions there".to_string(),
             _ => format!("An unknown error as occurred: ({:?})", self),
-        }
+        })
     }
 }
 

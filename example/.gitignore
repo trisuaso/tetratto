@@ -1,7 +1,7 @@
 atto.db*
 
 html/*
-public/*
+# public/*
 media/*
 icons/*
 langs/*

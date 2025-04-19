@@ -257,6 +257,7 @@ fn default_banned_usernames() -> Vec<String> {
         "notification".to_string(),
         "post".to_string(),
         "void".to_string(),
+        "anonymous".to_string(),
     ]
 }
 

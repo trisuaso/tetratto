@@ -748,20 +748,6 @@
                         settings.warning,
                         "textarea",
                     ],
-                    [[], "Questions", "title"],
-                    [
-                        [
-                            "enable_questions",
-                            "Allow users to ask you questions",
-                        ],
-                        "{{ profile.settings.enable_questions }}",
-                        "checkbox",
-                    ],
-                    [
-                        ["motivational_header", "Motivational header"],
-                        settings.motivational_header,
-                        "input",
-                    ],
                 ],
                 settings,
             );
@@ -790,6 +776,28 @@
                         ["private_last_seen", "Keep my last seen time private"],
                         "{{ profile.settings.private_last_seen }}",
                         "checkbox",
+                    ],
+                    [[], "Questions", "title"],
+                    [
+                        [
+                            "enable_questions",
+                            "Allow users to ask you questions",
+                        ],
+                        "{{ profile.settings.enable_questions }}",
+                        "checkbox",
+                    ],
+                    [
+                        [
+                            "allow_anonymous_questions",
+                            "Allow anonymous questions",
+                        ],
+                        "{{ profile.settings.allow_anonymous_questions }}",
+                        "checkbox",
+                    ],
+                    [
+                        ["motivational_header", "Motivational header"],
+                        settings.motivational_header,
+                        "input",
                     ],
                 ],
                 settings,

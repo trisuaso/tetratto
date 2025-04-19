@@ -27,6 +27,7 @@ impl DataManager {
         execute!(&conn, common::CREATE_TABLE_USER_WARNINGS).unwrap();
         execute!(&conn, common::CREATE_TABLE_REQUESTS).unwrap();
         execute!(&conn, common::CREATE_TABLE_QUESTIONS).unwrap();
+        execute!(&conn, common::CREATE_TABLE_IPBLOCKS).unwrap();
 
         Ok(())
     }
@@ -338,7 +339,7 @@ macro_rules! auto_method {
                 if !user.permissions.check(FinePermission::$permission) {
                     return Err(Error::NotAllowed);
                 } else {
-                    self.create_audit_log_entry(crate::model::moderation::AuditLogEntry::new(
+                    self.create_audit_log_entry($crate::model::moderation::AuditLogEntry::new(
                         user.id,
                         format!("invoked `{}` with x value `{x:?}`", stringify!($name)),
                     ))
@@ -493,7 +494,7 @@ macro_rules! auto_method {
                 if !user.permissions.check(FinePermission::$permission) {
                     return Err(Error::NotAllowed);
                 } else {
-                    self.create_audit_log_entry(crate::model::moderation::AuditLogEntry::new(
+                    self.create_audit_log_entry($crate::model::moderation::AuditLogEntry::new(
                         user.id,
                         format!("invoked `{}` with x value `{id}`", stringify!($name)),
                     ))

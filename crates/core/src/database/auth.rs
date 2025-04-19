@@ -9,7 +9,6 @@ use crate::model::{
 use crate::{auto_method, execute, get, query_row, params};
 use pathbufd::PathBufD;
 use std::fs::{exists, remove_file};
-use std::usize;
 use tetratto_shared::hash::{hash_salted, salt};
 use tetratto_shared::unix_epoch_timestamp;
 
@@ -252,6 +251,16 @@ impl DataManager {
         let res = execute!(
             &conn,
             "DELETE FROM userblocks WHERE initiator = $1 OR receiver = $1",
+            &[&(id as i64)]
+        );
+
+        if let Err(e) = res {
+            return Err(Error::DatabaseError(e.to_string()));
+        }
+
+        let res = execute!(
+            &conn,
+            "DELETE FROM ipblocks WHERE initiator = $1",
             &[&(id as i64)]
         );
 

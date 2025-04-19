@@ -15,6 +15,7 @@ banned_usernames = [
     "notification",
     "post",
     "void",
+    "anonymous"
 ]
 town_square = 166340372315581657
 

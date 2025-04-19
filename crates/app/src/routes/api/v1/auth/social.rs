@@ -4,7 +4,7 @@ use crate::{
 };
 use axum::{Extension, Json, extract::Path, response::IntoResponse};
 use axum_extra::extract::CookieJar;
-use tetratto_core::model::auth::{FollowResult, Notification, UserBlock, UserFollow};
+use tetratto_core::model::auth::{FollowResult, IpBlock, Notification, UserBlock, UserFollow};
 
 /// Toggle following on the given user.
 pub async fn follow_request(
@@ -193,6 +193,41 @@ pub async fn block_request(
                     })
                 }
             }
+            Err(e) => Json(e.into()),
+        }
+    }
+}
+
+/// Toggle IP blocking on the given IP.
+pub async fn ip_block_request(
+    jar: CookieJar,
+    Path(ip): Path<String>,
+    Extension(data): Extension<State>,
+) -> impl IntoResponse {
+    let data = &(data.read().await).0;
+    let user = match get_user_from_token!(jar, data) {
+        Some(ua) => ua,
+        None => return Json(Error::NotAllowed.into()),
+    };
+
+    if let Ok(ipblock) = data.get_ipblock_by_initiator_receiver(user.id, &ip).await {
+        // delete
+        match data.delete_ipblock(ipblock.id, user).await {
+            Ok(_) => Json(ApiReturn {
+                ok: true,
+                message: "IP unblocked".to_string(),
+                payload: (),
+            }),
+            Err(e) => Json(e.into()),
+        }
+    } else {
+        // create
+        match data.create_ipblock(IpBlock::new(user.id, ip)).await {
+            Ok(_) => Json(ApiReturn {
+                ok: true,
+                message: "IP blocked".to_string(),
+                payload: (),
+            }),
             Err(e) => Json(e.into()),
         }
     }

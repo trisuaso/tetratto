@@ -39,6 +39,7 @@ impl DataManager {
             dislikes: get!(x->9(i32)) as isize,
             // ...
             context: serde_json::from_str(&get!(x->10(String))).unwrap(),
+            ip: get!(x->11(String)),
         }
     }
 
@@ -53,7 +54,12 @@ impl DataManager {
             if let Some(ua) = seen_users.get(&question.owner) {
                 out.push((question, ua.to_owned()));
             } else {
-                let user = self.get_user_by_id_with_void(question.owner).await?;
+                let user = if question.owner == 0 {
+                    User::anonymous()
+                } else {
+                    self.get_user_by_id_with_void(question.owner).await?
+                };
+
                 seen_users.insert(question.owner, user.clone());
                 out.push((question, user));
             }
@@ -311,12 +317,34 @@ impl DataManager {
                 if !receiver.settings.enable_questions {
                     return Err(Error::QuestionsDisabled);
                 }
+
+                // check for ip block
+                if self
+                    .get_ipblock_by_initiator_receiver(receiver.id, &data.ip)
+                    .await
+                    .is_ok()
+                {
+                    return Err(Error::NotAllowed);
+                }
             }
         } else {
             let receiver = self.get_user_by_id(data.receiver).await?;
 
             if !receiver.settings.enable_questions {
                 return Err(Error::QuestionsDisabled);
+            }
+
+            if !receiver.settings.allow_anonymous_questions && data.owner == 0 {
+                return Err(Error::NotAllowed);
+            }
+
+            // check for ip block
+            if self
+                .get_ipblock_by_initiator_receiver(receiver.id, &data.ip)
+                .await
+                .is_ok()
+            {
+                return Err(Error::NotAllowed);
             }
         }
 
@@ -328,7 +356,7 @@ impl DataManager {
 
         let res = execute!(
             &conn,
-            "INSERT INTO questions VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+            "INSERT INTO questions VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
             params![
                 &(data.id as i64),
                 &(data.created as i64),
@@ -340,7 +368,8 @@ impl DataManager {
                 &(data.community as i64),
                 &0_i32,
                 &0_i32,
-                &serde_json::to_string(&data.context).unwrap()
+                &serde_json::to_string(&data.context).unwrap(),
+                &data.ip
             ]
         );
 

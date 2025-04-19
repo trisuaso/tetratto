@@ -100,6 +100,10 @@ pub fn routes() -> Router {
             "/questions/{id}",
             delete(communities::questions::delete_request),
         )
+        .route(
+            "/questions/{id}/block_ip",
+            post(communities::questions::ip_block_request),
+        )
         // auth
         // global
         .route("/auth/register", post(auth::register_request))
@@ -177,6 +181,7 @@ pub fn routes() -> Router {
             "/auth/user/find_by_ip/{ip}",
             get(auth::profile::redirect_from_ip),
         )
+        .route("/auth/ip/{ip}/block", post(auth::social::ip_block_request))
         // warnings
         .route("/warnings/{id}", post(auth::user_warnings::create_request))
         .route(

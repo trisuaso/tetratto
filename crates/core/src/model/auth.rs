@@ -136,6 +136,9 @@ pub struct UserSettings {
     /// A header shown in the place of "Ask question" if `enable_questions` is true.
     #[serde(default)]
     pub motivational_header: String,
+    /// If questions from anonymous users are allowed. Requires `enable_questions`.
+    #[serde(default)]
+    pub allow_anonymous_questions: bool,
 }
 
 impl Default for User {
@@ -187,6 +190,15 @@ impl User {
     pub fn banned() -> Self {
         Self {
             username: "<banned>".to_string(),
+            id: 0,
+            ..Default::default()
+        }
+    }
+
+    /// Anonymous user profile.
+    pub fn anonymous() -> Self {
+        Self {
+            username: "anonymous".to_string(),
             id: 0,
             ..Default::default()
         }
@@ -344,6 +356,29 @@ pub struct UserBlock {
 impl UserBlock {
     /// Create a new [`UserBlock`].
     pub fn new(initiator: usize, receiver: usize) -> Self {
+        Self {
+            id: AlmostSnowflake::new(1234567890)
+                .to_string()
+                .parse::<usize>()
+                .unwrap(),
+            created: unix_epoch_timestamp() as usize,
+            initiator,
+            receiver,
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct IpBlock {
+    pub id: usize,
+    pub created: usize,
+    pub initiator: usize,
+    pub receiver: String,
+}
+
+impl IpBlock {
+    /// Create a new [`IpBlock`].
+    pub fn new(initiator: usize, receiver: String) -> Self {
         Self {
             id: AlmostSnowflake::new(1234567890)
                 .to_string()

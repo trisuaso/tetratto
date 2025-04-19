@@ -130,10 +130,8 @@ impl DataManager {
             .get_request_by_id_linked_asset(id, linked_asset)
             .await?;
 
-        if !force {
-            if user.id != y.owner && !user.permissions.check(FinePermission::MANAGE_REQUESTS) {
-                return Err(Error::NotAllowed);
-            }
+        if !force && user.id != y.owner && !user.permissions.check(FinePermission::MANAGE_REQUESTS) {
+            return Err(Error::NotAllowed);
         }
 
         let conn = match self.connect().await {

@@ -110,7 +110,8 @@
 
                     <div class="flex gap-2">
                         <button class="primary">{{ text "requests:label.answer" }}</button>
-                        <button class="red quaternary" onclick="trigger('me::remove_question', ['{{ question[0].id }}'])">{{ text "general:action.delete" }}</button>
+                        <button type="button" class="red quaternary" onclick="trigger('me::remove_question', ['{{ question[0].id }}'])">{{ text "general:action.delete" }}</button>
+                        <button type="button" class="red quaternary" onclick="trigger('me::ip_block_question', ['{{ question[0].id }}'])">{{ text "auth:action.ip_block" }}</button>
                     </div>
                 </form>
              </div>

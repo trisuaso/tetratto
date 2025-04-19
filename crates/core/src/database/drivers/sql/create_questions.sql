@@ -9,5 +9,8 @@ CREATE TABLE IF NOT EXISTS questions (
     community BIGINT NOT NULL,
     -- likes
     likes INT NOT NULL,
-    dislikes INT NOT NULL
+    dislikes INT NOT NULL,
+    -- ...
+    context TEXT NOT NULL,
+    ip TEXT NOT NULL
 )

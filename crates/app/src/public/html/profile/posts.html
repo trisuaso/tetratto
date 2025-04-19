@@ -1,5 +1,6 @@
 {% extends "profile/base.html" %} {% block content %} {% if
-profile.settings.enable_questions and user %}
+profile.settings.enable_questions and (user or
+profile.settings.allow_anonymous_questions) %}
 <div style="display: contents">
     {{ components::create_question_form(receiver=profile.id,
     header=profile.settings.motivational_header) }}
